@@ -34,8 +34,10 @@ Légende : **[P]** porteur (compte ou décision personnelle), **[A]** agent apr�
    Les profils applicatifs restent orphelins et inutilisables (une nouvelle inscription crée un autre identifiant).
 2. **[P] Clé de déploiement** : Convex dashboard > projet > déploiement **prod** > Settings > Deploy keys > générer.
    La coller directement dans Vercel (étape 4), jamais dans un chat ni un fichier.
-3. **[A] Projet Vercel** : `vercel link` (nouveau projet, équipe personnelle), commande de build :
-   `pnpm exec convex deploy --cmd 'pnpm build' --cmd-url-env-var-name VITE_CONVEX_URL`.
+3. **[A] Projet Vercel : FAIT le 21/11 vers 14h.** Projet `vatel-restauration` créé par `vercel link`, sans variable,
+   **non connecté à GitHub** (aucun déploiement automatique ; connexion GitHub à ajouter au compte Vercel si souhaitée).
+   Commande de build versionnée dans `vercel.json` : `pnpm exec convex deploy --cmd 'pnpm build' --cmd-url-env-var-name VITE_CONVEX_URL`.
+   Région des fonctions : `iad1`, proche de Convex (US East), car chaque rendu serveur interroge la base.
 4. **[P/A] Variables Vercel (Production)** : `CONVEX_DEPLOY_KEY` (porteur) ; `VITE_CONVEX_URL` et `VITE_CONVEX_SITE_URL`
    (URL `.convex.cloud` et `.convex.site` du déploiement **prod**, lisibles au dashboard).
 5. **[A] Convex prod** : `convex env set --prod BETTER_AUTH_SECRET` (aléatoire, généré et passé sans affichage) ;
