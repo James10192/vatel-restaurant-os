@@ -17,20 +17,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { SERVICE_LABELS, formatDayLong, formatXof } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
+import { cn } from '#/lib/utils'
 import { DishForm } from './dish-form'
 
 /** Programme un plat (existant ou créé sur place) pour un jour et un service, en brouillon. */
-export function AddItemSheet({ date, service }: { date: string; service: Service }) {
+export function AddItemSheet({ date, service, className }: { date: string; service: Service; className?: string }) {
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'existing' | 'new'>('existing')
   const [dishId, setDishId] = useState<string>('')
-  const { data: dishes } = useQuery({ ...convexQuery(api.dishes.list, {}), enabled: open })
+  const { data: dishes } = useQuery({
+    ...convexQuery(api.dishes.list, {}),
+    enabled: open,
+  })
   const { run, pending, error } = useServerAction(useMutation(api.menus.addItem))
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const capacity = Number(new FormData(event.currentTarget).get('capacity'))
-    const itemId = await run({ date, service, dishId: dishId as Id<'dishes'>, capacity })
+    const itemId = await run({
+      date,
+      service,
+      dishId: dishId as Id<'dishes'>,
+      capacity,
+    })
     if (!itemId) return
     setOpen(false)
     setDishId('')
@@ -42,7 +51,7 @@ export function AddItemSheet({ date, service }: { date: string; service: Service
         <Button
           variant="outline"
           size="sm"
-          className="rounded-full"
+          className={cn('rounded-full', className)}
           aria-label={`Ajouter un plat, ${SERVICE_LABELS[service]}, ${formatDayLong(date)}`}
         >
           <PlusIcon data-icon="inline-start" />

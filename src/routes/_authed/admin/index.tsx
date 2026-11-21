@@ -8,6 +8,8 @@ import { Card, CardContent } from '#/components/ui/card'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '#/components/ui/empty'
 import { DayNav, parseDateSearch, resolveDate, serviceDayLabel } from '#/features/admin/day'
 import { OffersByService, ServiceHero, StatTiles } from '#/features/admin/overview'
+import { OffersTable } from '#/features/admin/offers-table'
+import { ServeQueue } from '#/features/admin/serve-queue'
 import { weekStartOf } from '../../../../convex/lib/dates'
 
 const summaryQuery = (date: string) => convexQuery(api.admin.daySummary, { date })
@@ -26,7 +28,7 @@ function Overview() {
   const { data } = useSuspenseQuery(summaryQuery(date))
   const { totals, offers } = data
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 md:px-8 md:py-10">
+    <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="flex flex-col gap-1">
           <p className="text-eyebrow text-muted-foreground">Pilotage</p>
@@ -60,17 +62,28 @@ function Overview() {
         </Card>
       ) : (
         <>
-          <ServiceHero date={date} dayLabel={serviceDayLabel(date)} totals={totals} />
-          <StatTiles date={date} totals={totals} />
+          {/* Bureau : cockpit, carte de service et indicateurs à gauche, file à servir à droite ; ailleurs, une colonne. */}
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
+            <div className="flex min-w-0 flex-col gap-6">
+              <ServiceHero date={date} dayLabel={serviceDayLabel(date)} totals={totals} />
+              <StatTiles date={date} totals={totals} />
+            </div>
+            <div className="hidden xl:block">
+              <ServeQueue date={date} pendingCount={totals.confirmed} />
+            </div>
+          </div>
           <section aria-labelledby="par-plat" className="flex flex-col gap-3">
             <h2 id="par-plat" className="text-lg font-semibold tracking-tight">
               Par plat
             </h2>
-            <OffersByService date={date} offers={offers} />
+            <div className="xl:hidden">
+              <OffersByService date={date} offers={offers} />
+            </div>
+            <div className="hidden xl:block">
+              <OffersTable date={date} offers={offers} />
+            </div>
           </section>
-          <p className="text-xs text-muted-foreground">
-            Montants en crédits de démonstration : aucun encaissement réel n’est effectué.
-          </p>
+          <p className="text-xs text-muted-foreground">Montants en crédits de démonstration : aucun encaissement réel n’est effectué.</p>
         </>
       )}
     </main>

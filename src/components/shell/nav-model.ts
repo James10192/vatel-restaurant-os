@@ -1,0 +1,30 @@
+import { CalendarCheckIcon, ClipboardListIcon, HouseIcon, LayoutDashboardIcon, ListChecksIcon, WalletIcon } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+
+export type NavTo = '/app' | '/app/bookings' | '/app/wallet' | '/admin' | '/admin/menus' | '/admin/services'
+export type NavItem = { to: NavTo; label: string; short: string; icon: LucideIcon }
+
+/** Espace repas (#11) : Accueil / Repas / Solde. `short` sert au rail tablette et à la barre du bas. */
+export const MEAL_NAV: Array<NavItem> = [
+  { to: '/app', label: 'Accueil', short: 'Accueil', icon: HouseIcon },
+  { to: '/app/bookings', label: 'Mes repas', short: 'Repas', icon: CalendarCheckIcon },
+  { to: '/app/wallet', label: 'Solde', short: 'Solde', icon: WalletIcon },
+]
+
+/** Gestion, administration seulement : le serveur revérifie le rôle à chaque fonction. */
+export const ADMIN_NAV: Array<NavItem> = [
+  { to: '/admin', label: 'Vue d’ensemble', short: 'Pilotage', icon: LayoutDashboardIcon },
+  { to: '/admin/menus', label: 'Menus', short: 'Menus', icon: ClipboardListIcon },
+  { to: '/admin/services', label: 'Commandes du jour', short: 'Service', icon: ListChecksIcon },
+]
+
+/** Liens actifs sur le chemin seul : `?date=` ou `?week=` ne doivent pas éteindre l'onglet. */
+export const ACTIVE_OPTIONS = { exact: true, includeSearch: false } as const
+
+export const initials = (name: string) =>
+  name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()

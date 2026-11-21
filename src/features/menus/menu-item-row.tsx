@@ -15,27 +15,37 @@ import { useServerAction } from '#/lib/server-action'
 import { AllergenBadges } from './allergen-badges'
 import { StatusPill } from './status-pill'
 
-type AdminItem = Doc<'menuItems'> & { dishName: string; allergens: Doc<'dishes'>['allergens'] }
+type AdminItem = Doc<'menuItems'> & {
+  dishName: string
+  allergens: Doc<'dishes'>['allergens']
+}
 
-/** Fiche d'un plat programmé : visuel, statut, allergènes, prix figé et portions ; édition sur place. */
+/**
+ * Fiche d'un plat programmé : visuel, statut, allergènes, prix figé et portions ; édition sur place.
+ * Container query : s'adapte à sa cellule (colonne large en liste, cellule étroite du planning hebdomadaire).
+ */
 export function MenuItemRow({ item }: { item: AdminItem }) {
   return (
-    <li className="flex gap-3 rounded-2xl border bg-card p-2.5 pr-1.5 shadow-card">
-      <DishVisual name={item.dishName} className="size-14 shrink-0 rounded-xl text-sm" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-0.5">
-        <div className="flex items-start justify-between gap-2">
-          <span className="leading-snug font-semibold">{item.dishName}</span>
-          <span className="font-bold whitespace-nowrap text-primary tabular-nums">{formatXof(item.priceXof)}</span>
+    <li className="@container rounded-2xl border bg-card shadow-card">
+      <div className="flex gap-3 p-2.5 pr-1.5 @max-[15rem]:gap-1.5 @max-[15rem]:p-2 @max-[15rem]:pr-1">
+        <DishVisual name={item.dishName} className="size-14 shrink-0 rounded-xl text-sm @max-[15rem]:hidden" />
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-0.5">
+          <div className="flex items-start justify-between gap-2 @max-[15rem]:flex-col @max-[15rem]:gap-0.5">
+            <span className="leading-snug font-semibold break-words @max-[15rem]:text-sm">{item.dishName}</span>
+            <span className="font-bold whitespace-nowrap text-primary tabular-nums @max-[15rem]:text-sm">{formatXof(item.priceXof)}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <StatusPill status={item.status} />
+            <span className="tabular-nums">{item.capacity} portions</span>
+          </div>
+          <div className="min-w-0 [&_[data-slot=badge]]:h-auto [&_[data-slot=badge]]:max-w-full [&_[data-slot=badge]]:whitespace-normal">
+            <AllergenBadges allergens={item.allergens} />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <StatusPill status={item.status} />
-          <span className="tabular-nums">{item.capacity} portions</span>
+        <div className="flex shrink-0 flex-col gap-0.5">
+          <EditItemPopover item={item} />
+          {item.status === 'draft' && <RemoveItemButton item={item} />}
         </div>
-        <AllergenBadges allergens={item.allergens} />
-      </div>
-      <div className="flex shrink-0 flex-col gap-0.5">
-        <EditItemPopover item={item} />
-        {item.status === 'draft' && <RemoveItemButton item={item} />}
       </div>
     </li>
   )
@@ -48,7 +58,11 @@ function EditItemPopover({ item }: { item: AdminItem }) {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
-    const result = await run({ itemId: item._id, priceXof: Number(data.get('price')), capacity: Number(data.get('capacity')) })
+    const result = await run({
+      itemId: item._id,
+      priceXof: Number(data.get('price')),
+      capacity: Number(data.get('capacity')),
+    })
     if (result === null) setOpen(false)
   }
 
