@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+.output/
+.vinxi/
+.vercel/
+.tanstack/
+coverage/
+playwright-report/
+test-results/
+.claude/settings.local.json

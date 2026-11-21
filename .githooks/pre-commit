@@ -1,0 +1,8 @@
+#!/bin/sh
+# Bloque fichiers env/clés et secrets détectés par gitleaks dans le staged diff.
+bad=$(git diff --cached --name-only | grep -E '(^|/)\.env($|\.)|\.pem$|\.key$' | grep -v '\.env\.example$')
+if [ -n "$bad" ]; then echo "pre-commit: fichier sensible refusé: $bad" >&2; exit 1; fi
+if git diff --cached | grep -E '^[+](<{7}|>{7})( |$)' >/dev/null; then echo "pre-commit: marqueur de conflit" >&2; exit 1; fi
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --staged --no-banner --redact || { echo "pre-commit: secret détecté (gitleaks)" >&2; exit 1; }
+else echo "pre-commit: gitleaks absent" >&2; exit 1; fi
