@@ -84,7 +84,7 @@ export function SlideToStart({ label, onComplete, className }: { label: string; 
             complete(trackRef.current ? trackRef.current.clientWidth - 64 : 0)
           }
         }}
-        className="relative z-10 flex size-14 shrink-0 touch-none items-center justify-center rounded-full bg-background text-primary shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-ring/60"
+        className="relative z-10 flex size-14 shrink-0 cursor-pointer touch-none active:cursor-grabbing items-center justify-center rounded-full bg-background text-primary shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-ring/60"
         style={{ transform: `translateX(${offset}px)`, transition: dragging ? 'none' : 'transform 300ms ease-out' }}
       >
         <ArrowRightIcon />

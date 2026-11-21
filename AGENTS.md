@@ -50,6 +50,9 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
 
 ## Commandes
 - `pnpm exec convex dev` (backend dev, terminal 1) · `pnpm dev` (web :3000, terminal 2)
-- `pnpm typecheck` · `pnpm lint` · `pnpm build`
+- `pnpm typecheck` · `pnpm lint` · `pnpm test` (Vitest + convex-test) · `pnpm build`
+- Rattacher un inscrit (démo, CLI) : `pnpm exec convex run setup:attachAccount '{"email":"…","role":"student"}'`
+- Accès serveur : `requireMember` / `requireAdmin` / `getOwned` (`convex/lib/access.ts`) dans CHAQUE fonction publique.
+- Formulaires : `useServerAction` (`src/lib/server-action.ts`) + `FormError`.
 - Variables Convex : `pnpm exec convex env list` (BETTER_AUTH_SECRET, SITE_URL). Jamais lire .env.local.
 - Routes protégées : enfants de `src/routes/_authed/`. Auth serveur : `authComponent.safeGetAuthUser(ctx)`.

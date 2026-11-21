@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthedAdminRouteImport } from './routes/_authed/admin'
 import { Route as AuthedAppRouteImport } from './routes/_authed/app'
+import { Route as AuthedAdminMenusRouteImport } from './routes/_authed/admin/menus'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,10 +31,20 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedAdminRoute = AuthedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedAppRoute = AuthedAppRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedAdminMenusRoute = AuthedAdminMenusRouteImport.update({
+  id: '/menus',
+  path: '/menus',
+  getParentRoute: () => AuthedAdminRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -43,13 +55,17 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthedAdminRouteWithChildren
   '/app': typeof AuthedAppRoute
+  '/admin/menus': typeof AuthedAdminMenusRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthedAdminRouteWithChildren
   '/app': typeof AuthedAppRoute
+  '/admin/menus': typeof AuthedAdminMenusRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -57,15 +73,25 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/app': typeof AuthedAppRoute
+  '/_authed/admin/menus': typeof AuthedAdminMenusRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/app' | '/api/auth/$'
+  fullPaths: '/' | '/auth' | '/admin' | '/app' | '/admin/menus' | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app' | '/api/auth/$'
-  id: '__root__' | '/' | '/_authed' | '/auth' | '/_authed/app' | '/api/auth/$'
+  to: '/' | '/auth' | '/admin' | '/app' | '/admin/menus' | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authed'
+    | '/auth'
+    | '/_authed/admin'
+    | '/_authed/app'
+    | '/_authed/admin/menus'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -98,12 +124,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/admin': {
+      id: '/_authed/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthedAdminRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/app': {
       id: '/_authed/app'
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AuthedAppRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/_authed/admin/menus': {
+      id: '/_authed/admin/menus'
+      path: '/menus'
+      fullPath: '/admin/menus'
+      preLoaderRoute: typeof AuthedAdminMenusRouteImport
+      parentRoute: typeof AuthedAdminRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -115,11 +155,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthedAdminRouteChildren {
+  AuthedAdminMenusRoute: typeof AuthedAdminMenusRoute
+}
+
+const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
+  AuthedAdminMenusRoute: AuthedAdminMenusRoute,
+}
+
+const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(
+  AuthedAdminRouteChildren,
+)
+
 interface AuthedRouteChildren {
+  AuthedAdminRoute: typeof AuthedAdminRouteWithChildren
   AuthedAppRoute: typeof AuthedAppRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedAdminRoute: AuthedAdminRouteWithChildren,
   AuthedAppRoute: AuthedAppRoute,
 }
 

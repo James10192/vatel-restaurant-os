@@ -9,12 +9,12 @@ const isInternalPath = (value: unknown): value is string =>
   typeof value === 'string' && value.startsWith('/') && !value.startsWith('//')
 
 export const Route = createFileRoute('/auth')({
-  validateSearch: (search: Record<string, unknown>): { redirect: string; mode?: 'signup' } => ({
-    redirect: isInternalPath(search.redirect) ? search.redirect : '/app',
+  validateSearch: (search: Record<string, unknown>): { redirect?: string; mode?: 'signup' } => ({
+    redirect: isInternalPath(search.redirect) ? search.redirect : undefined,
     mode: search.mode === 'signup' ? 'signup' : undefined,
   }),
   beforeLoad: ({ context, search }) => {
-    if (context.isAuthenticated) throw redirect({ to: search.redirect })
+    if (context.isAuthenticated) throw redirect({ to: search.redirect ?? '/app' })
   },
   head: () => ({ meta: [{ title: 'Connexion | Vatel Restauration' }] }),
   component: AuthPage,
@@ -25,7 +25,8 @@ export const Route = createFileRoute('/auth')({
  * ordinateur, l'accueil se replie à 50 % et le formulaire entre à droite ; mobile, le formulaire remplace l'accueil.
  */
 function AuthPage() {
-  const { redirect: redirectTo, mode } = Route.useSearch()
+  const { redirect: redirectParam, mode } = Route.useSearch()
+  const redirectTo = redirectParam ?? '/app'
   const [started, setStarted] = useState(mode === 'signup')
   return (
     <div className="flex min-h-svh overflow-hidden bg-background">

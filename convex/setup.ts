@@ -1,6 +1,8 @@
 import { ConvexError, v } from 'convex/values'
+import { components } from './_generated/api'
 import { internalMutation } from './_generated/server'
 import { createAuth } from './auth'
+import { roleValidator } from './schema'
 
 // Alphabet sans caractères ambigus (0/O, 1/l/I) : ce n'est pas un secret.
 const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789' // gitleaks:allow
@@ -34,5 +36,31 @@ export const bootstrap = internalMutation({
     const canteenId = await ctx.db.insert('canteens', { name: args.canteenName, slug: args.canteenSlug })
     await ctx.db.insert('profiles', { authUserId: user.id, canteenId, role: 'admin' })
     return { adminEmail: args.adminEmail, temporaryPassword }
+  },
+})
+
+/**
+ * Rattache un compte déjà inscrit à l'établissement unique de démo (CLI uniquement,
+ * en attendant l'écran /admin/users P1). Refuse un compte déjà rattaché.
+ */
+export const attachAccount = internalMutation({
+  args: { email: v.string(), role: roleValidator },
+  returns: v.null(),
+  handler: async (ctx, { email, role }) => {
+    const canteen = await ctx.db.query('canteens').first()
+    if (!canteen) throw new ConvexError('Aucun établissement : lancer setup:bootstrap.')
+    const found = await ctx.runQuery(components.betterAuth.adapter.findOne, {
+      model: 'user',
+      where: [{ field: 'email', value: email.trim().toLowerCase() }],
+    })
+    if (!found) throw new ConvexError('Aucun compte inscrit avec cet e-mail.')
+    const authUserId = String(found._id)
+    const existing = await ctx.db
+      .query('profiles')
+      .withIndex('by_auth_user', (q) => q.eq('authUserId', authUserId))
+      .unique()
+    if (existing) throw new ConvexError('Compte déjà rattaché.')
+    await ctx.db.insert('profiles', { authUserId, canteenId: canteen._id, role })
+    return null
   },
 })

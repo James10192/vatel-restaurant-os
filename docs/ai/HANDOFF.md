@@ -1,9 +1,9 @@
 # HANDOFF : état du développement
 
-_Mis à jour : 21/11/2026 ~09h35 (Abidjan)_
+_Mis à jour : 21/11/2026 ~10h10 (Abidjan)_
 
 ## Lot actuel
-**A0 terminé, en attente de validation humaine avant A1.** (STEP 00 validé, commit 1dabc00.)
+**A1 terminé (menus + admin + recette légère), en attente de validation avant A2.**
 
 ## Fait en A0
 - Scaffold officiel `@tanstack/cli@0.72.16` (React, pnpm, add-ons convex + shadcn, ESLint, adaptateur Vercel), copié dans le dépôt.
@@ -35,11 +35,21 @@ _Mis à jour : 21/11/2026 ~09h35 (Abidjan)_
 - Inscription conservée (#1) mais sans privilège : sans profil, `/app` affiche « Compte en attente de rattachement » (vérifié avec Awa Test).
 - `convex/setup.ts` `bootstrap` (internalMutation) : crée l'établissement « Vatel Abidjan (démo) » + admin@demo.test, mot de passe généré serveur, exécuté une fois ; 2e appel refusé (vérifié). Mot de passe non versionné.
 
+## Fait en A1
+- Schéma : units, ingredients (clé dédoublonnée par établissement), dishes (prix défaut XOF, allergènes `unknown` | `declared{present,traces}`, recette {portions, lignes}), menuItems (date, service lunch/dinner, prix figé, capacité, draft/published) + index.
+- Accès : `convex/lib/access.ts` (identité JWT `subject`, profil, tenant jamais client, `getOwned` = isolation). Validation `convex/lib/validation.ts` (XOF entier, capacité, dates ISO, noms).
+- Fonctions : `catalog.references/createUnit/createIngredient` (idempotentes), `dishes.list/save`, `menus.adminWeek/publishedWeek/addItem/updateItem/removeItem/publishWeek`. `setup.attachAccount` (CLI).
+- UI : en-tête commun (logo, Repas/Menus selon rôle, menu compte), `/admin/menus` (semaine, jours, Déjeuner/Dîner, Sheet « Ajouter » avec onglets catalogue/nouveau plat, Popover d'édition prix/capacité, Publier n brouillons), `/app` menu publié (MealCard, allergènes, semaine via `?week=`).
+- Combobox « choisir ou créer » : ingrédient et unité créés sans quitter la fiche.
+- Tests `pnpm test` : 8 convex-test (brouillon invisible, usager sans droit admin, non rattaché refusé, isolation A/B, prix entier, publié non supprimable, unité sans doublon, référence d'un autre tenant refusée).
+- Navigateur : gérant crée « Riz sauce arachide » 1 200 FCFA, Arachide, Riz 0,8 kg pour 10 portions (Riz et kg créés sur place, nom et prix conservés), ajoute 80 portions lundi midi, publie ; Awa (étudiante) le voit ; Awa redirigée hors /admin/menus.
+
 ## Non fait / risques
-- Pas encore de tests automatisés (Vitest/convex-test/Playwright) : à poser en A1 avec la première logique métier.
+- Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
+- Révocation : accès serveur basé sur le JWT, effectif à son expiration.
 - Connexion admin non testée dans le navigateur (mot de passe affiché uniquement au porteur). Rattachement d'un inscrit par l'admin : A1/admin users.
 - Pas de déploiement Vercel (après P0, cf. #14) ; `vercel whoami` non vérifié.
 - Charte PDF Vatel non reçue ; logo, couleurs et police relevés sur vatel.ci. Photo Unsplash (licence Unsplash), auteur à créditer si exigé.
 
 ## Prochaine action
-A1 : schéma minimal (canteens, profils/rôles, menus, plats, recette légère), permissions, admin menu brouillon/publié, lecture menu semaine (#1, #11, #13, #22, #19).
+A2 : wallet (ledger append-only, recharge démo étiquetée), réservation atomique (débit + capacité, idempotence, pas de survente), annulation avant échéance (#1, #12, #7, #23, #16 PAY).
