@@ -40,11 +40,7 @@ export const mine = query({
   returns: v.array(v.object({ bookingId: v.id('bookings'), score: v.number() })),
   handler: async (ctx, { from }) => {
     const membership = await requireMember(ctx)
-    const day = assertIsoDate(from)
-    const bookings = await ctx.db.query('bookings').withIndex('by_profile_date', (q) => q.eq('profileId', membership._id).gte('date', day)).collect()
-    const rows = await Promise.all(
-      bookings.filter((b) => b.status === 'picked_up').map((b) => ctx.db.query('ratings').withIndex('by_booking', (q) => q.eq('bookingId', b._id)).unique()),
-    )
-    return rows.filter((r) => r !== null).map((r) => ({ bookingId: r.bookingId, score: r.score }))
+    const rows = await ctx.db.query('ratings').withIndex('by_profile_date', (q) => q.eq('profileId', membership._id).gte('date', assertIsoDate(from))).collect()
+    return rows.map((r) => ({ bookingId: r.bookingId, score: r.score }))
   },
 })

@@ -22,3 +22,17 @@ export function slotsOf(policy: SlotPolicy): Array<string> {
 export function assignSlot(policy: SlotPolicy, taken: Record<string, number>): string | null {
   return slotsOf(policy).find((slot) => (taken[slot] ?? 0) < policy.slotCapacity) ?? null
 }
+
+/** Réservations actives par créneau (les réservations sans créneau ne comptent dans aucun). */
+export function countBySlot(bookings: Array<{ slot?: string }>): Record<string, number> {
+  const taken: Record<string, number> = {}
+  for (const b of bookings) if (b.slot) taken[b.slot] = (taken[b.slot] ?? 0) + 1
+  return taken
+}
+
+/** Un créneau précis peut-il recevoir une réservation ? Motif de refus, ou null. */
+export function slotRefusal(policy: SlotPolicy, taken: Record<string, number>, slot: string): string | null {
+  if (!slotsOf(policy).includes(slot)) return 'Créneau inconnu.'
+  if ((taken[slot] ?? 0) >= policy.slotCapacity) return 'Ce créneau est complet.'
+  return null
+}

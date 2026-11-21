@@ -3,7 +3,7 @@ import type { QueryCtx } from '../../_generated/server'
 import { addDays, todayUtc } from '../dates'
 import { suggest, summarizeHistory } from '../production/history'
 import { loadDishHistory, loadProductionDay } from '../production/load'
-import { expiringLots, toBuy } from '../stock/position'
+import { EXPIRY_HORIZON_DAYS, stockAlerts } from '../stock/position'
 import { loadStock } from '../stock/load'
 import type { ManagerFacts } from './brief'
 
@@ -18,12 +18,10 @@ export async function managerFacts(ctx: QueryCtx, canteenId: Id<'canteens'>, day
   const today = todayUtc()
   const tomorrowDate = addDays(day, 1)
   const [stockRows, tomorrowOffers, menus] = await Promise.all([loadStock(ctx, canteenId, today), loadProductionDay(ctx, canteenId, tomorrowDate), menuStats(ctx, canteenId, today)])
-  const stock = stockRows.map((row) => ({
-    name: row.name,
-    unit: row.unit,
-    shortage: row.need === null ? 0 : toBuy(row.need, row),
-    expiring: expiringLots(row, today, addDays(today, 2)).map((lot) => ({ qty: lot.remaining, day: lot.expiresOn ?? today })),
-  }))
+  const stock = stockRows.map((row) => {
+    const alerts = stockAlerts(row, today, addDays(today, EXPIRY_HORIZON_DAYS))
+    return { name: row.name, unit: row.unit, shortage: alerts.shortage, expiring: alerts.expiring.map((lot) => ({ qty: lot.remaining, day: lot.expiresOn ?? today })) }
+  })
   const tomorrow = await Promise.all(
     tomorrowOffers.map(async (offer) => {
       const item = await ctx.db.get(offer.menuItemId)

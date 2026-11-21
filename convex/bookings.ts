@@ -6,7 +6,7 @@ import { appendEntry, getOrCreateWallet } from './lib/ledger'
 import { bookMeal, requirePolicy, slotLoad } from './lib/booking'
 import { alertIfLowBalance } from './lib/lowBalance'
 import { cutoffAt, slotPolicyOf } from './lib/policy'
-import { slotsOf } from './lib/slots'
+import { slotRefusal, slotsOf } from './lib/slots'
 import { myBookingsReturns } from './lib/returns'
 import { notifyNextWaiting } from './lib/waitlist'
 
@@ -164,10 +164,10 @@ export const changeSlot = mutation({
     const policy = await requirePolicy(ctx, membership)
     if (Date.now() >= cutoffAt(policy, booking.date, booking.service)) throw new ConvexError('Délai de modification dépassé pour ce service.')
     const slotPolicy = slotPolicyOf(policy, booking.service)
-    if (!slotPolicy || !slotsOf(slotPolicy).includes(slot)) throw new ConvexError('Créneau inconnu.')
+    if (!slotPolicy) throw new ConvexError('Créneau inconnu.')
     if (slot === booking.slot) return null
-    const taken = await slotLoad(ctx, membership.canteenId, booking.date, booking.service)
-    if ((taken[slot] ?? 0) >= slotPolicy.slotCapacity) throw new ConvexError('Ce créneau est complet.')
+    const refusal = slotRefusal(slotPolicy, await slotLoad(ctx, membership.canteenId, booking.date, booking.service), slot)
+    if (refusal) throw new ConvexError(refusal)
     await ctx.db.patch(bookingId, { slot })
     return null
   },

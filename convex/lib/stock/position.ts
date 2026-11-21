@@ -84,3 +84,14 @@ export const expiringLots = (position: Position, today: string, horizon: string)
 
 /** Besoin à acheter : besoin restant moins stock théorique, jamais négatif. */
 export const toBuy = (need: number, position: Position) => Math.max(0, need - position.theoretical)
+
+/** Horizon des lots « à utiliser vite » : aujourd'hui et les 2 jours suivants. */
+export const EXPIRY_HORIZON_DAYS = 2
+
+/**
+ * Alertes d'une ligne de stock, partagées par l'écran Stocks et le copilote : manque d'ici dimanche (besoin
+ * inconnu = pas d'alerte), lots qui expirent bientôt, unités sans conversion.
+ */
+export function stockAlerts(row: Position & { need: number | null }, today: string, horizon: string) {
+  return { shortage: row.need === null ? 0 : toBuy(row.need, row), expiring: expiringLots(row, today, horizon), incompatible: row.incompatible }
+}

@@ -6,7 +6,7 @@ import { ConvexError, v } from 'convex/values'
 import { mutation, query } from './_generated/server'
 import { getOwned, requireKitchen } from './lib/access'
 import { activeBookingsCount } from './lib/capacity'
-import { addDays, todayUtc, weekStartOf } from './lib/dates'
+import { todayUtc, weekDays, weekStartOf } from './lib/dates'
 import { suggest, summarizeHistory } from './lib/production/history'
 import { loadDishHistory, loadProductionDay } from './lib/production/load'
 import { dishHistoryReturns, productionWeekReturns } from './lib/production/returns'
@@ -67,7 +67,7 @@ export const week = query({
   handler: async (ctx, { weekStart }) => {
     const { canteenId } = await requireKitchen(ctx)
     const monday = weekStartOf(assertIsoDate(weekStart))
-    const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i))
+    const days = weekDays(monday)
     return await Promise.all(days.map(async (date) => ({ date, offers: await loadProductionDay(ctx, canteenId, date) })))
   },
 })

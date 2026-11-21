@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
@@ -31,7 +31,12 @@ export function CounterPanel({ date, offers }: { date: string; offers: Array<Off
 function NameSearch({ date }: { date: string }) {
   const t = useT()
   const [name, setName] = useState('')
-  const query = useDeferredValue(name.trim())
+  // Recherche lancée 250 ms après la dernière frappe : un abonnement Convex par nom cherché, pas par touche.
+  const [query, setQuery] = useState('')
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(name.trim()), 250)
+    return () => clearTimeout(timer)
+  }, [name])
   const { data: results } = useQuery({ ...convexQuery(api.counter.searchDiner, { date, name: query }), enabled: query.length >= 2 })
   const pickUp = useServerAction(useMutation(api.admin.markPickedUp))
   return (

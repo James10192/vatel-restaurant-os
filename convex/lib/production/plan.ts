@@ -139,3 +139,18 @@ export function toProduce(baseline: Baseline, plan: PlanAssumptions | null, date
   if (date < today) return 0
   return Math.max(0, plannedDemand(baseline, plan) - (date === today ? (baseline.prepared ?? 0) : 0))
 }
+
+type DayOffers = { date: string; offers: Array<Baseline & { plan: PlanAssumptions | null; recipe: Recipe | null; dishName: string }> }
+
+/**
+ * Matière brute encore nécessaire sur des jours de production (aujourd'hui : demande moins préparé ; à venir :
+ * toute la demande) et plats sans fiche exploitable. Même calcul pour l'onglet Semaine et pour les achats.
+ */
+export function remainingMaterials(days: Array<DayOffers>, today: string) {
+  const remaining = days.flatMap((day) => day.offers.map((o) => ({ o, portions: toProduce(o, o.plan, day.date, today) }))).filter((x) => x.portions > 0)
+  const needs = remaining.map(({ o, portions }) => materialsFor(o.recipe, portions))
+  return {
+    materials: sumMaterials(needs.filter((n): n is Array<MaterialNeed> => n !== null)),
+    withoutRecipe: [...new Set(remaining.filter((_, i) => needs[i] === null).map(({ o }) => o.dishName))],
+  }
+}

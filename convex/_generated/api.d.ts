@@ -35,6 +35,7 @@ import type * as lib_dates from "../lib/dates.js";
 import type * as lib_ledger from "../lib/ledger.js";
 import type * as lib_locale from "../lib/locale.js";
 import type * as lib_lowBalance from "../lib/lowBalance.js";
+import type * as lib_names from "../lib/names.js";
 import type * as lib_notifications from "../lib/notifications.js";
 import type * as lib_pass from "../lib/pass.js";
 import type * as lib_policy from "../lib/policy.js";
@@ -104,6 +105,7 @@ declare const fullApi: ApiFromModules<{
   "lib/ledger": typeof lib_ledger;
   "lib/locale": typeof lib_locale;
   "lib/lowBalance": typeof lib_lowBalance;
+  "lib/names": typeof lib_names;
   "lib/notifications": typeof lib_notifications;
   "lib/pass": typeof lib_pass;
   "lib/policy": typeof lib_policy;

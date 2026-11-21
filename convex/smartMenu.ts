@@ -18,7 +18,7 @@ import { configuredModel } from './lib/smartMenu/providers'
 import { alternativesOf, evaluate, planByRules, validateAiPicks } from './lib/smartMenu/rules'
 import type { AllergenInfo, Plan, SmartRequest } from './lib/smartMenu/rules'
 import { QUOTAS, parseRequest, requestArgs, suggestionValidator } from './lib/smartMenu/contract'
-import type { Suggestion } from './lib/smartMenu/contract'
+import type { PublicOffer, Suggestion } from './lib/smartMenu/contract'
 
 
 const NOTICES = {
@@ -100,7 +100,7 @@ export const recordAiTokens = internalMutation({
 })
 
 /** Projection d'une offre pour l'interface : jamais l'indicateur interne « déjà réservé ». */
-const publicOffer = (offer: { id: Id<'menuItems'>; date: string; service: 'lunch' | 'dinner'; dishName: string; priceXof: number; capacity: number; remaining: number; bookableUntil: number; allergens: AllergenInfo }) => ({
+const publicOffer = (offer: { id: Id<'menuItems'>; date: string; service: 'lunch' | 'dinner'; dishName: string; priceXof: number; capacity: number; remaining: number; bookableUntil: number; allergens: AllergenInfo }): PublicOffer => ({
   menuItemId: offer.id,
   date: offer.date,
   service: offer.service,

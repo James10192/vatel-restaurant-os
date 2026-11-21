@@ -45,6 +45,21 @@ export function parseRequest(
   return { days, budgetXof: args.budgetXof, service: args.service, avoid: args.avoid }
 }
 
+/** Offre telle que l'interface la reçoit (projection `publicOffer` de smartMenu.ts) : un seul contrat. */
+export const publicOfferFields = {
+  menuItemId: v.id('menuItems'),
+  date: v.string(),
+  service: serviceValidator,
+  dishName: v.string(),
+  priceXof: v.number(),
+  capacity: v.number(),
+  remaining: v.number(),
+  bookableUntil: v.number(),
+  allergens: allergenInfoValidator,
+}
+const publicOfferValidator = v.object(publicOfferFields)
+export type PublicOffer = Infer<typeof publicOfferValidator>
+
 export const suggestionValidator = v.object({
   source: v.union(v.literal('ai'), v.literal('rules')),
   notice: v.optional(v.string()),
@@ -59,31 +74,11 @@ export const suggestionValidator = v.object({
   ),
   picks: v.array(
     v.object({
-      menuItemId: v.id('menuItems'),
-      date: v.string(),
-      service: serviceValidator,
-      dishName: v.string(),
+      ...publicOfferFields,
       description: v.optional(v.string()),
-      priceXof: v.number(),
-      capacity: v.number(),
-      remaining: v.number(),
-      bookableUntil: v.number(),
-      allergens: allergenInfoValidator,
       reason: v.optional(v.string()),
       /** Autres plats éligibles le même jour (même filtrage serveur), pour changer avant de réserver. */
-      alternatives: v.array(
-        v.object({
-          menuItemId: v.id('menuItems'),
-          date: v.string(),
-          service: serviceValidator,
-          dishName: v.string(),
-          priceXof: v.number(),
-          capacity: v.number(),
-          remaining: v.number(),
-          bookableUntil: v.number(),
-          allergens: allergenInfoValidator,
-        }),
-      ),
+      alternatives: v.array(publicOfferValidator),
     }),
   ),
   metrics: v.object({

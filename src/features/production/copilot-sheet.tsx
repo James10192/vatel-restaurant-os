@@ -12,7 +12,7 @@ import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '#/components/ui/sheet'
 import { Skeleton } from '#/components/ui/skeleton'
-import { dateFormat, formatDayShort } from '#/lib/format'
+import { dateFormat, formatDayShort, formatDecimal } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
 import { useMinWidth } from '#/lib/use-min-width'
 import { cn } from '#/lib/utils'
@@ -21,9 +21,8 @@ import type { Locale } from '#/i18n/i18n'
 
 /** Valeurs d'un point mises en forme pour la langue : décimales à la virgule en français, dates lisibles. */
 function displayValues(values: Record<string, string | number>, locale: Locale) {
-  const number = new Intl.NumberFormat(locale === 'en' ? 'en-GB' : 'fr-FR', { maximumFractionDigits: 2 })
   return Object.fromEntries(
-    Object.entries(values).map(([key, value]) => [key, key === 'day' && typeof value === 'string' ? formatDayShort(value, locale) : typeof value === 'number' ? number.format(value) : value]),
+    Object.entries(values).map(([key, value]) => [key, key === 'day' && typeof value === 'string' ? formatDayShort(value, locale) : typeof value === 'number' ? formatDecimal(value, locale) : value]),
   )
 }
 

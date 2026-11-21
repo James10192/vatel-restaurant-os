@@ -3,7 +3,7 @@
  * C'est la réponse de référence (et le repli) ; l'IA peut seulement ordonner ces points et les résumer.
  * Chaque point porte un modèle de phrase et ses valeurs : l'interface le traduit, rien n'est inventé.
  */
-import { situationOf } from '../production/plan'
+import { roundQty, situationOf } from '../production/plan'
 import { wasteBalance } from '../production/waste'
 import type { ProductionDayOffer, WasteDay } from '../production/load'
 
@@ -71,7 +71,6 @@ const point = (kind: PointKind, key: string, values: Point['values']): Point => 
 })
 
 const pct = (part: number, whole: number) => Math.round((part / whole) * 100)
-const round2 = (n: number) => Math.round(n * 100) / 100
 
 /** Points d'attention d'un jour, triés : à faire d'abord, puis à surveiller, puis informations. */
 export function buildPoints(offers: Array<ProductionDayOffer>, week: Array<WasteDay>): Array<Point> {
@@ -108,9 +107,9 @@ export type ManagerFacts = {
  * menus à revoir (note basse ou pertes élevées, avec un minimum de données pour ne rien conclure sur un cas isolé).
  */
 export function managerPoints({ stock, tomorrow, menus }: ManagerFacts): Array<Point> {
-  const points: Array<Point> = [
-    ...stock.filter((s) => s.shortage > 0).map((s) => point('stock_shortage', s.name, { name: s.name, qty: round2(s.shortage), unit: s.unit })),
-    ...stock.flatMap((s) => s.expiring.map((lot) => point('lot_expiring', `${s.name}:${lot.day}`, { name: s.name, qty: round2(lot.qty), unit: s.unit, day: lot.day }))),
+  return [
+    ...stock.filter((s) => s.shortage > 0).map((s) => point('stock_shortage', s.name, { name: s.name, qty: roundQty(s.shortage), unit: s.unit })),
+    ...stock.flatMap((s) => s.expiring.map((lot) => point('lot_expiring', `${s.name}:${lot.day}`, { name: s.name, qty: roundQty(lot.qty), unit: s.unit, day: lot.day }))),
     ...tomorrow
       .filter((o) => !o.hasPlan)
       .map((o) =>
@@ -124,7 +123,6 @@ export function managerPoints({ stock, tomorrow, menus }: ManagerFacts): Array<P
       )
       .map((m) => point('menu_improve', m.dish, { dish: m.dish, rating: m.ratingAvg ?? '?', waste: m.wasteRate ?? '?' })),
   ]
-  return points
 }
 
 const ORDER: Record<Severity, number> = { action: 0, watch: 1, info: 2 }

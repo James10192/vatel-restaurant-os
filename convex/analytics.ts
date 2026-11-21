@@ -6,7 +6,8 @@ import { ConvexError, v } from 'convex/values'
 import { query } from './_generated/server'
 import { requireAdmin } from './lib/access'
 import { dayRow, totals } from './lib/analytics'
-import { addDays, todayUtc } from './lib/dates'
+import { addDays, todayUtc, weekDays } from './lib/dates'
+import { latestPlan, tally } from './lib/production/load'
 import { assertIsoDate } from './lib/validation'
 
 const n = v.number()
@@ -65,15 +66,15 @@ export const period = query({
       ctx.db.query('ratings').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).gte('date', start).lte('date', end)).collect(),
     ])
     const today = todayUtc()
-    const rows = Array.from({ length: days }, (_, i) => addDays(start, i)).map((date) => {
+    const rows = weekDays(start, days).map((date) => {
       const ofDay = bookings.filter((b) => b.date === date)
       const offers = items
         .filter((item) => item.date === date && item.status === 'published')
         .map((item) => {
           const mine = ofDay.filter((b) => b.menuItemId === item._id)
           const active = mine.filter((b) => b.status !== 'cancelled').length
-          const walkIns = events.filter((e) => e.menuItemId === item._id && e.kind === 'walkin').length
-          const plan = plans.filter((p) => p.menuItemId === item._id).sort((a, b) => b._creationTime - a._creationTime).at(0)
+          const { walkIns } = tally(events.filter((e) => e.menuItemId === item._id))
+          const plan = latestPlan(plans, item._id)
           return {
             capacity: item.capacity,
             active,

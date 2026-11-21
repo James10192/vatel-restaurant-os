@@ -8,14 +8,14 @@ import { analyticsCsv } from '../../../convex/lib/analytics'
 import { Button } from '#/components/ui/button'
 import { Skeleton } from '#/components/ui/skeleton'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { formatXof } from '#/lib/format'
-import { useT } from '#/i18n/i18n'
+import { downloadCsv } from '#/lib/download'
+import { formatDecimal, formatXof } from '#/lib/format'
+import { useLocale, useT } from '#/i18n/i18n'
+import type { Locale } from '#/i18n/i18n'
 
 type Totals = FunctionReturnType<typeof api.analytics.period>['totals']
 type Tile = { label: string; value: string; detail: string }
 
-/** Marque d'ordre des octets : Excel lit le fichier en UTF-8. */
-const BOM = '﻿'
 
 /**
  * Indicateurs d'une période (#9). Chaque taux montre son dénominateur ; retrait et absences ne portent que sur
@@ -23,14 +23,10 @@ const BOM = '﻿'
  */
 export function Indicators({ endDate }: { endDate: string }) {
   const t = useT()
+  const { locale } = useLocale()
   const [days, setDays] = useState<7 | 30>(7)
   const { data } = useQuery(convexQuery(api.analytics.period, { endDate, days }))
-  const download = () => {
-    if (!data) return
-    const url = URL.createObjectURL(new Blob([BOM, analyticsCsv(data.rows)], { type: 'text/csv;charset=utf-8' }))
-    Object.assign(document.createElement('a'), { href: url, download: `indicateurs-${days}j-${endDate}.csv` }).click()
-    URL.revokeObjectURL(url)
-  }
+  const download = () => data && downloadCsv(`indicateurs-${days}j-${endDate}.csv`, analyticsCsv(data.rows))
   return (
     <section aria-labelledby="indicators-title" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -56,7 +52,7 @@ export function Indicators({ endDate }: { endDate: string }) {
         <Skeleton className="h-40 rounded-3xl" />
       ) : (
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-          {tilesOf(data.totals, t).map((tile) => (
+          {tilesOf(data.totals, t, locale).map((tile) => (
             <li key={tile.label} className="flex flex-col gap-1 rounded-3xl border bg-card p-4 shadow-card">
               <span className="text-xs text-muted-foreground">{tile.label}</span>
               <span className="text-2xl leading-none font-bold tracking-tight tabular-nums">{tile.value}</span>
@@ -69,7 +65,7 @@ export function Indicators({ endDate }: { endDate: string }) {
   )
 }
 
-function tilesOf(totals: Totals, t: (text: string, vars?: Record<string, string | number>) => string): Array<Tile> {
+function tilesOf(totals: Totals, t: (text: string, vars?: Record<string, string | number>) => string, locale: Locale): Array<Tile> {
   const pct = (rate: Totals['pickupRate']) => (rate.value === null ? '?' : `${rate.value} %`)
   const ratio = (rate: Totals['pickupRate'], unit: string) => t('{n} sur {d} {unit}', { n: rate.numerator, d: rate.denominator, unit: t(unit) })
   return [
@@ -80,12 +76,12 @@ function tilesOf(totals: Totals, t: (text: string, vars?: Record<string, string 
     { label: t('Surplus récupéré'), value: pct(totals.recoveredRate), detail: ratio(totals.recoveredRate, 'portions préparées') },
     {
       label: t('Satisfaction'),
-      value: totals.rating.value === null ? '?' : `${String(totals.rating.value).replace('.', ',')} / 5`,
+      value: totals.rating.value === null ? '?' : `${formatDecimal(totals.rating.value, locale)} / 5`,
       detail: t(totals.rating.count > 1 ? '{n} notes' : '{n} note', { n: totals.rating.count }),
     },
     {
       label: t('Écart des passages estimés'),
-      value: totals.planError.value === null ? '?' : String(totals.planError.value).replace('.', ','),
+      value: totals.planError.value === null ? '?' : formatDecimal(totals.planError.value, locale),
       detail: t('repas par service, sur {n} services planifiés', { n: totals.planError.services }),
     },
     { label: t('Plats complets'), value: String(totals.soldOut), detail: t('sur {n} offres publiées', { n: totals.offers }) },

@@ -4,10 +4,8 @@ import { purchaseCsv, purchaseList } from './stock-model'
 import type { StockRow } from './stock-model'
 import { Button } from '#/components/ui/button'
 import { formatXof, todayIso } from '#/lib/format'
+import { downloadCsv } from '#/lib/download'
 import { useT } from '#/i18n/i18n'
-
-/** Marque d'ordre des octets : Excel lit alors le fichier en UTF-8 (accents corrects). */
-const BOM = '\uFEFF'
 
 /**
  * Liste d'achat proposée (besoin d'ici dimanche moins stock théorique). Une proposition : la commande reste une
@@ -17,12 +15,7 @@ export function PurchaseCard({ rows }: { rows: Array<StockRow> }) {
   const t = useT()
   const list = purchaseList(rows)
   const total = list.every((p) => p.costXof !== null) ? list.reduce((n, p) => n + (p.costXof ?? 0), 0) : null
-  const download = () => {
-    const url = URL.createObjectURL(new Blob([BOM, purchaseCsv(list)], { type: 'text/csv;charset=utf-8' }))
-    const link = Object.assign(document.createElement('a'), { href: url, download: `achats-${todayIso()}.csv` })
-    link.click()
-    URL.revokeObjectURL(url)
-  }
+  const download = () => downloadCsv(`achats-${todayIso()}.csv`, purchaseCsv(list))
   return (
     <section className="flex flex-col gap-3 rounded-3xl border bg-card p-4 shadow-card">
       <div className="flex items-center justify-between gap-2">

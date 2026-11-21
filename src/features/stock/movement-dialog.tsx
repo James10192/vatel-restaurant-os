@@ -12,7 +12,7 @@ import { Field, FieldDescription, FieldLabel } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '#/components/ui/native-select'
 import { Spinner } from '#/components/ui/spinner'
-import { useServerAction } from '#/lib/server-action'
+import { useEntryDialog } from '#/lib/use-entry-dialog'
 import { useT } from '#/i18n/i18n'
 
 export type MovementKind = 'reception' | 'count' | 'loss'
@@ -36,14 +36,11 @@ const parseInteger = (value: string) => (/^\d+$/.test(value.trim()) ? Number(val
 export function MovementDialog({ kind, trigger, ingredientId }: { kind: MovementKind; trigger: React.ReactNode; ingredientId?: Id<'ingredients'> }) {
   const t = useT()
   const copy = COPY[kind]
-  const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ ingredientId: '', unitId: '', quantity: '', lotCode: '', expiresOn: '', supplier: '', unitCost: '', reason: 'expired' as LossReason })
-  const [key, setKey] = useState('')
-  const { data: refs } = useQuery({ ...convexQuery(api.catalog.references, {}), enabled: open })
-  const createIngredient = useMutation(api.catalog.createIngredient)
-  const createUnit = useMutation(api.catalog.createUnit)
+  const empty = { ingredientId: ingredientId ?? '', unitId: '', quantity: '', lotCode: '', expiresOn: '', supplier: '', unitCost: '', reason: 'expired' as LossReason }
+  const [form, setForm] = useState(empty)
   const actions = { reception: useMutation(api.stock.receive), count: useMutation(api.stock.count), loss: useMutation(api.stock.lose) }
-  const action = useServerAction(async () => {
+  // La clé d'idempotence (une par ouverture) est passée à l'envoi.
+  const submit = async (key: string) => {
     const base = { ingredientId: form.ingredientId as Id<'ingredients'>, unitId: form.unitId as Id<'units'>, quantity: parseDecimal(form.quantity), idempotencyKey: key }
     if (kind === 'reception')
       return await actions.reception({
@@ -55,7 +52,11 @@ export function MovementDialog({ kind, trigger, ingredientId }: { kind: Movement
       })
     if (kind === 'count') return await actions.count(base)
     return await actions.loss({ ...base, reason: form.reason })
-  })
+  }
+  const { open, setOpen, onOpenChange, key, action } = useEntryDialog(submit, () => setForm(empty))
+  const { data: refs } = useQuery({ ...convexQuery(api.catalog.references, {}), enabled: open })
+  const createIngredient = useMutation(api.catalog.createIngredient)
+  const createUnit = useMutation(api.catalog.createUnit)
   const set = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }))
   const quantity = parseDecimal(form.quantity)
   const costOk = !form.unitCost || Number.isInteger(parseInteger(form.unitCost))
@@ -64,13 +65,7 @@ export function MovementDialog({ kind, trigger, ingredientId }: { kind: Movement
   return (
     <Dialog
       open={open}
-      onOpenChange={(next) => {
-        setOpen(next)
-        if (!next) return
-        setKey(crypto.randomUUID())
-        action.setError(null)
-        setForm({ ingredientId: ingredientId ?? '', unitId: '', quantity: '', lotCode: '', expiresOn: '', supplier: '', unitCost: '', reason: 'expired' })
-      }}
+      onOpenChange={onOpenChange}
     >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-h-[92dvh] overflow-y-auto">
@@ -79,7 +74,7 @@ export function MovementDialog({ kind, trigger, ingredientId }: { kind: Movement
           onSubmit={async (e) => {
             e.preventDefault()
             if (!ready) return
-            if ((await action.run()) !== undefined) setOpen(false)
+            if ((await action.run(key)) !== undefined) setOpen(false)
           }}
         >
           <DialogHeader>

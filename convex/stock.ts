@@ -6,11 +6,15 @@ import { ConvexError, v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
+import schema, { lossReasonValidator } from './schema'
 import { getOwned, requireKitchen } from './lib/access'
 import { isIsoDate, todayUtc } from './lib/dates'
 import { loadStock } from './lib/stock/load'
 import { assertIdempotencyKey } from './lib/validation'
 import { convert } from './lib/stock/units'
+import { MEMBER_FALLBACK, memberNames, unitNames } from './lib/names'
+
+const movementFields = schema.tables.stockMovements.validator.fields
 
 const MAX_QUANTITY = 1_000_000
 const MAX_UNIT_COST_XOF = 1_000_000
@@ -54,35 +58,36 @@ export const recent = query({
     v.object({
       _id: v.id('stockMovements'),
       at: v.number(),
-      kind: v.union(v.literal('reception'), v.literal('count'), v.literal('loss')),
+      kind: movementFields.kind,
       ingredient: v.string(),
       quantity: v.number(),
       unit: v.string(),
       lotCode: v.union(v.null(), v.string()),
       expiresOn: v.union(v.null(), v.string()),
       supplier: v.union(v.null(), v.string()),
-      lossReason: v.union(v.null(), v.literal('expired'), v.literal('damaged'), v.literal('other')),
+      lossReason: v.union(v.null(), lossReasonValidator),
       by: v.string(),
     }),
   ),
   handler: async (ctx) => {
     const { canteenId } = await requireKitchen(ctx)
     const rows = await ctx.db.query('stockMovements').withIndex('by_canteen', (q) => q.eq('canteenId', canteenId)).order('desc').take(20)
+    const [authors, units] = await Promise.all([memberNames(ctx, rows.map((m) => m.profileId)), unitNames(ctx, rows.map((m) => m.unitId))])
     return await Promise.all(
       rows.map(async (m) => {
-        const [ingredient, unit, author] = await Promise.all([ctx.db.get(m.ingredientId), ctx.db.get(m.unitId), ctx.db.get(m.profileId)])
+        const ingredient = await ctx.db.get(m.ingredientId)
         return {
           _id: m._id,
           at: m._creationTime,
           kind: m.kind,
           ingredient: ingredient?.name ?? '?',
           quantity: m.quantity,
-          unit: unit?.name ?? '?',
+          unit: units.get(m.unitId) ?? '?',
           lotCode: m.lotCode ?? null,
           expiresOn: m.expiresOn ?? null,
           supplier: m.supplier ?? null,
           lossReason: m.lossReason ?? null,
-          by: author?.displayName ?? 'Membre',
+          by: authors.get(m.profileId) ?? MEMBER_FALLBACK,
         }
       }),
     )
@@ -155,7 +160,7 @@ export const count = mutation({
 
 /** Perte de matière (périmé, abîmé, autre) : sort du stock théorique, motif conservé. */
 export const lose = mutation({
-  args: { ...common, reason: v.union(v.literal('expired'), v.literal('damaged'), v.literal('other')) },
+  args: { ...common, reason: lossReasonValidator },
   returns: v.null(),
   handler: async (ctx, args) => {
     const { base, duplicate } = await prepare(ctx, args)

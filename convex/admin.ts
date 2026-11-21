@@ -4,6 +4,7 @@ import type { Doc } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
 import { requireCounter } from './lib/access'
+import { tally } from './lib/production/load'
 import { assertIsoDate } from './lib/validation'
 import { serviceValidator } from './schema'
 import { dayOrdersReturns, daySummaryReturns } from './lib/returns'
@@ -92,7 +93,7 @@ export const daySummary = query({
   handler: async (ctx, { date }) => {
     const { canteenId } = await requireCounter(ctx)
     const day = assertIsoDate(date)
-    const [items, bookings, walkIns] = await Promise.all([
+    const [items, bookings, events] = await Promise.all([
       ctx.db
         .query('menuItems')
         .withIndex('by_canteen_date', (q) =>
@@ -108,8 +109,7 @@ export const daySummary = query({
       ctx.db
         .query('productionEvents')
         .withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', day))
-        .collect()
-        .then((events) => events.filter((e) => e.kind === 'walkin')),
+        .collect(),
     ])
     const published = items.filter((item) => item.status === 'published')
     const dishes = await Promise.all(
@@ -134,7 +134,7 @@ export const daySummary = query({
         pickedUp,
         cancelled: count(item._id, 'cancelled'),
         remaining: Math.max(item.capacity - confirmed - pickedUp, 0),
-        walkIns: walkIns.filter((e) => e.menuItemId === item._id).length,
+        walkIns: tally(events.filter((e) => e.menuItemId === item._id)).walkIns,
       }
     })
     const sum = (

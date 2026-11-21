@@ -1,6 +1,7 @@
 import type { Doc, Id } from '../../_generated/dataModel'
 import type { QueryCtx } from '../../_generated/server'
 import { addDays, todayUtc } from '../dates'
+import { MEMBER_FALLBACK, memberNames } from '../names'
 import type { Recipe } from './plan'
 import { WASTE_REASONS, emptyWaste } from './waste'
 import type { WasteByReason } from './waste'
@@ -57,15 +58,19 @@ async function resolveRecipe(ctx: QueryCtx, dish: Doc<'dishes'> | null): Promise
   return { portions: dish.recipe.portions, lines }
 }
 
+/** Plan qui fait foi pour une offre : la validation la plus récente (les précédentes restent en base). */
+export const latestPlan = (plans: Array<Doc<'productionPlans'>>, menuItemId: Id<'menuItems'>) =>
+  plans.filter((p) => p.menuItemId === menuItemId).sort((a, b) => b._creationTime - a._creationTime).at(0)
+
 /** Situation d'un jour par offre publiée : réservations, préparé, pertes et fiche technique (trois lectures indexées). */
 export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>, isoDate: string) {
-  const [items, bookings, events] = await Promise.all([
+  const [items, bookings, events, plans] = await Promise.all([
     ctx.db.query('menuItems').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
     ctx.db.query('bookings').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
     ctx.db.query('productionEvents').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
+    ctx.db.query('productionPlans').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
   ])
-  const plans = await ctx.db.query('productionPlans').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect()
-  const names = await authorNames(ctx, [...events.map((e) => e.profileId), ...plans.map((p) => p.profileId)])
+  const names = await memberNames(ctx, [...events.map((e) => e.profileId), ...plans.map((p) => p.profileId)])
   // Jour passé : une réservation encore « confirmée » n'a pas été retirée (absence).
   const past = isoDate < todayUtc()
   const offers = await Promise.all(
@@ -77,7 +82,7 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
         const ofItem = events.filter((e) => e.menuItemId === item._id)
         const { prepared, preparedAt, waste, recovered, walkIns } = tally(ofItem)
         // Dernière validation du plan (les précédentes restent en base : corrections tracées).
-        const plan = plans.filter((p) => p.menuItemId === item._id).sort((a, b) => b._creationTime - a._creationTime).at(0)
+        const plan = latestPlan(plans, item._id)
         return {
           menuItemId: item._id,
           service: item.service,
@@ -95,14 +100,14 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
           walkIns,
           lots: ofItem
             .filter((e) => e.kind === 'prepared')
-            .map((e) => ({ at: e._creationTime, portions: e.portions, by: names.get(e.profileId) ?? 'Membre' })),
+            .map((e) => ({ at: e._creationTime, portions: e.portions, by: names.get(e.profileId) ?? MEMBER_FALLBACK })),
           plan: plan
             ? {
                 walkIns: plan.walkIns,
                 margin: plan.margin,
                 bookedAtValidation: plan.bookedAtValidation,
                 at: plan._creationTime,
-                by: names.get(plan.profileId) ?? 'Membre',
+                by: names.get(plan.profileId) ?? MEMBER_FALLBACK,
                 revisions: plans.filter((p) => p.menuItemId === item._id).length,
               }
             : null,
@@ -111,13 +116,6 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
       }),
   )
   return offers.sort((a, b) => SERVICE_ORDER[a.service] - SERVICE_ORDER[b.service] || a.dishName.localeCompare(b.dishName, 'fr'))
-}
-
-/** Noms affichés des auteurs de saisies (jamais d'e-mail), lus une fois par personne. */
-async function authorNames(ctx: QueryCtx, ids: Array<Id<'profiles'>>) {
-  const unique = [...new Set(ids)]
-  const profiles = await Promise.all(unique.map((id) => ctx.db.get(id)))
-  return new Map(unique.map((id, i) => [id, profiles[i]?.displayName ?? 'Membre']))
 }
 
 export type ProductionDayOffer = Awaited<ReturnType<typeof loadProductionDay>>[number]
@@ -144,10 +142,13 @@ const HISTORY_DEPTH = 8
 
 /** Services passés du plat d'une offre (avant elle et avant aujourd'hui) : réservations, absents, préparé, pertes, passages. */
 export async function loadDishHistory(ctx: QueryCtx, item: Doc<'menuItems'>) {
-  const past = (await ctx.db.query('menuItems').withIndex('by_dish_status', (q) => q.eq('dishId', item.dishId).eq('status', 'published')).collect())
-    .filter((other) => other.date < item.date && other.date < todayUtc())
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, HISTORY_DEPTH)
+  // Lecture bornée : les HISTORY_DEPTH services publiés les plus récents avant l'offre (et avant aujourd'hui).
+  const before = item.date < todayUtc() ? item.date : todayUtc()
+  const past = await ctx.db
+    .query('menuItems')
+    .withIndex('by_dish_status', (q) => q.eq('dishId', item.dishId).eq('status', 'published').lt('date', before))
+    .order('desc')
+    .take(HISTORY_DEPTH)
   return await Promise.all(
     past.map(async (other) => {
       const [bookings, events] = await Promise.all([

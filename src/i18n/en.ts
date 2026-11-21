@@ -922,8 +922,8 @@ export const EN: Record<string, string> = {
   'Le stock théorique couvre cette matière.': 'Theoretical stock covers these ingredients.',
   'Coût matière théorique non engagé : environ {amount}.': 'Theoretical ingredient cost not committed: about {amount}.',
   'Coût matière supplémentaire : environ {amount}.': 'Extra ingredient cost: about {amount}.',
-  'Démarrage à froid : aucun passage supposé, marge par défaut de 5 % des réservations.': 'Cold start: no walk-ins assumed, default margin of 5% of bookings.',
-  'Proposition : {walkIns} passages (moyenne mesurée au comptoir), marge de 5 % ; environ {n} absents attendus.': 'Suggestion: {walkIns} walk-ins (average measured at the counter), 5% margin; about {n} no-shows expected.',
+  'Démarrage à froid : aucun passage supposé, marge par défaut de {pct} % des réservations.': 'Cold start: no walk-ins assumed, default margin of {pct}% of bookings.',
+  'Proposition : {walkIns} passages (moyenne mesurée au comptoir), marge de {pct} % ; environ {n} absents attendus.': 'Suggestion: {walkIns} walk-ins (average measured at the counter), {pct}% margin; about {n} no-shows expected.',
   'Appliquer la proposition': 'Apply the suggestion',
   // Comptoir, créneaux, liste d'attente (#4)
   'Comptoir': 'Counter',

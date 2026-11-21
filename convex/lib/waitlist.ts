@@ -17,12 +17,18 @@ export async function notifyNextWaiting(ctx: MutationCtx, booking: Doc<'bookings
   const sameService = (
     await ctx.db.query('menuItems').withIndex('by_canteen_date', (q) => q.eq('canteenId', booking.canteenId).eq('date', booking.date)).collect()
   ).filter((item) => item.service === booking.service)
+  const waiting = await Promise.all(sameService.map(async (item) => ({ item, entries: await entriesOf(ctx, item._id) })))
+  const candidates = waiting.filter((w) => w.entries.length > 0)
+  if (candidates.length === 0) return
   // Sur un autre plat, la place libérée n'aide que si ce plat a lui-même de la place (attente due au service).
   const helped = await Promise.all(
-    sameService.map(async (item) => item._id === booking.menuItemId || (await activeBookingsCount(ctx, item._id)) < item.capacity),
+    candidates.map(async ({ item }) => item._id === booking.menuItemId || (await activeBookingsCount(ctx, item._id)) < item.capacity),
   )
-  const entries = (await Promise.all(sameService.filter((_, i) => helped[i]).map((item) => entriesOf(ctx, item._id)))).flat()
-  const next = entries.sort((a, b) => a._creationTime - b._creationTime).at(0)
+  const next = candidates
+    .filter((_, i) => helped[i])
+    .flatMap((w) => w.entries)
+    .sort((a, b) => a._creationTime - b._creationTime)
+    .at(0)
   if (!next) return
   await ctx.db.delete(next._id)
   await ctx.scheduler.runAfter(0, internal.pushSend.deliver, { target: { profileId: next.profileId }, kind: 'placeFreed' })

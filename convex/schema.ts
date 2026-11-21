@@ -56,6 +56,9 @@ export const wasteReasonValidator = v.union(
   v.literal('quality'),
 )
 
+/** Motif d'une perte de matière (stock), avant toute préparation. */
+export const lossReasonValidator = v.union(v.literal('expired'), v.literal('damaged'), v.literal('other'))
+
 export const walletEntryKindValidator = v.union(
   v.literal('demo_top_up'),
   v.literal('booking_debit'),
@@ -198,7 +201,7 @@ export default defineSchema({
   })
     .index('by_canteen_date', ['canteenId', 'date'])
     .index('by_canteen_status_date', ['canteenId', 'status', 'date'])
-    .index('by_dish_status', ['dishId', 'status']),
+    .index('by_dish_status', ['dishId', 'status', 'date']),
 
   /**
    * Journal de production en ajout seul (#5, #6) : portions préparées (une correction est une ligne négative)
@@ -235,7 +238,7 @@ export default defineSchema({
     supplier: v.optional(v.string()),
     /** Prix d'achat par unité de réception, FCFA entiers (facultatif, jamais inventé). */
     unitCostXof: v.optional(v.number()),
-    lossReason: v.optional(v.union(v.literal('expired'), v.literal('damaged'), v.literal('other'))),
+    lossReason: v.optional(lossReasonValidator),
     expectedBefore: v.optional(v.number()),
     profileId: v.id('profiles'),
     idempotencyKey: v.string(),
@@ -277,14 +280,13 @@ export default defineSchema({
     .index('by_booking', ['bookingId']),
 
   /**
-   * Liste d'attente d'une offre complète (#4). À chaque place libérée, la plus ancienne demande non prévenue
-   * reçoit une notification ; rien n'est réservé ni débité sans la confirmation de l'usager.
+   * Liste d'attente (#4) : à chaque place libérée, la plus ancienne inscription qu'elle aide est prévenue puis
+   * retirée ; rien n'est réservé ni débité sans la confirmation de l'usager.
    */
   waitlist: defineTable({
     canteenId: v.id('canteens'),
     menuItemId: v.id('menuItems'),
     profileId: v.id('profiles'),
-    notifiedAt: v.optional(v.number()),
   })
     .index('by_menu_item', ['menuItemId'])
     .index('by_profile', ['profileId']),
@@ -300,6 +302,7 @@ export default defineSchema({
     score: v.number(),
   })
     .index('by_booking', ['bookingId'])
+    .index('by_profile_date', ['profileId', 'date'])
     .index('by_canteen_date', ['canteenId', 'date']),
 
   /**

@@ -7,12 +7,12 @@ import { mutation, query } from './_generated/server'
 import { getOwned, requireCounter } from './lib/access'
 import { todayUtc } from './lib/dates'
 import { policyOf, slotPolicyOf } from './lib/policy'
-import { slotsOf } from './lib/slots'
-import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
+import { countBySlot, slotsOf } from './lib/slots'
+import { assertIdempotencyKey, assertIsoDate, toKey } from './lib/validation'
+import { MEMBER_FALLBACK, memberNames } from './lib/names'
 import { serviceValidator } from './schema'
 
 const MAX_RESULTS = 10
-const fold = (text: string) => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
 
 /** Réservations actives du jour dont le nom affiché contient la recherche (casse et accents ignorés). */
 export const searchDiner = query({
@@ -28,18 +28,17 @@ export const searchDiner = query({
   ),
   handler: async (ctx, { date, name }) => {
     const { canteenId } = await requireCounter(ctx)
-    const needle = fold(name.slice(0, 60))
+    const needle = toKey(name.slice(0, 60))
     if (needle.length < 2) return []
     const bookings = (await ctx.db.query('bookings').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', assertIsoDate(date))).collect()).filter(
       (b) => b.status !== 'cancelled',
     )
-    const ids = [...new Set(bookings.map((b) => b.profileId))]
-    const profiles = await Promise.all(ids.map((id) => ctx.db.get(id)))
-    const names = new Map(ids.map((id, i) => [id, profiles[i]?.displayName ?? 'Membre']))
+    const names = await memberNames(ctx, bookings.map((b) => b.profileId))
+    const nameOf = (b: (typeof bookings)[number]) => names.get(b.profileId) ?? MEMBER_FALLBACK
     return bookings
-      .filter((b) => fold(names.get(b.profileId) ?? '').includes(needle))
+      .filter((b) => toKey(nameOf(b)).includes(needle))
       .slice(0, MAX_RESULTS)
-      .map((b) => ({ bookingId: b._id, diner: names.get(b.profileId) ?? 'Membre', dishName: b.dishName, service: b.service, status: b.status === 'picked_up' ? ('picked_up' as const) : ('confirmed' as const) }))
+      .map((b) => ({ bookingId: b._id, diner: nameOf(b), dishName: b.dishName, service: b.service, status: b.status === 'picked_up' ? ('picked_up' as const) : ('confirmed' as const) }))
   },
 })
 
@@ -88,13 +87,9 @@ export const slotFlow = query({
       const slotPolicy = slotPolicyOf(policyOf(canteen), service)
       if (!slotPolicy) return []
       const ofService = bookings.filter((b) => b.service === service)
-      return slotsOf(slotPolicy).map((slot) => ({
-        service,
-        slot,
-        booked: ofService.filter((b) => b.slot === slot).length,
-        pickedUp: ofService.filter((b) => b.slot === slot && b.status === 'picked_up').length,
-        capacity: slotPolicy.slotCapacity,
-      }))
+      const booked = countBySlot(ofService)
+      const pickedUp = countBySlot(ofService.filter((b) => b.status === 'picked_up'))
+      return slotsOf(slotPolicy).map((slot) => ({ service, slot, booked: booked[slot] ?? 0, pickedUp: pickedUp[slot] ?? 0, capacity: slotPolicy.slotCapacity }))
     })
   },
 })

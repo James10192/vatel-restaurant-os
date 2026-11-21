@@ -2,26 +2,20 @@ import type { FunctionReturnType } from 'convex/server'
 import type { api } from '../../../convex/_generated/api'
 import { addDays } from '../../../convex/lib/dates'
 import { roundQty } from '../../../convex/lib/production/plan'
-import { expiringLots, toBuy } from '../../../convex/lib/stock/position'
+import { EXPIRY_HORIZON_DAYS, stockAlerts, toBuy } from '../../../convex/lib/stock/position'
 import { csvRows } from '../../../convex/lib/csv'
 
 export type StockRow = FunctionReturnType<typeof api.stock.overview>[number]
 
 /** Alerte d'une ligne de stock : rupture prévue d'ici dimanche, lots qui expirent sous 2 jours, unités sans conversion. */
-export function alertsOf(row: StockRow, today: string) {
-  return {
-    shortage: row.need === null ? 0 : toBuy(row.need, row),
-    expiring: expiringLots(row, today, addDays(today, 2)),
-    incompatible: row.incompatible,
-  }
-}
+export const alertsOf = (row: StockRow, today: string) => stockAlerts(row, today, addDays(today, EXPIRY_HORIZON_DAYS))
 
 /** Liste d'achat : besoin d'ici dimanche moins stock théorique, avec dernier fournisseur et coût estimé si un prix est connu. */
 export function purchaseList(rows: Array<StockRow>) {
   return rows
-    .filter((row) => row.need !== null && toBuy(row.need, row) > 0)
-    .map((row) => {
-      const quantity = toBuy(row.need ?? 0, row)
+    .map((row) => ({ row, quantity: row.need === null ? 0 : toBuy(row.need, row) }))
+    .filter(({ quantity }) => quantity > 0)
+    .map(({ row, quantity }) => {
       const price = row.avgUnitCostXof
       return { name: row.name, quantity, unit: row.unit, supplier: row.lastSupplier, costXof: price === null ? null : Math.round(quantity * price) }
     })

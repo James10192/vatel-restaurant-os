@@ -5,14 +5,15 @@ import { useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { MAX_EVENT_PORTIONS } from '../../../convex/lib/production/waste'
 import { CountField, parseCount } from './count-field'
-import { newRequestKey } from './types'
 import type { ProductionOffer } from './types'
 import { FormError } from '#/components/form-error'
 import { Button } from '#/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '#/components/ui/dialog'
 import { Skeleton } from '#/components/ui/skeleton'
 import { Spinner } from '#/components/ui/spinner'
-import { useServerAction } from '#/lib/server-action'
+import { useEntryDialog } from '#/lib/use-entry-dialog'
+import { DEFAULT_MARGIN_PCT } from '../../../convex/lib/production/history'
+import { demandOf } from '../../../convex/lib/production/plan'
 import { useT } from '#/i18n/i18n'
 
 const valid = (n: number) => Number.isInteger(n) && n >= 0 && n <= MAX_EVENT_PORTIONS
@@ -23,28 +24,22 @@ const valid = (n: number) => Number.isInteger(n) && n >= 0 && n <= MAX_EVENT_POR
  */
 export function PlanDialog({ offer, trigger }: { offer: ProductionOffer; trigger: React.ReactNode }) {
   const t = useT()
-  const [open, setOpen] = useState(false)
   const [walkIns, setWalkIns] = useState('0')
   const [margin, setMargin] = useState('0')
-  const [key, setKey] = useState(newRequestKey)
-  const action = useServerAction(useMutation(api.productionPlan.validatePlan))
+  const { open, setOpen, onOpenChange, key, action } = useEntryDialog(useMutation(api.productionPlan.validatePlan), () => {
+    setWalkIns(String(offer.plan?.walkIns ?? 0))
+    setMargin(String(offer.plan?.margin ?? ''))
+  })
   const { data } = useQuery({ ...convexQuery(api.productionPlan.dishHistory, { menuItemId: offer.menuItemId }), enabled: open })
   const booked = offer.confirmed + offer.pickedUp
   const values = { walkIns: parseCount(walkIns), margin: parseCount(margin) }
   const ok = valid(values.walkIns) && valid(values.margin)
-  const target = ok ? booked + values.walkIns + values.margin : null
+  const target = ok ? demandOf(offer, values) : null
 
   return (
     <Dialog
       open={open}
-      onOpenChange={(next) => {
-        setOpen(next)
-        if (!next) return
-        setKey(newRequestKey())
-        action.setError(null)
-        setWalkIns(String(offer.plan?.walkIns ?? 0))
-        setMargin(String(offer.plan?.margin ?? ''))
-      }}
+      onOpenChange={onOpenChange}
     >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-h-[92dvh] overflow-y-auto">
@@ -83,9 +78,10 @@ export function PlanDialog({ offer, trigger }: { offer: ProductionOffer; trigger
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs text-muted-foreground">
                   {data.suggestion.coldStart
-                    ? t('Démarrage à froid : aucun passage supposé, marge par défaut de 5 % des réservations.')
-                    : t('Proposition : {walkIns} passages (moyenne mesurée au comptoir), marge de 5 % ; environ {n} absents attendus.', {
+                    ? t('Démarrage à froid : aucun passage supposé, marge par défaut de {pct} % des réservations.', { pct: DEFAULT_MARGIN_PCT })
+                    : t('Proposition : {walkIns} passages (moyenne mesurée au comptoir), marge de {pct} % ; environ {n} absents attendus.', {
                         walkIns: data.suggestion.walkIns,
+                        pct: DEFAULT_MARGIN_PCT,
                         n: data.suggestion.expectedNoShows,
                       })}
                 </p>

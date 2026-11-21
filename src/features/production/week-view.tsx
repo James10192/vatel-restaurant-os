@@ -2,8 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../../convex/_generated/api'
 import { weekStartOf } from '../../../convex/lib/dates'
-import { materialsFor, plannedDemand, sumMaterials, toProduce } from '../../../convex/lib/production/plan'
-import type { MaterialNeed } from '../../../convex/lib/production/plan'
+import { plannedDemand, remainingMaterials } from '../../../convex/lib/production/plan'
 import { MaterialsList } from './quantities'
 import type { ProductionOffer } from './types'
 import { Skeleton } from '#/components/ui/skeleton'
@@ -29,10 +28,7 @@ export function WeekView({ date, service }: { date: string; service?: Service })
   const { data, isPending } = useQuery(convexQuery(api.productionPlan.week, { weekStart: weekStartOf(date) }))
   if (isPending || !data) return <Skeleton className="h-64 rounded-3xl" />
   const days = data.map((day) => ({ ...day, offers: day.offers.filter((o) => !service || o.service === service) }))
-  const remaining = days.flatMap((day) => day.offers.map((o) => ({ o, portions: toProduce(o, o.plan, day.date, today) }))).filter((x) => x.portions > 0)
-  const needs = remaining.map(({ o, portions }) => materialsFor(o.recipe, portions))
-  const materials = sumMaterials(needs.filter((n): n is Array<MaterialNeed> => n !== null))
-  const withoutRecipe = [...new Set(remaining.filter((_, i) => needs[i] === null).map(({ o }) => o.dishName))]
+  const { materials, withoutRecipe } = remainingMaterials(days, today)
 
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">
