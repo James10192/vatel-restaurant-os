@@ -29,7 +29,7 @@ export function AdminDayCard({ date, items, isToday }: { date: string; items: Ar
         <h2 id={`day-${date}`} className="flex items-baseline gap-2">
           <span className="text-lg font-bold tracking-tight capitalize">{weekday.format(toDate(date))}</span>
           <span className="text-sm text-muted-foreground">{dayMonth.format(toDate(date))}</span>
-          {isToday && <span className="text-eyebrow text-ring">Aujourd'hui</span>}
+          {isToday && <span className="text-eyebrow text-ring">Aujourd’hui</span>}
         </h2>
         <span className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
           {items.length === 0 ? 'Aucun plat' : `${items.length} plat${items.length > 1 ? 's' : ''}`}

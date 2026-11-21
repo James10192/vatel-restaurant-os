@@ -13,7 +13,7 @@ export const BEFORE_CUTOFF = new Date('2026-11-23T08:00:00Z')
 
 type Role = 'admin' | 'student'
 
-/** Deux établissements A et B, un admin et deux étudiants dans A, un admin dans B. */
+/** Deux établissements A et B, un admin et trois étudiants dans A, un admin dans B. */
 export async function setupCanteens() {
   const t = convexTest(schema, modules)
   const ids = await t.run(async (ctx) => {
@@ -23,6 +23,7 @@ export async function setupCanteens() {
       ['admin-a', a, 'admin'],
       ['student-a', a, 'student'],
       ['student-a2', a, 'student'],
+      ['student-a3', a, 'student'],
       ['admin-b', b, 'admin'],
     ]
     for (const [authUserId, canteenId, role] of members) {
@@ -37,6 +38,7 @@ export async function setupCanteens() {
     adminA: as('admin-a'),
     studentA: as('student-a'),
     studentA2: as('student-a2'),
+    studentA3: as('student-a3'),
     adminB: as('admin-b'),
     stranger: as('nobody'),
   }

@@ -3,7 +3,8 @@ import { paginationOptsValidator } from 'convex/server'
 import { mutation, query } from './_generated/server'
 import { requireMember } from './lib/access'
 import { appendEntry, findWallet, getOrCreateWallet } from './lib/ledger'
-import { policyOf } from './lib/policy'
+import { DEMO_BALANCE_MAX_XOF, policyOf } from './lib/policy'
+import { assertIdempotencyKey } from './lib/validation'
 
 /** Solde du membre connecté (0 tant qu'aucun mouvement). */
 export const balance = query({
@@ -48,6 +49,7 @@ export const topUpDemo = mutation({
   args: { amountXof: v.number(), idempotencyKey: v.string() },
   returns: v.object({ balanceXof: v.number(), replayed: v.boolean() }),
   handler: async (ctx, { amountXof, idempotencyKey }) => {
+    assertIdempotencyKey(idempotencyKey)
     const membership = await requireMember(ctx)
     const canteen = await ctx.db.get(membership.canteenId)
     if (!canteen) throw new ConvexError('Établissement introuvable.')
@@ -63,6 +65,9 @@ export const topUpDemo = mutation({
     if (previous) {
       if (previous.amountXof !== amountXof) throw new ConvexError('Demande déjà traitée avec un autre montant.')
       return { balanceXof: wallet.balanceXof, replayed: true }
+    }
+    if (wallet.balanceXof + amountXof > DEMO_BALANCE_MAX_XOF) {
+      throw new ConvexError(`Solde de démonstration plafonné à ${DEMO_BALANCE_MAX_XOF} FCFA.`)
     }
     const balanceXof = await appendEntry(ctx, wallet, {
       kind: 'demo_top_up',

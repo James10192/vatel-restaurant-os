@@ -32,7 +32,7 @@ export function AppSidebar() {
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-2 xl:px-0">
         <NavSection title="Espace repas" items={MEAL_NAV} />
-        {isAdmin && <NavSection title="Gestion" items={ADMIN_NAV} />}
+        {isAdmin && <NavSection title="Gestion" items={ADMIN_NAV} divider />}
       </nav>
 
       <AccountMenu
@@ -60,11 +60,11 @@ export function AppSidebar() {
   )
 }
 
-function NavSection({ title, items }: { title: string; items: Array<NavItem> }) {
+function NavSection({ title, items, divider = false }: { title: string; items: Array<NavItem>; divider?: boolean }) {
   return (
     <div className="flex flex-col gap-1">
       <p className="hidden px-3 pb-1 text-eyebrow text-muted-foreground xl:block">{title}</p>
-      <span aria-hidden className="mx-auto mb-1 h-px w-8 bg-border first:hidden xl:hidden" />
+      {divider && <span aria-hidden className="mx-auto mb-1 h-px w-8 bg-border xl:hidden" />}
       <ul className="flex flex-col gap-1">
         {items.map(({ to, label, short, icon: Icon }) => (
           <li key={to}>

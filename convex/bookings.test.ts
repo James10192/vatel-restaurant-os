@@ -33,6 +33,17 @@ describe('porte-monnaie de démonstration', () => {
     }
     expect(await studentA.query(api.wallet.balance, {})).toBe(0)
   })
+
+  test('solde de démonstration plafonné toutes recharges confondues ; clé vide ou trop longue refusée (#16)', async () => {
+    const { studentA } = await setupCanteens()
+    await studentA.mutation(api.wallet.topUpDemo, { amountXof: 50_000, idempotencyKey: 'p1' })
+    await studentA.mutation(api.wallet.topUpDemo, { amountXof: 50_000, idempotencyKey: 'p2' })
+    await expect(studentA.mutation(api.wallet.topUpDemo, { amountXof: 1, idempotencyKey: 'p3' })).rejects.toThrow(/plafonné/)
+    expect(await studentA.query(api.wallet.balance, {})).toBe(100_000)
+    for (const idempotencyKey of ['', 'x'.repeat(101)]) {
+      await expect(studentA.mutation(api.wallet.topUpDemo, { amountXof: 1, idempotencyKey })).rejects.toThrow(/Clé/)
+    }
+  })
 })
 
 describe('réservation', () => {
@@ -86,6 +97,23 @@ describe('réservation', () => {
     expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1)
     const [item] = await studentA.query(api.menus.publishedWeek, { weekStart: WEEK })
     expect(item.remaining).toBe(0)
+  })
+
+  test('capacité 2, trois réservations simultanées : exactement deux confirmées, un seul refus sans débit (#23)', async () => {
+    const { adminA, studentA, studentA2, studentA3 } = await setupCanteens()
+    const menuItemId = await publishedLunch(adminA, 2)
+    const users = [studentA, studentA2, studentA3]
+    for (const user of users) await user.mutation(api.wallet.topUpDemo, { amountXof: 2000, idempotencyKey: 't' })
+    const results = await Promise.allSettled(
+      users.map((user, i) => user.mutation(api.bookings.book, { menuItemId, idempotencyKey: `c${i}` })),
+    )
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(2)
+    const [item] = await studentA.query(api.menus.publishedWeek, { weekStart: WEEK })
+    expect(item.remaining).toBe(0)
+    // Le perdant n'est pas débité : solde intact, aucune écriture de réservation dans son journal.
+    const loser = users[results.findIndex((r) => r.status === 'rejected')]
+    expect(await loser.query(api.wallet.balance, {})).toBe(2000)
+    expect(await history(loser)).toHaveLength(1)
   })
 
   test('un seul repas par service et par personne', async () => {

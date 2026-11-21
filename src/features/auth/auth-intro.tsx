@@ -40,7 +40,7 @@ export function AuthIntro({ started, onStart, className }: { started: boolean; o
             reveal,
           )}
         >
-          L'art de recevoir,
+          L’art de recevoir,
           <span className="block text-vatel-sky">jusque dans votre assiette.</span>
         </h1>
         <p className={cn('max-w-md text-base leading-relaxed text-pretty text-white/80 delay-500 duration-700 md:text-lg', reveal)}>
