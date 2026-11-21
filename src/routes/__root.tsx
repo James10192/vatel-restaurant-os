@@ -5,6 +5,7 @@ import type { ConvexQueryClient } from '@convex-dev/react-query'
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
 import { authClient } from '#/lib/auth-client'
 import { getToken } from '#/lib/auth-server'
+import { THEME_BOOT_SCRIPT } from '#/lib/theme'
 import appCss from '../styles.css?url'
 
 const getAuth = createServerFn({ method: 'GET' }).handler(async () => (await getToken()) ?? null)
@@ -40,8 +41,10 @@ function RootComponent() {
       authClient={authClient}
       initialToken={context.token}
     >
-      <html lang="fr">
+      <html lang="fr" suppressHydrationWarning>
         <head>
+          {/* Applique le thème choisi avant le premier rendu : pas de flash clair/sombre. */}
+          <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
           <HeadContent />
         </head>
         <body className="min-h-dvh bg-background text-foreground antialiased">

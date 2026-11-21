@@ -6,7 +6,8 @@ import { ClockIcon, UtensilsIcon } from 'lucide-react'
 import { api } from '../../../../convex/_generated/api'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '#/components/ui/empty'
 import { Skeleton } from '#/components/ui/skeleton'
-import { formatDayLong, todayIso } from '#/lib/format'
+import { todayIso } from '#/lib/format'
+import { HomeGreeting } from '#/features/home/home-greeting'
 import { currentUserQuery } from '#/lib/session'
 import { useNow } from '#/lib/use-now'
 import { NextMeal } from '#/features/booking/next-meal'
@@ -26,12 +27,8 @@ function AppHome() {
   const { data: user } = useSuspenseQuery(currentUserQuery)
   const firstName = user?.name.split(' ')[0] ?? ''
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-2 pb-8 md:pt-8">
-      <header className="flex flex-col gap-1">
-        <p className="text-sm font-medium text-muted-foreground first-letter:uppercase">{formatDayLong(todayIso())}</p>
-        <h1 className="text-3xl font-bold tracking-tight">Bonjour {firstName}</h1>
-        {user?.membership && <p className="text-sm text-muted-foreground">{user.membership.canteenName}</p>}
-      </header>
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-6 pb-8 md:pt-8">
+      <HomeGreeting firstName={firstName} canteenName={user?.membership?.canteenName} />
       {user?.membership ? <MemberHome /> : <PendingAccount />}
     </main>
   )
@@ -46,7 +43,12 @@ function MemberHome() {
   const today = todayIso()
   const days = Array.from({ length: 7 }, (_, i) => addDays(week, i))
   const withMenu = new Set(items?.map((item) => item.date))
-  const defaultDay = (withMenu.has(today) && today) || days.find((d) => withMenu.has(d)) || days[0]
+  // Jour proposé : prochain jour avec menu dès aujourd'hui, sinon aujourd'hui s'il est dans la semaine.
+  const defaultDay =
+    days.find((d) => d >= today && withMenu.has(d)) ||
+    (days.includes(today) && today) ||
+    days.find((d) => withMenu.has(d)) ||
+    days[0]
   const [picked, setPicked] = useState<{ week: string; day: string } | null>(null)
   const day = picked?.week === week ? picked.day : defaultDay
   const active = bookings.filter((b) => b.status !== 'cancelled')

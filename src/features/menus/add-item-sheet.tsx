@@ -39,7 +39,12 @@ export function AddItemSheet({ date, service }: { date: string; service: Service
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm">
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-full"
+          aria-label={`Ajouter un plat, ${SERVICE_LABELS[service]}, ${formatDayLong(date)}`}
+        >
           <PlusIcon data-icon="inline-start" />
           Ajouter
         </Button>
