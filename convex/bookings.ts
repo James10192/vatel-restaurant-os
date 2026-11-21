@@ -2,7 +2,7 @@ import { ConvexError, v } from 'convex/values'
 import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
 import { getOwned, requireMember } from './lib/access'
-import { assertIsoDate } from './lib/validation'
+import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
 import { appendEntry, getOrCreateWallet } from './lib/ledger'
 import { cutoffAt, policyOf } from './lib/policy'
 import { activeBookingsCount } from './lib/capacity'
@@ -22,6 +22,7 @@ export const book = mutation({
   args: { menuItemId: v.id('menuItems'), idempotencyKey: v.string() },
   returns: v.object({ bookingId: v.id('bookings'), balanceXof: v.number(), replayed: v.boolean() }),
   handler: async (ctx, { menuItemId, idempotencyKey }) => {
+    assertIdempotencyKey(idempotencyKey)
     const membership = await requireMember(ctx)
     const wallet = await getOrCreateWallet(ctx, membership)
 
