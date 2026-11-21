@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 /** Préférence d'affichage, propre à l'appareil (confort, jamais une donnée métier). */
 export const THEMES = ['light', 'dark', 'system'] as const
@@ -12,7 +12,7 @@ const isTheme = (value: unknown): value is ThemePreference => THEMES.some((theme
 /** Exécuté dans <head> avant React : même règle que `applyTheme`, sans dépendance. */
 export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem('${STORAGE_KEY}');var d=t==='dark'||((t!=='light')&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}`
 
-function readPreference(): ThemePreference {
+function readStored(): ThemePreference {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     return isTheme(stored) ? stored : 'system'
@@ -26,30 +26,45 @@ function applyTheme(preference: ThemePreference) {
   document.documentElement.classList.toggle('dark', dark)
 }
 
-/** Thème Clair / Sombre / Système ; « Système » suit le réglage de l'appareil en direct. */
-export function useTheme() {
-  const [preference, setPreference] = useState<ThemePreference>('system')
+/**
+ * Store unique au niveau du module : tous les sélecteurs (menu Profil, accueil /auth) partagent la même préférence.
+ * Lue une seule fois depuis le stockage ; la classe `dark` n'est appliquée qu'ici (le script de démarrage s'occupe
+ * du premier rendu, donc aucun effet ne réapplique « Système » avant lecture : pas de flash).
+ */
+let current: ThemePreference | null = null
+const listeners = new Set<() => void>()
 
-  useEffect(() => setPreference(readPreference()), [])
+function getSnapshot(): ThemePreference {
+  current ??= readStored()
+  return current
+}
 
-  useEffect(() => {
-    applyTheme(preference)
-    if (preference !== 'system') return
-    const media = matchMedia('(prefers-color-scheme: dark)')
-    const onChange = () => applyTheme('system')
-    media.addEventListener('change', onChange)
-    return () => media.removeEventListener('change', onChange)
-  }, [preference])
-
-  function choose(value: string) {
-    if (!isTheme(value)) return
-    try {
-      localStorage.setItem(STORAGE_KEY, value)
-    } catch {
-      // Stockage indisponible (navigation privée) : le choix vaut pour la session en cours.
-    }
-    setPreference(value)
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  // « Système » suit le réglage de l'appareil en direct ; un seul écouteur pour toute l'application.
+  const media = matchMedia('(prefers-color-scheme: dark)')
+  const onChange = () => getSnapshot() === 'system' && applyTheme('system')
+  media.addEventListener('change', onChange)
+  return () => {
+    listeners.delete(listener)
+    media.removeEventListener('change', onChange)
   }
+}
 
-  return { preference, choose }
+function setPreference(value: string) {
+  if (!isTheme(value)) return
+  try {
+    localStorage.setItem(STORAGE_KEY, value)
+  } catch {
+    // Stockage indisponible (navigation privée) : le choix vaut pour la session en cours.
+  }
+  current = value
+  applyTheme(value)
+  listeners.forEach((listener) => listener())
+}
+
+/** Thème Clair / Sombre / Système. Côté serveur : « Système » (le script de démarrage a déjà posé la bonne classe). */
+export function useTheme() {
+  const preference = useSyncExternalStore(subscribe, getSnapshot, () => 'system' as const)
+  return { preference, choose: setPreference }
 }
