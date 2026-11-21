@@ -38,6 +38,13 @@ export async function requireKitchen(ctx: QueryCtx): Promise<Membership> {
   return membership
 }
 
+/** Remise des repas : administration ou agent de distribution (#4). */
+export async function requireCounter(ctx: QueryCtx): Promise<Membership> {
+  const membership = await requireMember(ctx)
+  if (membership.role !== 'admin' && membership.role !== 'distribution') throw new ConvexError('Action réservée au personnel de distribution.')
+  return membership
+}
+
 /** Charge un document et vérifie qu'il appartient à l'établissement du membre (isolation tenant). */
 export async function getOwned<T extends 'dishes' | 'menuItems' | 'units' | 'ingredients'>(
   ctx: QueryCtx,

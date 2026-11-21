@@ -212,6 +212,21 @@ export default defineSchema({
     .index('by_menu_item', ['menuItemId'])
     .index('by_canteen_date', ['canteenId', 'date']),
 
+  /**
+   * Pass de retrait (QR) d'une réservation : empreinte du code seulement, jamais le code en clair.
+   * Un seul pass actif par réservation (une réémission remplace l'ancien) ; `usedAt` garde la trace du retrait.
+   */
+  bookingPasses: defineTable({
+    canteenId: v.id('canteens'),
+    bookingId: v.id('bookings'),
+    codeHash: v.string(),
+    expiresAt: v.number(),
+    usedAt: v.optional(v.number()),
+    usedBy: v.optional(v.id('profiles')),
+  })
+    .index('by_code_hash', ['codeHash'])
+    .index('by_booking', ['bookingId']),
+
   /** Smart Menu (B1) : quotas et coût IA par usager et par jour. Aucun texte de requête conservé. */
   aiUsage: defineTable({
     canteenId: v.id('canteens'),

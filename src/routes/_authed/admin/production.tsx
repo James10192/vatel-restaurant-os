@@ -7,6 +7,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '#/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { DayNav, parseDateSearch, resolveDate } from '#/features/admin/day'
+import { CopilotSheet } from '#/features/production/copilot-sheet'
 import { PrepareView } from '#/features/production/prepare-view'
 import { WasteView, wasteWeekQuery } from '#/features/production/waste-view'
 import { SERVICE_LABELS, todayIso } from '#/lib/format'
@@ -57,7 +58,10 @@ function Production() {
           <h1 className="text-display">{t('Production')}</h1>
           <p className="text-sm text-muted-foreground">{t('Combien préparer maintenant, et ce qui a vraiment été perdu.')}</p>
         </div>
-        <DayNav date={date} to="/admin/production" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <CopilotSheet date={date} />
+          <DayNav date={date} to="/admin/production" />
+        </div>
       </header>
 
       <Tabs value={search.vue ?? 'preparer'} onValueChange={(vue) => navigate({ search: (prev) => ({ ...prev, vue: vue as View }) })}>

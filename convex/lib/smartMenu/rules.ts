@@ -99,7 +99,7 @@ export function planByRules<TRow extends OfferRow>(evaluation: Evaluation<TRow>,
 export type AiPick = { offerId: string; reason: string }
 
 /** Une explication ne doit jamais rassurer sur les allergènes ni sur la santé (FOOD-01, #16). */
-const UNSAFE_CLAIM = /allerg|garanti|sans risque|sans danger|sûr pour|sur pour|sain|santé|sante|médical|medical|régime|regime|safe/i
+export const UNSAFE_CLAIM = /allerg|garanti|sans risque|sans danger|sûr pour|sur pour|sain|santé|sante|médical|medical|régime|regime|safe/i
 const CONTROL_CHARS = /\p{Cc}/gu
 
 export function sanitizeReason(reason: string): string | undefined {

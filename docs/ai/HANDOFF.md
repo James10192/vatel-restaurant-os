@@ -107,6 +107,13 @@ _Mis à jour : 21/11/2026 ~11h30 (Abidjan)_
 - Fichiers du lead touchés : `convex/schema.ts` (table ajoutée), `convex/lib/access.ts` (helper ajouté), `_generated/api.d.ts`.
 - typecheck, lint, 155 tests, build OK. Skill `frontend-design` (Anthropic) installée dans `.claude/skills` et `.agents/skills`.
 
+## QR de retrait, copilote cuisine, réservation groupée (21/11 soir)
+- QR opaque à usage unique (#4), copilote cuisine sur Production (#9), « Réserver ces N repas » dans l'Aide au choix (#3).
+  Détails, preuves et limites : `docs/ai/b3/QR-RETRAIT.md`. Dépendances ajoutées : `uqr@0.1.3` (génération QR), `jsqr@1.4.0` (lecture de secours).
+- Fichiers du lead touchés : `convex/schema.ts` (table `bookingPasses`), `convex/lib/access.ts` (`requireCounter`),
+  `convex/bookings.ts` (réservation factorisée dans `lib/booking.ts`, comportement inchangé, tests verts), manifests.
+- typecheck, lint, 178 tests, build OK. Résumé IA du copilote non observé avec un vrai modèle (clé absente de la session).
+
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
 - Révocation : accès serveur basé sur le JWT, effectif à son expiration.

@@ -5,9 +5,10 @@ import { allergenInfoValidator, serviceValidator } from '../../schema'
 import { isIsoDate } from '../dates'
 import type { SmartRequest } from './rules'
 import { localeValidator } from '../locale'
+import { CANTEEN_DAILY_AI_CALLS } from '../aiQuota'
 
 /** Quotas serveur (SEC-05, #16) : jamais uniquement côté interface. */
-export const QUOTAS = { perStudentPerDay: 8, perCanteenPerDay: 150 } as const
+export const QUOTAS = { perStudentPerDay: 8, perCanteenPerDay: CANTEEN_DAILY_AI_CALLS } as const
 
 export const REQUEST_BOUNDS = { maxDays: 7, horizonDays: 13, maxBudgetXof: 100_000, maxAvoid: 14, maxWishChars: 500 } as const
 
