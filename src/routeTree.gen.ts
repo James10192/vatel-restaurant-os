@@ -19,6 +19,7 @@ import { Route as AuthedAdminMenusRouteImport } from './routes/_authed/admin/men
 import { Route as AuthedAdminProductionRouteImport } from './routes/_authed/admin/production'
 import { Route as AuthedAdminRecettesRouteImport } from './routes/_authed/admin/recettes'
 import { Route as AuthedAdminServicesRouteImport } from './routes/_authed/admin/services'
+import { Route as AuthedAdminStocksRouteImport } from './routes/_authed/admin/stocks'
 import { Route as AuthedAppIndexRouteImport } from './routes/_authed/app/index'
 import { Route as AuthedAppBookingsRouteImport } from './routes/_authed/app/bookings'
 import { Route as AuthedAppProfileRouteImport } from './routes/_authed/app/profile'
@@ -74,6 +75,11 @@ const AuthedAdminServicesRoute = AuthedAdminServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => AuthedAdminRoute,
 } as any)
+const AuthedAdminStocksRoute = AuthedAdminStocksRouteImport.update({
+  id: '/stocks',
+  path: '/stocks',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
 const AuthedAppIndexRoute = AuthedAppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/admin/production': typeof AuthedAdminProductionRoute
   '/admin/recettes': typeof AuthedAdminRecettesRoute
   '/admin/services': typeof AuthedAdminServicesRoute
+  '/admin/stocks': typeof AuthedAdminStocksRoute
   '/app/bookings': typeof AuthedAppBookingsRoute
   '/app/profile': typeof AuthedAppProfileRoute
   '/app/wallet': typeof AuthedAppWalletRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/admin/production': typeof AuthedAdminProductionRoute
   '/admin/recettes': typeof AuthedAdminRecettesRoute
   '/admin/services': typeof AuthedAdminServicesRoute
+  '/admin/stocks': typeof AuthedAdminStocksRoute
   '/app/bookings': typeof AuthedAppBookingsRoute
   '/app/profile': typeof AuthedAppProfileRoute
   '/app/wallet': typeof AuthedAppWalletRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/_authed/admin/production': typeof AuthedAdminProductionRoute
   '/_authed/admin/recettes': typeof AuthedAdminRecettesRoute
   '/_authed/admin/services': typeof AuthedAdminServicesRoute
+  '/_authed/admin/stocks': typeof AuthedAdminStocksRoute
   '/_authed/app/bookings': typeof AuthedAppBookingsRoute
   '/_authed/app/profile': typeof AuthedAppProfileRoute
   '/_authed/app/wallet': typeof AuthedAppWalletRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/admin/production'
     | '/admin/recettes'
     | '/admin/services'
+    | '/admin/stocks'
     | '/app/bookings'
     | '/app/profile'
     | '/app/wallet'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin/production'
     | '/admin/recettes'
     | '/admin/services'
+    | '/admin/stocks'
     | '/app/bookings'
     | '/app/profile'
     | '/app/wallet'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/_authed/admin/production'
     | '/_authed/admin/recettes'
     | '/_authed/admin/services'
+    | '/_authed/admin/stocks'
     | '/_authed/app/bookings'
     | '/_authed/app/profile'
     | '/_authed/app/wallet'
@@ -277,6 +289,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedAdminServicesRouteImport
       parentRoute: typeof AuthedAdminRoute
     }
+    '/_authed/admin/stocks': {
+      id: '/_authed/admin/stocks'
+      path: '/stocks'
+      fullPath: '/admin/stocks'
+      preLoaderRoute: typeof AuthedAdminStocksRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
     '/_authed/app/': {
       id: '/_authed/app/'
       path: '/'
@@ -338,6 +357,7 @@ interface AuthedAdminRouteChildren {
   AuthedAdminProductionRoute: typeof AuthedAdminProductionRoute
   AuthedAdminRecettesRoute: typeof AuthedAdminRecettesRoute
   AuthedAdminServicesRoute: typeof AuthedAdminServicesRoute
+  AuthedAdminStocksRoute: typeof AuthedAdminStocksRoute
   AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
 }
 
@@ -346,6 +366,7 @@ const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
   AuthedAdminProductionRoute: AuthedAdminProductionRoute,
   AuthedAdminRecettesRoute: AuthedAdminRecettesRoute,
   AuthedAdminServicesRoute: AuthedAdminServicesRoute,
+  AuthedAdminStocksRoute: AuthedAdminStocksRoute,
   AuthedAdminIndexRoute: AuthedAdminIndexRoute,
 }
 

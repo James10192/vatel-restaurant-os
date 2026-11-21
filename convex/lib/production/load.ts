@@ -19,13 +19,15 @@ export function tally(events: Array<Event>) {
   const waste: WasteByReason = emptyWaste()
   let prepared: number | null = null
   let preparedAt: number | null = null
+  let recovered = 0
   for (const e of events) {
     if (e.kind === 'prepared') {
       prepared = (prepared ?? 0) + e.portions
       preparedAt = Math.max(preparedAt ?? 0, e._creationTime)
-    } else if (e.reason) waste[e.reason] += e.portions
+    } else if (e.kind === 'recovered') recovered += e.portions
+    else if (e.reason) waste[e.reason] += e.portions
   }
-  return { prepared, preparedAt, waste, wasted: WASTE_REASONS.reduce((n, r) => n + waste[r], 0) }
+  return { prepared, preparedAt, waste, recovered, wasted: WASTE_REASONS.reduce((n, r) => n + waste[r], 0) }
 }
 
 /** Fiche technique avec noms lisibles ; null si le plat n'a pas de fiche exploitable. */
@@ -65,7 +67,7 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
         const dish = await ctx.db.get(item.dishId)
         const count = (status: BookingStatus) => bookings.filter((b) => b.menuItemId === item._id && b.status === status).length
         const ofItem = events.filter((e) => e.menuItemId === item._id)
-        const { prepared, preparedAt, waste } = tally(ofItem)
+        const { prepared, preparedAt, waste, recovered } = tally(ofItem)
         // Dernière validation du plan (les précédentes restent en base : corrections tracées).
         const plan = plans.filter((p) => p.menuItemId === item._id).sort((a, b) => b._creationTime - a._creationTime).at(0)
         return {
@@ -80,6 +82,7 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
           prepared,
           preparedAt,
           waste,
+          recovered,
           lots: ofItem
             .filter((e) => e.kind === 'prepared')
             .map((e) => ({ at: e._creationTime, portions: e.portions, by: names.get(e.profileId) ?? 'Membre' })),

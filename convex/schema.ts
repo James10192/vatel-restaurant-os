@@ -198,7 +198,7 @@ export default defineSchema({
     menuItemId: v.id('menuItems'),
     date: v.string(),
     service: serviceValidator,
-    kind: v.union(v.literal('prepared'), v.literal('waste')),
+    kind: v.union(v.literal('prepared'), v.literal('waste'), v.literal('recovered')),
     portions: v.number(),
     reason: v.optional(wasteReasonValidator),
     profileId: v.id('profiles'),
@@ -206,6 +206,30 @@ export default defineSchema({
   })
     .index('by_menu_item', ['menuItemId'])
     .index('by_canteen_date', ['canteenId', 'date']),
+
+  /**
+   * Mouvements de stock en ajout seul (#6) : réception (lot, date limite, fournisseur, prix), inventaire compté
+   * (avec le stock théorique juste avant : l'écart reste lisible) et perte de matière. La consommation n'est pas
+   * saisie : elle se déduit des portions préparées et des fiches techniques.
+   */
+  stockMovements: defineTable({
+    canteenId: v.id('canteens'),
+    ingredientId: v.id('ingredients'),
+    kind: v.union(v.literal('reception'), v.literal('count'), v.literal('loss')),
+    quantity: v.number(),
+    unitId: v.id('units'),
+    lotCode: v.optional(v.string()),
+    expiresOn: v.optional(v.string()),
+    supplier: v.optional(v.string()),
+    /** Prix d'achat par unité de réception, FCFA entiers (facultatif, jamais inventé). */
+    unitCostXof: v.optional(v.number()),
+    lossReason: v.optional(v.union(v.literal('expired'), v.literal('damaged'), v.literal('other'))),
+    expectedBefore: v.optional(v.number()),
+    profileId: v.id('profiles'),
+    idempotencyKey: v.string(),
+  })
+    .index('by_canteen', ['canteenId'])
+    .index('by_canteen_ingredient', ['canteenId', 'ingredientId']),
 
   /**
    * Plan de production validé par la cuisine (#5) : hypothèses du chef pour une offre. Chaque validation est une

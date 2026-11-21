@@ -127,3 +127,15 @@ export function sumMaterials(lists: Array<Array<MaterialNeed>>): Array<MaterialN
 
 /** Affichage seulement : 2 décimales au plus (l'arrondi n'intervient jamais dans les calculs). */
 export const roundQty = (value: number) => Math.round(value * 100) / 100
+
+/** Demande d'une offre : réservations actives plus les hypothèses du plan validé, s'il existe. */
+export const plannedDemand = (baseline: Baseline, plan: PlanAssumptions | null) => demandOf(baseline, plan ?? NO_PLAN)
+
+/**
+ * Portions encore à produire pour une offre : aujourd'hui, la demande moins le déjà préparé ; un jour à venir,
+ * toute la demande (rien ne peut y être saisi) ; un jour passé, rien. Base de la matière à prévoir et des achats.
+ */
+export function toProduce(baseline: Baseline, plan: PlanAssumptions | null, date: string, today: string): number {
+  if (date < today) return 0
+  return Math.max(0, plannedDemand(baseline, plan) - (date === today ? (baseline.prepared ?? 0) : 0))
+}

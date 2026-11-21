@@ -22,6 +22,7 @@ const offerValidator = v.object({
     kitchen: count,
     quality: count,
   }),
+  recovered: count,
   lots: v.array(
     v.object({ at: v.number(), portions: v.number(), by: v.string() }),
   ),

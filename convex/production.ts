@@ -1,12 +1,13 @@
 import { ConvexError, v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
-import type { QueryCtx } from './_generated/server'
+import type { MutationCtx, QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
 import { getOwned, requireKitchen } from './lib/access'
 import { todayUtc } from './lib/dates'
 import type { Membership } from './lib/access'
 import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
-import { MAX_EVENT_PORTIONS, maxDeclarableWaste } from './lib/production/waste'
+import { MAX_EVENT_PORTIONS, maxDeclarable } from './lib/production/waste'
+import type { WasteReason } from './lib/production/waste'
 import { loadProductionDay, loadWasteWeek, tally } from './lib/production/load'
 import { productionDayReturns, wasteWeekReturns } from './lib/production/returns'
 import { wasteReasonValidator } from './schema'
@@ -73,22 +74,48 @@ export const recordPrepared = mutation({
   },
 })
 
-/** Perte réelle avec motif : au plus le préparé qui n'a été ni remis ni déjà déclaré perdu. */
+/**
+ * Sortie d'un reste préparé : perte (avec motif) ou surplus récupéré. Même plafond pour les deux : le préparé
+ * qui n'a été ni remis, ni déjà perdu, ni déjà récupéré.
+ */
+async function declareLeftover(
+  ctx: MutationCtx,
+  args: { menuItemId: Id<'menuItems'>; portions: number; idempotencyKey: string },
+  outcome: { kind: 'waste'; reason: WasteReason } | { kind: 'recovered' },
+) {
+  const membership = await requireKitchen(ctx)
+  const { entry, prepared, wasted, recovered, duplicate } = await loadForEntry(ctx, membership, args.menuItemId, args.idempotencyKey)
+  if (duplicate) return
+  if (prepared === null) throw new ConvexError('Saisissez d’abord les portions préparées.')
+  const served = await ctx.db
+    .query('bookings')
+    .withIndex('by_menu_item_status', (q) => q.eq('menuItemId', args.menuItemId).eq('status', 'picked_up'))
+    .collect()
+  const max = maxDeclarable(prepared, served.length, wasted + recovered)
+  if (assertPortions(args.portions, false) > max) throw new ConvexError(`Au plus ${max} portions peuvent encore être déclarées.`)
+  await ctx.db.insert('productionEvents', { ...entry, ...outcome, portions: args.portions })
+}
+
+/** Perte réelle avec motif. */
 export const recordWaste = mutation({
   args: { menuItemId: v.id('menuItems'), portions: v.number(), reason: wasteReasonValidator, idempotencyKey: v.string() },
   returns: v.null(),
-  handler: async (ctx, { menuItemId, portions, reason, idempotencyKey }) => {
-    const membership = await requireKitchen(ctx)
-    const { entry, prepared, wasted, duplicate } = await loadForEntry(ctx, membership, menuItemId, idempotencyKey)
-    if (duplicate) return null
-    if (prepared === null) throw new ConvexError('Saisissez d’abord les portions préparées.')
-    const served = await ctx.db
-      .query('bookings')
-      .withIndex('by_menu_item_status', (q) => q.eq('menuItemId', menuItemId).eq('status', 'picked_up'))
-      .collect()
-    const max = maxDeclarableWaste(prepared, served.length, wasted)
-    if (assertPortions(portions, false) > max) throw new ConvexError(`Au plus ${max} portions peuvent encore être déclarées perdues.`)
-    await ctx.db.insert('productionEvents', { ...entry, kind: 'waste', portions, reason })
+  handler: async (ctx, { reason, ...args }) => {
+    await declareLeftover(ctx, args, { kind: 'waste', reason })
+    return null
+  },
+})
+
+/**
+ * Surplus récupéré (#6) : portions encore sûres, redistribuées APRÈS contrôle de conservation et d'hygiène
+ * par le chef (case obligatoire, jamais déduite par l'application ni par une IA). Ni vente, ni perte.
+ */
+export const recordRecovered = mutation({
+  args: { menuItemId: v.id('menuItems'), portions: v.number(), hygieneChecked: v.boolean(), idempotencyKey: v.string() },
+  returns: v.null(),
+  handler: async (ctx, { hygieneChecked, ...args }) => {
+    if (!hygieneChecked) throw new ConvexError('Le contrôle de conservation et d’hygiène par le chef est obligatoire.')
+    await declareLeftover(ctx, args, { kind: 'recovered' })
     return null
   },
 })

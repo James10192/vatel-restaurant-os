@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { convexQuery } from '@convex-dev/react-query'
+import { api } from '../../../convex/_generated/api'
 import { RefreshCwIcon } from 'lucide-react'
 import { materialsFor, simulate, validateInputs } from '../../../convex/lib/production/plan'
 import type { Baseline, FieldIssue } from '../../../convex/lib/production/plan'
@@ -32,6 +35,8 @@ export function SimulateSheet({ offer, trigger }: { offer: ProductionOffer; trig
   const [frozen, setFrozen] = useState(live)
   const [inputs, setInputs] = useState(EMPTY)
   const stale = open && !sameBaseline(frozen, live)
+  // Stock suivi (lecture réactive, seulement fenêtre ouverte) : couverture et coût de la matière simulée.
+  const { data: stock } = useQuery({ ...convexQuery(api.stock.overview, {}), enabled: open })
 
   const values = Object.fromEntries(FIELDS.map((f) => [f, parseCount(inputs[f])])) as Record<keyof Inputs, number>
   const assumptions = { walkIns: values.walkIns, margin: values.margin, preparedAssumed: frozen.prepared === null ? values.preparedAssumed : 0 }
@@ -104,7 +109,7 @@ export function SimulateSheet({ offer, trigger }: { offer: ProductionOffer; trig
             </FieldGroup>
           </FieldSet>
           {result && (
-            <SimulationResult result={result} materials={materialsFor(offer.recipe, delta)} capacity={frozen.capacity} />
+            <SimulationResult result={result} materials={materialsFor(offer.recipe, delta)} capacity={frozen.capacity} stock={stock} />
           )}
         </div>
       </SheetContent>

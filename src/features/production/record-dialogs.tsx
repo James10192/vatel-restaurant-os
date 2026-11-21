@@ -150,3 +150,60 @@ export function DeclareWasteDialog({ offer, trigger, max }: Props & { max: numbe
     </Dialog>
   )
 }
+
+/**
+ * Surplus récupéré (#6) : portions encore sûres, redistribuées après contrôle du chef. Le contrôle est une
+ * déclaration humaine obligatoire ; l'application ne garantit jamais la sécurité d'un plat.
+ */
+export function RecoverDialog({ offer, trigger, max }: Props & { max: number }) {
+  const t = useT()
+  const [value, setValue] = useState('')
+  const [checked, setChecked] = useState(false)
+  const { open, setOpen, onOpenChange, key, action } = useEntryDialog(useMutation(api.production.recordRecovered), () => {
+    setValue('')
+    setChecked(false)
+  })
+  const count = parseCount(value)
+  const valid = inRange(count) && count <= max && checked
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={async (e) => {
+            e.preventDefault()
+            if (!valid) return
+            const done = await action.run({ menuItemId: offer.menuItemId, portions: count, hygieneChecked: checked, idempotencyKey: key })
+            if (done !== undefined) setOpen(false)
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>{t('Surplus récupéré')}</DialogTitle>
+            <DialogDescription>{t('Portions encore sûres, redistribuées (personnel, association) : ni vendues, ni perdues.')}</DialogDescription>
+          </DialogHeader>
+          <CountField
+            id="recover-count"
+            label={t('Portions récupérées')}
+            value={value}
+            onChange={setValue}
+            min={1}
+            hint={t('Au plus {n} (préparé moins remis moins déjà déclaré).', { n: max })}
+            error={value !== '' && !(inRange(count) && count <= max) ? t('Au plus {n} (préparé moins remis moins déjà déclaré).', { n: max }) : undefined}
+          />
+          <Field orientation="horizontal">
+            <Switch id="recover-hygiene" checked={checked} onCheckedChange={setChecked} />
+            <FieldLabel htmlFor="recover-hygiene">{t('Le chef a vérifié la conservation et l’hygiène de ces portions.')}</FieldLabel>
+          </Field>
+          <FormError message={action.error} />
+          <DialogFooter>
+            <Button type="submit" disabled={action.pending || !valid}>
+              {action.pending && <Spinner data-icon="inline-start" />}
+              {t('Enregistrer le surplus récupéré')}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}

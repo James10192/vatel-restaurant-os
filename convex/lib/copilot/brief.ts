@@ -59,7 +59,7 @@ export function buildPoints(offers: Array<ProductionDayOffer>, week: Array<Waste
     const key = offer.menuItemId
     const situation = situationOf(offer, offer.plan)
     const booked = offer.confirmed + offer.pickedUp
-    const { wasteRate } = wasteBalance(offer.prepared, offer.pickedUp, offer.confirmed, offer.waste)
+    const { wasteRate } = wasteBalance(offer)
     return [
       situation === null && point('prepared_unknown', key, { dish }),
       situation && situation.surplus > 0 && point('surplus', key, { dish, n: situation.surplus }),

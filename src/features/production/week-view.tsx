@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../../convex/_generated/api'
 import { weekStartOf } from '../../../convex/lib/dates'
-import { demandOf, materialsFor, sumMaterials } from '../../../convex/lib/production/plan'
+import { materialsFor, plannedDemand, sumMaterials, toProduce } from '../../../convex/lib/production/plan'
 import type { MaterialNeed } from '../../../convex/lib/production/plan'
 import { MaterialsList } from './quantities'
 import type { ProductionOffer } from './types'
@@ -11,24 +11,12 @@ import { SERVICE_LABELS, formatDayLong, todayIso } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { useLocale, useT } from '#/i18n/i18n'
 
-/** Demande d'une offre : réservations actives, plus les hypothèses du plan validé s'il existe. */
-const demand = (o: ProductionOffer) => demandOf(o, o.plan ?? { walkIns: 0, margin: 0 })
-
-/**
- * Portions encore à produire : aujourd'hui, la demande moins le déjà préparé ; un jour à venir, toute la demande
- * (aucune préparation ne peut y être saisie). Les jours passés ne comptent plus.
- */
-function toProduce(o: ProductionOffer, date: string, today: string) {
-  if (date < today) return 0
-  return Math.max(0, demand(o) - (date === today ? (o.prepared ?? 0) : 0))
-}
-
 const COLUMNS = ['Réservées', 'Objectif', 'Préparé', 'Absents'] as const
 
 /** Chiffres d'une offre dans l'ordre des colonnes ; « - » quand la donnée n'existe pas encore. */
 const figures = (o: ProductionOffer, past: boolean): Array<[(typeof COLUMNS)[number], number | string]> => [
   ['Réservées', o.confirmed + o.pickedUp],
-  ['Objectif', o.plan ? demand(o) : '-'],
+  ['Objectif', o.plan ? plannedDemand(o, o.plan) : '-'],
   ['Préparé', o.prepared ?? '-'],
   ['Absents', past ? o.noShow : '-'],
 ]
@@ -41,7 +29,7 @@ export function WeekView({ date, service }: { date: string; service?: Service })
   const { data, isPending } = useQuery(convexQuery(api.productionPlan.week, { weekStart: weekStartOf(date) }))
   if (isPending || !data) return <Skeleton className="h-64 rounded-3xl" />
   const days = data.map((day) => ({ ...day, offers: day.offers.filter((o) => !service || o.service === service) }))
-  const remaining = days.flatMap((day) => day.offers.map((o) => ({ o, portions: toProduce(o, day.date, today) }))).filter((x) => x.portions > 0)
+  const remaining = days.flatMap((day) => day.offers.map((o) => ({ o, portions: toProduce(o, o.plan, day.date, today) }))).filter((x) => x.portions > 0)
   const needs = remaining.map(({ o, portions }) => materialsFor(o.recipe, portions))
   const materials = sumMaterials(needs.filter((n): n is Array<MaterialNeed> => n !== null))
   const withoutRecipe = [...new Set(remaining.filter((_, i) => needs[i] === null).map(({ o }) => o.dishName))]

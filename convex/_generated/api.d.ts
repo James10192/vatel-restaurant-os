@@ -41,6 +41,9 @@ import type * as lib_smartMenu_contract from "../lib/smartMenu/contract.js";
 import type * as lib_smartMenu_llm from "../lib/smartMenu/llm.js";
 import type * as lib_smartMenu_providers from "../lib/smartMenu/providers.js";
 import type * as lib_smartMenu_rules from "../lib/smartMenu/rules.js";
+import type * as lib_stock_load from "../lib/stock/load.js";
+import type * as lib_stock_position from "../lib/stock/position.js";
+import type * as lib_stock_units from "../lib/stock/units.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as menus from "../menus.js";
 import type * as notificationPreferences from "../notificationPreferences.js";
@@ -52,6 +55,7 @@ import type * as pushSend from "../pushSend.js";
 import type * as reminders from "../reminders.js";
 import type * as setup from "../setup.js";
 import type * as smartMenu from "../smartMenu.js";
+import type * as stock from "../stock.js";
 import type * as wallet from "../wallet.js";
 
 import type {
@@ -94,6 +98,9 @@ declare const fullApi: ApiFromModules<{
   "lib/smartMenu/llm": typeof lib_smartMenu_llm;
   "lib/smartMenu/providers": typeof lib_smartMenu_providers;
   "lib/smartMenu/rules": typeof lib_smartMenu_rules;
+  "lib/stock/load": typeof lib_stock_load;
+  "lib/stock/position": typeof lib_stock_position;
+  "lib/stock/units": typeof lib_stock_units;
   "lib/validation": typeof lib_validation;
   menus: typeof menus;
   notificationPreferences: typeof notificationPreferences;
@@ -105,6 +112,7 @@ declare const fullApi: ApiFromModules<{
   reminders: typeof reminders;
   setup: typeof setup;
   smartMenu: typeof smartMenu;
+  stock: typeof stock;
   wallet: typeof wallet;
 }>;
 

@@ -52,7 +52,7 @@ describe('production du jour', () => {
       adminA.mutation(api.production.recordWaste, { menuItemId, portions, reason: 'kitchen', idempotencyKey: key })
     await expect(waste(1, 'w0')).rejects.toThrow(/d’abord les portions préparées/)
     await adminA.mutation(api.production.recordPrepared, { menuItemId, portions: 5, idempotencyKey: 'p1' })
-    await expect(waste(5, 'w1')).rejects.toThrow(/Au plus 4 portions/)
+    await expect(waste(5, 'w1')).rejects.toThrow(/Au plus 4 portions peuvent encore être déclarées/)
     await expect(waste(1.5, 'w2')).rejects.toThrow(/entier/)
     await expect(waste(-1, 'w3')).rejects.toThrow(/entier/)
     await waste(4, 'w4')
