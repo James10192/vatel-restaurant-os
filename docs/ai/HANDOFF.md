@@ -74,6 +74,13 @@ _Mis à jour : 21/11/2026 ~11h30 (Abidjan)_
 - Navigateur : Awa réserve -> gérant voit 1 « À servir », « Marquer remis » -> Vue d'ensemble : 0 réservé, 1 retiré, 1 annulé, 79/80, 1 200 FCFA démo.
 - Mesure build prod local (sans throttling) : DOM prêt 2,7 s, liste visible 3,9 s, 681 Ko de JS transféré (serveur Node local non compressé). Dev : ~6 s.
 
+## Reprise lead 21/11 ~12h30 (validation P0 + finitions)
+- Vérifié : main = origin/main = 82c0e84 ; worktree `vatel-refonte-2` (feat/refonte-pages, base 23234e4 AVANT A3, non commité : wallet/bookings/page-header) ; non touché.
+- Checks : typecheck, lint, **68 tests**, build OK. JS client (build prod) : 798 Ko brut / **254 Ko gzip** au total, 52 fichiers ; plus gros `index-*.js` 326 Ko / 104 Ko gzip.
+- P0 navigateur (dev, comptes `qa.*@demo.test` créés par inscription, rattachés par CLI, mots de passe hors dépôt) : inscription sans droit ; rattachement visible sans rechargement ; gérant crée plat + 2 portions mardi 24 et publie ; étudiant recharge 2 500 (démo), réserve, solde insuffisant refusé avec proposition de recharge, annule (remboursement), historique 3 lignes ; /admin refusé à l'étudiant ; commandes filtrées, « Marquer remis » ; Vue d'ensemble cohérente.
+- Corrigé : barre « Publier la semaine » masquée par la barre du bas mobile (`menus.tsx`) ; `dark` forcé sur /auth supprimé ; sélecteur Clair/Sombre/Système sur /auth (`components/theme-toggle.tsx`, même préférence que le Profil) ; accueil /auth centré (glisser, titre, paragraphe) ; Vue d'ensemble refaite (`features/admin/overview.tsx` : carte service bleu Vatel, jauge segmentée, indicateurs cliquables vers commandes filtrées, plats par service, état vide avec lien Menus) ; lien actif de la barre latérale avec `?date=` ; navigation de jour pleine largeur en mobile ; pluriel « 1 commande ».
+- Constats non corrigés : grille admin lundi-vendredi alors que l'usager voit 7 jours ; un double-clic avant hydratation sur « Recharger » est perdu sans message (réseau lent) ; radiogroup des montants de recharge sans nom accessible ; FR/EN absent.
+
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
 - Révocation : accès serveur basé sur le JWT, effectif à son expiration.
