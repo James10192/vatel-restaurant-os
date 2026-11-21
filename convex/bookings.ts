@@ -68,13 +68,13 @@ export const bookMany = mutation({
     const bookingIds = []
     let balanceXof = wallet.balanceXof
     for (const [index, menuItemId] of menuItemIds.entries()) {
-      const item = await ctx.db.get(menuItemId)
       try {
         const booked = await bookMeal(ctx, membership, menuItemId, `${idempotencyKey}:${index}`)
         bookingIds.push(booked.bookingId)
         balanceXof = booked.balanceXof
       } catch (error) {
         // Le lot entier est annulé par la transaction ; on précise seulement quel repas bloque.
+        const item = await ctx.db.get(menuItemId)
         if (error instanceof ConvexError && typeof error.data === 'string' && item?.canteenId === membership.canteenId) {
           throw new ConvexError(`Repas du ${item.date} : ${error.data}`)
         }

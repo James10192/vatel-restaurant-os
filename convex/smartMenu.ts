@@ -11,7 +11,7 @@ import { action, internalMutation, internalQuery } from './_generated/server'
 import { requireMember } from './lib/access'
 import { addAiTokens, takeAiCall } from './lib/aiQuota'
 import { activeBookingsCount } from './lib/capacity'
-import { addDays } from './lib/dates'
+import { addDays, todayUtc } from './lib/dates'
 import { cutoffAt, policyOf } from './lib/policy'
 import { sanitizeWish, selectWithAi } from './lib/smartMenu/llm'
 import { configuredModel } from './lib/smartMenu/providers'
@@ -28,7 +28,6 @@ const NOTICES = {
   invalid: 'La proposition de l’IA ne respectait pas vos critères : suggestion calculée sans IA.',
 } as const
 
-const todayUtc = (now: number) => new Date(now).toISOString().slice(0, 10)
 
 async function requireStudent(ctx: Parameters<typeof requireMember>[0]) {
   const membership = await requireMember(ctx)

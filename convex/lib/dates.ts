@@ -16,6 +16,9 @@ export function isIsoDate(value: unknown): value is string {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
 }
 
+/** Date du jour à un instant donné, au fuseau d'Abidjan (UTC+0). */
+export const todayUtc = (now: number = Date.now()) => new Date(now).toISOString().slice(0, 10)
+
 export function addDays(isoDate: string, days: number): string {
   const date = new Date(`${isoDate}T00:00:00Z`)
   date.setUTCDate(date.getUTCDate() + days)

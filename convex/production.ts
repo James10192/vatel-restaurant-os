@@ -3,6 +3,7 @@ import type { Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
 import { getOwned, requireKitchen } from './lib/access'
+import { todayUtc } from './lib/dates'
 import type { Membership } from './lib/access'
 import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
 import { MAX_EVENT_PORTIONS, maxDeclarableWaste } from './lib/production/waste'
@@ -10,7 +11,6 @@ import { loadProductionDay, loadWasteWeek, tally } from './lib/production/load'
 import { productionDayReturns, wasteWeekReturns } from './lib/production/returns'
 import { wasteReasonValidator } from './schema'
 
-const todayUtc = () => new Date(Date.now()).toISOString().slice(0, 10)
 
 /**
  * Situation de production d'un jour, par offre publiée : réservations, préparé, pertes et fiche technique.

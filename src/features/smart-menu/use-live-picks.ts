@@ -19,8 +19,8 @@ export function useLivePicks(picks: Array<Pick>): Array<LivePick> {
   const from = picks.map((p) => p.date).sort()[0] ?? '2000-01-01'
   const { data: mine } = useQuery(convexQuery(api.bookings.mine, { from }))
   const remaining = new Map(menus.flatMap((q) => q.data ?? []).map((item) => [item._id, item.remaining]))
+  const active = mine?.filter((b) => b.status !== 'cancelled') ?? []
   return picks.map((pick) => {
-    const active = mine?.filter((b) => b.status !== 'cancelled') ?? []
     const booked = active.some((b) => b.menuItemId === pick.menuItemId)
     const serviceTaken = active.some((b) => b.date === pick.date && b.service === pick.service)
     const left = remaining.get(pick.menuItemId) ?? pick.remaining

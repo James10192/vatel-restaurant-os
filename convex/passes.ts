@@ -3,12 +3,12 @@ import type { Doc } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
 import { requireCounter, requireMember } from './lib/access'
+import { todayUtc } from './lib/dates'
 import type { Membership } from './lib/access'
 import { PASS_REFUSALS, PASS_VERDICTS, endOfDay, generateCode, hashCode, normalizeCode } from './lib/pass'
 import type { PassVerdict } from './lib/pass'
 import { serviceValidator } from './schema'
 
-const todayUtc = () => new Date(Date.now()).toISOString().slice(0, 10)
 
 /**
  * QR de retrait (#4 B3). L'usager affiche un code opaque ; le personnel le scanne (ou le saisit), voit

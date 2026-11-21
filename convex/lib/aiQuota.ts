@@ -1,18 +1,17 @@
 import type { Id } from '../_generated/dataModel'
 import type { MutationCtx } from '../_generated/server'
 import type { Membership } from './access'
+import { todayUtc } from './dates'
 
 /** Plafond commun à toutes les aides IA d'un établissement, par jour (coût borné, #16 SEC-05). */
 export const CANTEEN_DAILY_AI_CALLS = 150
-
-const dayOf = (now: number) => new Date(now).toISOString().slice(0, 10)
 
 /**
  * Réserve un appel IA pour ce membre, avant l'appel au fournisseur. Null si le plafond du membre
  * ou celui de l'établissement est atteint : l'appelant répond alors sans IA.
  */
 export async function takeAiCall(ctx: MutationCtx, membership: Membership, now: number, perMemberDaily: number): Promise<Id<'aiUsage'> | null> {
-  const day = dayOf(now)
+  const day = todayUtc(now)
   const ofCanteen = await ctx.db
     .query('aiUsage')
     .withIndex('by_canteen_day', (q) => q.eq('canteenId', membership.canteenId).eq('day', day))
