@@ -7,6 +7,8 @@ import { authClient } from '#/lib/auth-client'
 import { getToken } from '#/lib/auth-server'
 import { THEME_BOOT_SCRIPT } from '#/lib/theme'
 import appCss from '../styles.css?url'
+// Même fichier (même empreinte) que celui référencé par le CSS : le précharger évite d'attendre l'analyse du CSS.
+import robotoLatin from '@fontsource-variable/roboto/files/roboto-latin-wght-normal.woff2?url'
 
 const getAuth = createServerFn({ method: 'GET' }).handler(async () => (await getToken()) ?? null)
 
@@ -22,6 +24,8 @@ export const Route = createRootRouteWithContext<{
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      // Police du titre (élément LCP) : en réseau lent elle arrivait ~3 s après le premier affichage (décalages, LCP retardé).
+      { rel: 'preload', href: robotoLatin, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
       { rel: 'icon', type: 'image/svg+xml', href: '/logo-vatel.svg' },
     ],
   }),
