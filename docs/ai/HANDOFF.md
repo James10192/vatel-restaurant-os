@@ -81,6 +81,14 @@ _Mis à jour : 21/11/2026 ~11h30 (Abidjan)_
 - Corrigé : barre « Publier la semaine » masquée par la barre du bas mobile (`menus.tsx`) ; `dark` forcé sur /auth supprimé ; sélecteur Clair/Sombre/Système sur /auth (`components/theme-toggle.tsx`, même préférence que le Profil) ; accueil /auth centré (glisser, titre, paragraphe) ; Vue d'ensemble refaite (`features/admin/overview.tsx` : carte service bleu Vatel, jauge segmentée, indicateurs cliquables vers commandes filtrées, plats par service, état vide avec lien Menus) ; lien actif de la barre latérale avec `?date=` ; navigation de jour pleine largeur en mobile ; pluriel « 1 commande ».
 - Constats non corrigés : grille admin lundi-vendredi alors que l'usager voit 7 jours ; un double-clic avant hydratation sur « Recharger » est perdu sans message (réseau lent) ; radiogroup des montants de recharge sans nom accessible ; FR/EN absent.
 
+## Refonte adaptative, phase 1 (PR #28, non fusionnée, ~13h30)
+- Worktree `vatel-adaptive`, branche `feat/adaptive-layouts`. Audit, matrice, principes et résultats : `docs/design/adaptive/PLAN.md` ; captures avant/après dans le même dossier.
+- Coquille unique pilotée par CSS (`components/shell/`) : barre du bas < 768, rail 768 à 1279, barre latérale ≥ 1280. La sidebar shadcn admin et la barre du haut étudiante sont retirées.
+- Accueil catalogue + panneau ; Menus en planning hebdomadaire (bureau), liste/détail (tablette) ; Commandes en tableau dès 1024 px ; Vue d'ensemble en cockpit (file à servir, tableau par plat).
+- Vérifié : typecheck, lint, 68 tests, build ; 48 captures 320 à 2560 px sans défilement horizontal.
+- Phase 2 en attente : Mes repas et Solde (fichiers de `feat/refonte-pages`), Connexion tablette/ultrawide, zoom 200/400 %, clavier.
+- Développement local : connexion via :3000 uniquement (origine Better Auth), les cookies localhost valent pour :3001.
+
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
 - Révocation : accès serveur basé sur le JWT, effectif à son expiration.
