@@ -17,6 +17,7 @@ import { addDays, parseWeekSearch, resolveWeek } from '#/features/menus/week'
 import { WeekSwitcher } from '#/features/menus/week-switcher'
 import { BalanceSummary } from '#/features/wallet/balance-summary'
 import { UpcomingMeals } from '#/features/booking/upcoming-meals'
+import { SmartMenuSheet } from '#/features/smart-menu/smart-menu-sheet'
 import { useT, pageTitle } from '#/i18n/i18n'
 
 export const Route = createFileRoute('/_authed/app/')({
@@ -67,7 +68,10 @@ function MemberHome() {
           <h2 id="menu-semaine" className="text-xl font-semibold tracking-tight">
             {t('Menu de la semaine')}
           </h2>
-          <WeekSwitcher week={week} to="/app" />
+          <div className="flex flex-wrap items-center gap-2">
+            <SmartMenuSheet days={days.filter((d) => d >= today)} menu={items ?? []} balanceXof={balanceXof ?? 0} />
+            <WeekSwitcher week={week} to="/app" />
+          </div>
         </div>
         <DayPicker days={days} withMenu={withMenu} value={day} onChange={(d) => setPicked({ week, day: d })} today={today} />
         {isPending ? (
