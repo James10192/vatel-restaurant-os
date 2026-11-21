@@ -164,6 +164,8 @@ export default defineSchema({
     defaultPriceXof: v.number(),
     allergens: allergenInfoValidator,
     recipe: v.object({ portions: v.number(), lines: v.array(recipeLineValidator) }),
+    /** Photo RÉELLE du plat, envoyée par l'administration (stockage Convex). Absente = visuel de repli. */
+    photoId: v.optional(v.id('_storage')),
   }).index('by_canteen', ['canteenId']),
 
   /** Plat proposé un jour/service donné. Prix figé sur l'offre ; les réservations le figeront à leur tour. */

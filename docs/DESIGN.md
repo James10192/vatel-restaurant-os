@@ -60,7 +60,7 @@ Cadrage : photo sur les 58 % supérieurs, `object-bottom`, voile `from-primary` 
   - Assiette de repli `plate` / `plate-rim` ; états `success`, `warning` (+ `-soft`).
   - Typo : `text-display` (clamp, interlignage 1.08, approche -0.025em), `text-eyebrow` (surtitre 11 px, +0.08em), titres `text-wrap: balance`.
   - `press` : retour à l'appui (scale 0.98), désactivé sous `prefers-reduced-motion`.
-- Visuel de plat : `DishVisual` (assiette stylisée + initiales). Aucune photo de plat autorisée : jamais d'image trompeuse.
+- Visuel de plat : `DishVisual`. Photo RÉELLE du plat servi, envoyée par l'administration depuis la fiche technique (réduite à 1280 px WebP dans le navigateur, 3 Mo max côté serveur, images uniquement). Sans photo : assiette stylisée + initiales. Jamais d'image d'illustration ou de banque d'images : aucune image trompeuse.
 - Thème Clair / Sombre / Système dans le menu Profil (`src/lib/theme.ts`, script anti-flash dans `__root`).
 - Accueil : icône du moment + salutation à gauche, logo à droite (mobile). Salutation selon l'heure et la dernière visite sur l'appareil (`src/lib/greeting.ts`, testée).
 - Inspirations consultées seulement (aucun code copié) : shadcn blocks dashboard, ReUI product-card-4 / dashboard-1. Aucun composant tiers ajouté : uniquement shadcn/ui déjà installé (MIT) et Lucide (ISC). Principes : skill `apple-design` (emilkowalski/skills).

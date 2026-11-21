@@ -37,7 +37,7 @@ export const daySummaryReturns = v.object({
 })
 
 export const dishListReturns = v.array(
-  v.object({ _id: v.id('dishes'), _creationTime: v.number(), ...dishes.validator.fields, published: v.boolean() }),
+  v.object({ _id: v.id('dishes'), _creationTime: v.number(), ...dishes.validator.fields, published: v.boolean(), photoUrl: v.optional(v.string()) }),
 )
 
 export const adminWeekReturns = v.array(
@@ -47,6 +47,7 @@ export const adminWeekReturns = v.array(
     ...menuItems.validator.fields,
     dishName: v.string(),
     allergens: allergenInfoValidator,
+    photoUrl: v.optional(v.string()),
   }),
 )
 
@@ -62,6 +63,7 @@ export const publishedWeekReturns = v.array(
     dishName: v.string(),
     description: v.optional(v.string()),
     allergens: allergenInfoValidator,
+    photoUrl: v.optional(v.string()),
   }),
 )
 

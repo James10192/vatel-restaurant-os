@@ -27,7 +27,10 @@ export const list = query({
     const published = await Promise.all(
       dishes.map((d) => ctx.db.query('menuItems').withIndex('by_dish_status', (q) => q.eq('dishId', d._id).eq('status', 'published')).first()),
     )
-    return dishes.map((d, i) => ({ ...d, published: published[i] !== null })).sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+    const photos = await Promise.all(dishes.map((d) => (d.photoId ? ctx.storage.getUrl(d.photoId) : null)))
+    return dishes
+      .map((d, i) => ({ ...d, published: published[i] !== null, photoUrl: photos[i] ?? undefined }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
   },
 })
 
@@ -61,7 +64,7 @@ export const save = mutation({
       recipe: { ...dish.recipe, lines: assertListLength(dish.recipe.lines, 'Recette') },
     }
     if (!dishId) return await ctx.db.insert('dishes', doc)
-    await getOwned(ctx, membership, dishId)
+    const existing = await getOwned(ctx, membership, dishId)
     // Une offre publiée a été vue (et peut-être réservée) avec ces informations : pas de réécriture silencieuse.
     const published = await ctx.db
       .query('menuItems')
@@ -70,7 +73,8 @@ export const save = mutation({
     if (published) {
       throw new ConvexError('Ce plat est déjà publié : créez une nouvelle version au lieu de le modifier.')
     }
-    await ctx.db.replace(dishId, doc)
+    // La photo se gère à part (setPhoto) : modifier la fiche ne doit pas l'effacer.
+    await ctx.db.replace(dishId, { ...doc, photoId: existing.photoId })
     return dishId
   },
 })
@@ -100,3 +104,47 @@ function deriveAllergens(ingredients: Array<Doc<'ingredients'>>, manual: Infer<t
     traces: cleanList(declared.traces, 'Traces'),
   }
 }
+
+/** Photo : 3 Mo au plus, image uniquement (le navigateur la réduit avant l'envoi). */
+const MAX_PHOTO_BYTES = 3 * 1024 * 1024
+
+/** Adresse d'envoi à usage unique pour une photo de plat (administration seulement). */
+export const generatePhotoUploadUrl = mutation({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    await requireAdmin(ctx)
+    return await ctx.storage.generateUploadUrl()
+  },
+})
+
+/**
+ * Photo RÉELLE d'un plat de l'établissement, ou retrait (`photoId: null`). Autorisée même sur un plat publié :
+ * la photo ne change ni la composition, ni le prix, ni les allergènes. Le fichier doit être une image de 3 Mo au plus.
+ */
+export const setPhoto = mutation({
+  args: { dishId: v.id('dishes'), photoId: v.union(v.id('_storage'), v.null()) },
+  returns: v.null(),
+  handler: async (ctx, { dishId, photoId }) => {
+    const membership = await requireAdmin(ctx)
+    const dish = await getOwned(ctx, membership, dishId)
+    if (photoId !== null) {
+      const file = await ctx.db.system.get(photoId)
+      if (!file) throw new ConvexError('Photo introuvable : renvoyez le fichier.')
+      if (!file.contentType?.startsWith('image/')) throw new ConvexError('Le fichier doit être une image.')
+      if (file.size > MAX_PHOTO_BYTES) throw new ConvexError('Photo trop lourde : 3 Mo au plus.')
+    }
+    await ctx.db.patch(dishId, { photoId: photoId ?? undefined })
+    // L'ancienne photo n'est supprimée que si plus aucun plat (ex. une version précédente) ne l'utilise.
+    const previous = dish.photoId
+    if (previous && previous !== photoId) {
+      const stillUsed = await ctx.db
+        .query('dishes')
+        .withIndex('by_canteen', (q) => q.eq('canteenId', membership.canteenId))
+        .filter((q) => q.eq(q.field('photoId'), previous))
+        .first()
+      if (!stillUsed) await ctx.storage.delete(previous)
+    }
+    return null
+  },
+})
