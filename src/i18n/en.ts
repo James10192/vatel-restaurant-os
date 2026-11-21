@@ -279,6 +279,9 @@ export const EN: Record<string, string> = {
   'Nouveau plat': 'New dish',
   'Choisir un plat': 'Choose a dish',
   'Nom du plat': 'Dish name',
+  'Nom de l’établissement': 'School name',
+  Recette: 'Recipe',
+  Traces: 'Traces',
   Description: 'Description',
   'Prix par défaut (FCFA)': 'Default price (FCFA)',
   'Prix (FCFA)': 'Price (FCFA)',
@@ -311,7 +314,8 @@ export const EN: Record<string, string> = {
   '{remaining} / {capacity} libres': '{remaining} / {capacity} available',
   '{n} annulations': '{n} cancellations',
   '{n} annulation': '{n} cancellation',
-  '{served} remis sur {n} réservations': '{served} collected out of {n} bookings',
+  '{served} remis sur {n} réservations':
+    '{served} collected out of {n} bookings',
   '{served} remis sur {n} réservation': '{served} collected out of {n} booking',
   '{n} plats': '{n} dishes',
   '{n} plat': '{n} dish',
@@ -455,4 +459,25 @@ export const EN: Record<string, string> = {
     'You already have a meal booked for this service.',
   'Élément introuvable.': 'Item not found.',
   'Nom : 1 à 80 caractères.': 'Name: 1 to 80 characters.',
+}
+
+/**
+ * Messages du serveur qui contiennent une valeur (`${label}`, `${max}`…) : modèle français → modèle anglais.
+ * Les valeurs capturées sont elles-mêmes traduites si elles sont connues (libellés de champ), sinon reprises telles quelles.
+ * `src/i18n/catalog.test.ts` vérifie que chaque message variable de `convex/` correspond à un modèle.
+ */
+export const EN_PATTERNS: Record<string, string> = {
+  'Déjà {booked} portions réservées : capacité trop basse.':
+    'Already {booked} portions booked: capacity too low.',
+  '{label} : valeur positive attendue.': '{label}: positive value expected.',
+  '{label} : 1 à 80 caractères.': '{label}: 1 to 80 characters.',
+  '{label} : {max} caractères au maximum.':
+    '{label}: {max} characters maximum.',
+  '{label} : {max} éléments au maximum.': '{label}: {max} items maximum.',
+  'Recharge de démonstration : entre 1 et {max} FCFA.':
+    'Demo top-up: between 1 and {max} FCFA.',
+  'Solde de démonstration plafonné à {max} FCFA.':
+    'Demo balance capped at {max} FCFA.',
+  'Notifications déjà actives sur {n} appareils. Désactivez-en un d’abord.':
+    'Notifications already on for {n} devices. Turn one off first.',
 }

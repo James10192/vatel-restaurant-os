@@ -204,7 +204,11 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
   le contexte du routeur (cookie) ; `setLocale` invalide le routeur, donc le titre suit la bascule sans rechargement.
   Le titre de repli de `__root` reste « Vatel Restauration » (le typer sur la langue crée une référence circulaire).
   Vérifié : 8 pages en FR et en EN (« Profil | Vatel Restauration » / « Profile | Vatel Dining »), bascule en direct.
-- Limite restante : messages serveur à valeur variable non répertoriés, affichés en français.
+- Messages serveur à valeur variable (ajout suivant) : modèles `EN_PATTERNS` (`'{label} : 1 à 80 caractères.'` →
+  `'{label}: 1 to 80 characters.'`), reconnus côté client ; les valeurs capturées sont traduites si ce sont des libellés
+  connus (Quantité → Quantity). Serveur et tests serveur inchangés. Le test de catalogue relit `convex/` et échoue si un
+  `ConvexError` avec `${…}` n'a pas de modèle. Vérifié en navigateur : plafond de recharge atteint en anglais →
+  « Demo balance capped at 100000 FCFA. ». Recherche dans le dictionnaire par `Object.hasOwn` (pas de clé héritée).
 
 ### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
 Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :
