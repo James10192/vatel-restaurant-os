@@ -1,11 +1,13 @@
 import { MoonIcon, SunIcon } from 'lucide-react'
 import type { FunctionReturnType } from 'convex/server'
 import type { api } from '../../../convex/_generated/api'
-import { SERVICE_LABELS } from '#/lib/format'
+import { SERVICE_LABELS , dateFormat } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { cn } from '#/lib/utils'
 import { AddItemSheet } from './add-item-sheet'
 import { MenuItemRow } from './menu-item-row'
+import { useT , useLocale } from '#/i18n/i18n'
+import type { Locale } from '#/i18n/i18n'
 
 type AdminWeekItem = FunctionReturnType<typeof api.menus.adminWeek>[number]
 
@@ -13,12 +15,14 @@ const SERVICES: Array<{ service: Service; icon: typeof SunIcon }> = [
   { service: 'lunch', icon: SunIcon },
   { service: 'dinner', icon: MoonIcon },
 ]
-const weekday = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', timeZone: 'UTC' })
-const dayMonth = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', timeZone: 'UTC' })
+const weekday = (locale: Locale) => dateFormat(locale, { weekday: 'long', timeZone: 'UTC' })
+const dayMonth = (locale: Locale) => dateFormat(locale, { day: 'numeric', month: 'long', timeZone: 'UTC' })
 const toDate = (iso: string) => new Date(`${iso}T00:00:00Z`)
 
 /** Une journée de la carte : en-tête daté, puis Déjeuner et Dîner côte à côte dès que la carte fait 36 rem (container query). */
 export function AdminDayCard({ date, items, isToday }: { date: string; items: Array<AdminWeekItem>; isToday: boolean }) {
+  const { locale } = useLocale()
+  const t = useT()
   const drafts = items.filter((item) => item.status === 'draft').length
   return (
     <section
@@ -27,12 +31,12 @@ export function AdminDayCard({ date, items, isToday }: { date: string; items: Ar
     >
       <header className="flex items-baseline justify-between gap-3 px-1 pb-3">
         <h2 id={`day-${date}`} className="flex items-baseline gap-2">
-          <span className="text-lg font-bold tracking-tight capitalize">{weekday.format(toDate(date))}</span>
-          <span className="text-sm text-muted-foreground">{dayMonth.format(toDate(date))}</span>
-          {isToday && <span className="text-eyebrow text-ring">Aujourd’hui</span>}
+          <span className="text-lg font-bold tracking-tight capitalize">{weekday(locale).format(toDate(date))}</span>
+          <span className="text-sm text-muted-foreground">{dayMonth(locale).format(toDate(date))}</span>
+          {isToday && <span className="text-eyebrow text-ring">{t('Aujourd’hui')}</span>}
         </h2>
         <span className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
-          {items.length === 0 ? 'Aucun plat' : `${items.length} plat${items.length > 1 ? 's' : ''}`}
+          {items.length === 0 ? t('Aucun plat') : `${items.length} plat${items.length > 1 ? 's' : ''}`}
           {drafts > 0 && `, ${drafts} brouillon${drafts > 1 ? 's' : ''}`}
         </span>
       </header>
@@ -44,7 +48,7 @@ export function AdminDayCard({ date, items, isToday }: { date: string; items: Ar
               <div className="flex items-center justify-between gap-2 pl-1">
                 <h3 className="flex items-center gap-1.5 text-eyebrow text-muted-foreground">
                   <Icon className="size-3.5" />
-                  {SERVICE_LABELS[service]}
+                  {t(SERVICE_LABELS[service])}
                 </h3>
                 <AddItemSheet date={date} service={service} />
               </div>
@@ -56,7 +60,7 @@ export function AdminDayCard({ date, items, isToday }: { date: string; items: Ar
                 </ul>
               ) : (
                 <p className="rounded-xl border border-dashed bg-background/60 px-3 py-4 text-center text-sm text-muted-foreground">
-                  Aucun plat programmé
+                  {t('Aucun plat programmé')}
                 </p>
               )}
             </div>

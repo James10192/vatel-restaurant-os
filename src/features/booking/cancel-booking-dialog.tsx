@@ -17,6 +17,7 @@ import { Button } from '#/components/ui/button'
 import { Spinner } from '#/components/ui/spinner'
 import { formatXof } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
+import { useT } from '#/i18n/i18n'
 
 /** Annulation confirmée ; le remboursement est affiché seulement après réponse du serveur. */
 export function CancelBookingDialog({
@@ -28,25 +29,26 @@ export function CancelBookingDialog({
   dishName: string
   priceXof: number
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const { run, pending, error } = useServerAction(useMutation(api.bookings.cancel))
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="outline" size="sm">
-          Annuler
+          {t('Annuler')}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Annuler cette réservation ?</AlertDialogTitle>
+          <AlertDialogTitle>{t('Annuler cette réservation ?')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {dishName} : {formatXof(priceXof)} seront recrédités sur votre solde.
+            {dishName} : {formatXof(priceXof)} {t('seront recrédités sur votre solde.')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <FormError message={error} />
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Garder</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>{t('Garder')}</AlertDialogCancel>
           <Button
             variant="destructive"
             disabled={pending}
@@ -55,7 +57,7 @@ export function CancelBookingDialog({
             }}
           >
             {pending && <Spinner data-icon="inline-start" />}
-            Annuler la réservation
+            {t('Annuler la réservation')}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

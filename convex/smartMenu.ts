@@ -156,7 +156,7 @@ export const suggest = action({
     if (!usageId) return answer(rulesPlan, 'rules', NOTICES.quota)
 
     try {
-      const outcome = await selectWithAi(config.model, evaluation, request, sanitizeWish(args.wish))
+      const outcome = await selectWithAi(config.model, evaluation, request, sanitizeWish(args.wish), args.locale ?? 'fr')
       await ctx.runMutation(internal.smartMenu.recordAiTokens, { usageId, ...outcome.usage })
       const ai = { model: config.modelId, steps: outcome.steps, ...outcome.usage }
       const checked = validateAiPicks(outcome.picks, evaluation, request)

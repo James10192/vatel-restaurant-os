@@ -9,6 +9,7 @@ import { useNow } from '#/lib/use-now'
 import { BookMealDialog } from '#/features/booking/book-meal-dialog'
 import { AllergenBadges } from '#/features/menus/allergen-badges'
 import type { Suggestion } from './smart-menu-sheet'
+import { useLocale, useT } from '#/i18n/i18n'
 
 const UNCOVERED_LABELS = {
   no_menu: 'aucun menu publié',
@@ -19,29 +20,30 @@ const UNCOVERED_LABELS = {
 
 /** Synthèse : total proposé face au budget, origine (IA vérifiée ou calcul), alerte de solde. */
 function Summary({ result, balanceXof }: { result: Suggestion; balanceXof: number }) {
+  const t = useT()
   const ratio = result.budgetXof > 0 ? Math.min(result.totalXof / result.budgetXof, 1) : 0
   return (
     <section className="relative isolate overflow-hidden rounded-3xl bg-vatel-navy p-5 text-white">
       <div aria-hidden className="absolute -top-12 -right-12 -z-10 size-40 rounded-full border-[20px] border-white/10" />
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm text-white/70">Total proposé</p>
+        <p className="text-sm text-white/70">{t('Total proposé')}</p>
         <Badge variant="secondary" className="gap-1">
           {result.source === 'ai' && <SparklesIcon />}
-          {result.source === 'ai' ? 'Choix IA vérifié' : 'Calcul sans IA'}
+          {result.source === 'ai' ? t('Choix IA vérifié') : t('Calcul sans IA')}
         </Badge>
       </div>
       <p className="mt-1 text-3xl font-bold tracking-tight tabular-nums">{formatXof(result.totalXof)}</p>
-      <p className="text-sm text-white/80 tabular-nums">sur un budget de {formatXof(result.budgetXof)}</p>
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15" role="img" aria-label={`${Math.round(ratio * 100)} % du budget`}>
+      <p className="text-sm text-white/80 tabular-nums">{t('sur un budget de {amount}', { amount: formatXof(result.budgetXof) })}</p>
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15" role="img" aria-label={t('{pct} % du budget', { pct: Math.round(ratio * 100) })}>
         <span className="block h-full rounded-full bg-vatel-sky" style={{ width: `${ratio * 100}%` }} />
       </div>
       {result.totalXof > balanceXof && (
         <p className="mt-3 flex items-center gap-2 text-sm">
           <TriangleAlertIcon className="size-4 shrink-0 text-vatel-sky" />
           <span>
-            Solde actuel de {formatXof(balanceXof)} : insuffisant pour tout réserver.{' '}
+            {t('Solde actuel de {amount} : insuffisant pour tout réserver.', { amount: formatXof(balanceXof) })}{' '}
             <Link to="/app/wallet" className="font-semibold underline underline-offset-2">
-              Recharger
+              {t('Recharger')}
             </Link>
           </span>
         </p>
@@ -52,22 +54,24 @@ function Summary({ result, balanceXof }: { result: Suggestion; balanceXof: numbe
 
 /** Propositions vérifiées par le serveur. Chaque réservation passe par la confirmation habituelle. */
 export function SuggestionResults({ result, balanceXof }: { result: Suggestion; balanceXof: number }) {
+  const t = useT()
+  const { locale } = useLocale()
   const now = useNow()
   return (
-    <section aria-label="Propositions" className="flex flex-col gap-4" aria-live="polite">
+    <section aria-label={t('Propositions')} className="flex flex-col gap-4" aria-live="polite">
       <Summary result={result} balanceXof={balanceXof} />
       {result.notice && (
         <Alert>
           <InfoIcon />
-          <AlertDescription>{result.notice}</AlertDescription>
+          <AlertDescription>{t(result.notice)}</AlertDescription>
         </Alert>
       )}
 
       {result.picks.length === 0 ? (
         <Empty className="rounded-3xl border">
           <EmptyHeader>
-            <EmptyTitle>Aucun repas ne correspond</EmptyTitle>
-            <EmptyDescription>Essayez d’autres jours ou un budget plus élevé, ou parcourez le menu.</EmptyDescription>
+            <EmptyTitle>{t('Aucun repas ne correspond')}</EmptyTitle>
+            <EmptyDescription>{t('Essayez d’autres jours ou un budget plus élevé, ou parcourez le menu.')}</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
@@ -78,11 +82,11 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
                 <DishVisual name={pick.dishName} className="size-14 shrink-0 rounded-2xl text-sm" />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-xs font-medium text-muted-foreground first-letter:uppercase">
-                    {formatDayLong(pick.date)} · {SERVICE_LABELS[pick.service]}
+                    {formatDayLong(pick.date, locale)} · {t(SERVICE_LABELS[pick.service])}
                   </span>
                   <span className="leading-snug font-semibold">{pick.dishName}</span>
                   <span className="text-xs text-muted-foreground tabular-nums">
-                    {pick.remaining} portion{pick.remaining > 1 ? 's' : ''} restante{pick.remaining > 1 ? 's' : ''}
+                    {t(pick.remaining > 1 ? '{n} portions restantes' : '{n} portion restante', { n: pick.remaining })}
                   </span>
                 </div>
                 <span className="text-lg font-bold whitespace-nowrap text-primary tabular-nums">{formatXof(pick.priceXof)}</span>
@@ -98,7 +102,7 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
                 {now < pick.bookableUntil && pick.remaining > 0 ? (
                   <BookMealDialog meal={{ ...pick, _id: pick.menuItemId }} balanceXof={balanceXof} />
                 ) : (
-                  <span className="text-xs text-muted-foreground">Réservations closes</span>
+                  <span className="text-xs text-muted-foreground">{t('Réservations closes')}</span>
                 )}
               </div>
             </li>
@@ -113,7 +117,7 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
             <li key={day.date} className="flex items-center gap-3 rounded-3xl border border-dashed px-4 py-3 text-sm text-muted-foreground">
               <CalendarXIcon aria-hidden className="size-4 shrink-0" />
               <span className="first-letter:uppercase">
-                {formatDayLong(day.date)} : {UNCOVERED_LABELS[day.reason]}
+                {formatDayLong(day.date, locale)} : {t(UNCOVERED_LABELS[day.reason])}
               </span>
             </li>
           ))}
@@ -122,13 +126,16 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
       {result.excludedUnknownAllergens > 0 && (
         <p className="flex gap-2 text-sm text-muted-foreground">
           <CircleHelpIcon className="mt-0.5 size-4 shrink-0" />
-          {result.excludedUnknownAllergens} plat{result.excludedUnknownAllergens > 1 ? 's' : ''} écarté
-          {result.excludedUnknownAllergens > 1 ? 's' : ''} : allergènes non renseignés, donc non vérifiés.
+          {t(
+            result.excludedUnknownAllergens > 1
+              ? '{n} plats écartés : allergènes non renseignés, donc non vérifiés.'
+              : '{n} plat écarté : allergènes non renseignés, donc non vérifiés.',
+            { n: result.excludedUnknownAllergens },
+          )}
         </p>
       )}
       <p className="text-xs text-muted-foreground">
-        Les allergènes viennent de la fiche du plat. Un allergène non renseigné n’est pas vérifié : en cas de doute, demandez au
-        service restauration.
+        {t('Les allergènes affichés viennent de la fiche du plat. Un allergène non renseigné n’est pas vérifié : en cas de doute, demandez au service restauration.')}
       </p>
     </section>
   )

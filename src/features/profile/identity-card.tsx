@@ -9,9 +9,11 @@ import { Card, CardContent } from '#/components/ui/card'
 import { initials } from '#/components/shell/nav-model'
 import { ROLE_LABELS, currentUserQuery } from '#/lib/session'
 import { RenameForm } from './rename-form'
+import { useT } from '#/i18n/i18n'
 
 /** Identité lue sur le serveur. Le nom est modifiable ; e-mail, rôle et établissement ne le sont pas. */
 export function IdentityCard() {
+  const t = useT()
   const { data: user } = useSuspenseQuery(currentUserQuery)
   const [editing, setEditing] = useState(false)
   if (!user) return null
@@ -32,8 +34,8 @@ export function IdentityCard() {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Modifier le nom"
-              title="Modifier le nom"
+              aria-label={t('Modifier le nom')}
+              title={t('Modifier le nom')}
               onClick={() => setEditing(true)}
             >
               <PencilIcon />
@@ -45,7 +47,7 @@ export function IdentityCard() {
         )}
         {user.membership ? (
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <Badge>{ROLE_LABELS[user.membership.role]}</Badge>
+            <Badge>{t(ROLE_LABELS[user.membership.role])}</Badge>
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <BuildingIcon aria-hidden className="size-4" />
               {user.membership.canteenName}
@@ -54,9 +56,9 @@ export function IdentityCard() {
         ) : (
           <Alert>
             <ClockIcon />
-            <AlertTitle>Compte en attente de rattachement</AlertTitle>
+            <AlertTitle>{t('Compte en attente de rattachement')}</AlertTitle>
             <AlertDescription>
-              L’administration de votre établissement doit valider votre compte.
+              {t('L’administration de votre établissement doit valider votre compte.')}
             </AlertDescription>
           </Alert>
         )}

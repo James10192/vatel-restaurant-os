@@ -12,6 +12,7 @@ import {
 } from '#/components/ui/input-group'
 import { Spinner } from '#/components/ui/spinner'
 import { useServerAction } from '#/lib/server-action'
+import { useT } from '#/i18n/i18n'
 
 const MAX_LENGTH = 80
 
@@ -26,6 +27,7 @@ export function RenameForm({
   current: string
   onDone: () => void
 }) {
+  const t = useT()
   const rename = useServerAction(useMutation(api.account.rename))
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -38,7 +40,7 @@ export function RenameForm({
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
       <Field>
-        <FieldLabel htmlFor="name">Nom affiché</FieldLabel>
+        <FieldLabel htmlFor="name">{t('Nom affiché')}</FieldLabel>
         <InputGroup>
           <InputGroupAddon>
             <UserIcon />
@@ -54,14 +56,14 @@ export function RenameForm({
           />
         </InputGroup>
         <FieldDescription>
-          Visible par le personnel au moment du service.
+          {t('Visible par le personnel au moment du service.')}
         </FieldDescription>
       </Field>
       <FormError message={rename.error} />
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={rename.pending}>
           {rename.pending && <Spinner data-icon="inline-start" />}
-          Enregistrer
+          {t('Enregistrer')}
         </Button>
         <Button
           type="button"
@@ -69,7 +71,7 @@ export function RenameForm({
           disabled={rename.pending}
           onClick={onDone}
         >
-          Annuler
+          {t('Annuler')}
         </Button>
       </div>
     </form>

@@ -6,6 +6,7 @@ import { api } from '../../../convex/_generated/api'
 import { Button } from '#/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '#/components/ui/sheet'
 import { useServerAction } from '#/lib/server-action'
+import { useLocale, useT } from '#/i18n/i18n'
 import type { PublishedItem } from '#/features/menus/meal-card'
 import { SmartMenuForm, budgetValue } from './smart-menu-form'
 import type { SmartRequest } from './smart-menu-form'
@@ -25,6 +26,8 @@ const declaredAllergens = (menu: Array<PublishedItem>) =>
  * automatique : chaque proposition ouvre la confirmation habituelle.
  */
 export function SmartMenuSheet({ days, menu, balanceXof }: { days: Array<string>; menu: Array<PublishedItem>; balanceXof: number }) {
+  const t = useT()
+  const { locale } = useLocale()
   const [open, setOpen] = useState(false)
   const [request, setRequest] = useState<SmartRequest>(EMPTY)
   const [result, setResult] = useState<Suggestion | null>(null)
@@ -41,6 +44,7 @@ export function SmartMenuSheet({ days, menu, balanceXof }: { days: Array<string>
       avoid: value.avoid,
       wish: value.wish,
       useAi: true,
+      locale,
     })
     if (suggestion) setResult(suggestion)
   }
@@ -50,7 +54,7 @@ export function SmartMenuSheet({ days, menu, balanceXof }: { days: Array<string>
       <SheetTrigger asChild>
         <Button variant="secondary" size="sm" className="rounded-full" disabled={days.length === 0}>
           <SparklesIcon data-icon="inline-start" />
-          Aide au choix
+          {t('Aide au choix')}
         </Button>
       </SheetTrigger>
       <SheetContent className="flex flex-col gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-xl">
@@ -59,11 +63,11 @@ export function SmartMenuSheet({ days, menu, balanceXof }: { days: Array<string>
             <SparklesIcon className="size-5" />
           </span>
           <div className="flex flex-col gap-0.5">
-            <SheetTitle className="text-lg">{result ? 'Vos propositions' : 'Aide au choix'}</SheetTitle>
+            <SheetTitle className="text-lg">{result ? t('Vos propositions') : t('Aide au choix')}</SheetTitle>
             <SheetDescription>
               {result
-                ? 'Vérifiées sur le menu publié. Réservez celles qui vous conviennent.'
-                : 'Vos jours et votre budget : nous proposons des repas du menu publié.'}
+                ? t('Vérifiées sur le menu publié. Réservez celles qui vous conviennent.')
+                : t('Vos jours et votre budget : nous proposons des repas du menu publié.')}
             </SheetDescription>
           </div>
         </SheetHeader>
@@ -76,7 +80,7 @@ export function SmartMenuSheet({ days, menu, balanceXof }: { days: Array<string>
             <div className="border-t p-4">
               <Button variant="outline" size="lg" className="w-full" onClick={() => setResult(null)}>
                 <ArrowLeftIcon data-icon="inline-start" />
-                Modifier ma demande
+                {t('Modifier ma demande')}
               </Button>
             </div>
           </div>

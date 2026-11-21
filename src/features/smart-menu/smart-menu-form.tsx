@@ -6,14 +6,16 @@ import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '#/
 import { Spinner } from '#/components/ui/spinner'
 import { Textarea } from '#/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { formatXof } from '#/lib/format'
+import { dateFormat, formatXof } from '#/lib/format'
+import { useLocale, useT } from '#/i18n/i18n'
+import type { Locale } from '#/i18n/i18n'
 import { cn } from '#/lib/utils'
 
 export type ServiceWish = 'any' | 'lunch' | 'dinner'
 export type SmartRequest = { days: Array<string>; budget: string; service: ServiceWish; avoid: Array<string>; wish: string }
 
-const WEEKDAY = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', timeZone: 'UTC' })
-const DAY_NUMBER = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', timeZone: 'UTC' })
+const weekday = (locale: Locale) => dateFormat(locale, { weekday: 'short', timeZone: 'UTC' })
+const dayNumber = (locale: Locale) => dateFormat(locale, { day: 'numeric', timeZone: 'UTC' })
 const toDate = (iso: string) => new Date(`${iso}T00:00:00Z`)
 const QUICK_BUDGETS = [2000, 4000, 6000, 10000]
 export const WISH_MAX = 200
@@ -61,9 +63,11 @@ export function SmartMenuForm({
   pending: boolean
   error: string | null
 }) {
+  const t = useT()
+  const { locale } = useLocale()
   const budget = budgetValue(value.budget)
   const available = days.filter((d) => daysWithMenu.has(d))
-  const missing = value.days.length === 0 ? 'Choisissez au moins un jour.' : budget <= 0 ? 'Indiquez un budget.' : null
+  const missing = value.days.length === 0 ? t('Choisissez au moins un jour.') : budget <= 0 ? t('Indiquez un budget.') : null
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!missing) onSubmit()
@@ -72,12 +76,12 @@ export function SmartMenuForm({
   return (
     <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-1 flex-col gap-7 overflow-y-auto px-4 pb-6 @container">
-        <Step n={1} title="Vos jours" hint={available.length ? undefined : 'Aucun menu publié sur ces jours.'}>
+        <Step n={1} title={t('Vos jours')} hint={available.length ? undefined : t('Aucun menu publié sur ces jours.')}>
           <ToggleGroup
             type="multiple"
             variant="outline"
             spacing={2}
-            aria-label="Jours"
+            aria-label={t('Jours')}
             value={value.days}
             onValueChange={(next) => onChange({ days: next })}
             className="grid w-full grid-cols-4 @md:grid-cols-7"
@@ -87,29 +91,29 @@ export function SmartMenuForm({
                 key={day}
                 value={day}
                 disabled={!daysWithMenu.has(day)}
-                aria-label={`${WEEKDAY.format(toDate(day))} ${DAY_NUMBER.format(toDate(day))}${daysWithMenu.has(day) ? '' : ', pas de menu'}`}
+                aria-label={daysWithMenu.has(day) ? `${weekday(locale).format(toDate(day))} ${dayNumber(locale).format(toDate(day))}` : t('{day}, pas de menu', { day: `${weekday(locale).format(toDate(day))} ${dayNumber(locale).format(toDate(day))}` })}
                 className="h-auto flex-col gap-0 rounded-2xl py-2.5 data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
               >
-                <span className="text-xs capitalize opacity-80">{WEEKDAY.format(toDate(day)).replace('.', '')}</span>
-                <span className="text-lg font-bold tabular-nums">{DAY_NUMBER.format(toDate(day))}</span>
+                <span className="text-xs capitalize opacity-80">{weekday(locale).format(toDate(day)).replace('.', '')}</span>
+                <span className="text-lg font-bold tabular-nums">{dayNumber(locale).format(toDate(day))}</span>
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
           {available.length > 1 && (
             <Button type="button" variant="link" size="sm" className="h-auto self-start p-0" onClick={() => onChange({ days: available })}>
-              Toute la semaine ({available.length} jours)
+              {t('Toute la semaine ({n} jours)', { n: available.length })}
             </Button>
           )}
         </Step>
 
-        <Step n={2} title="Votre budget total">
+        <Step n={2} title={t('Votre budget total')}>
           <InputGroup className="h-12 rounded-2xl">
             <InputGroupInput
               id="smart-budget"
-              aria-label="Budget total en FCFA"
+              aria-label={t('Budget total en FCFA')}
               inputMode="numeric"
               autoComplete="off"
-              placeholder="Montant"
+              placeholder={t('Montant')}
               className="text-lg font-semibold tabular-nums"
               value={value.budget ? Number(value.budget).toLocaleString('fr-FR') : ''}
               onChange={(e) => onChange({ budget: e.target.value.replace(/\D/g, '').slice(0, 6) })}
@@ -135,12 +139,12 @@ export function SmartMenuForm({
           </div>
           {budget > 0 && value.days.length > 0 && (
             <p className="text-sm text-muted-foreground tabular-nums">
-              Soit environ {formatXof(Math.floor(budget / value.days.length))} par jour.
+              {t('Soit environ {amount} par jour.', { amount: formatXof(Math.floor(budget / value.days.length)) })}
             </p>
           )}
         </Step>
 
-        <Step n={3} title="Service">
+        <Step n={3} title={t('Service')}>
           <ToggleGroup
             type="single"
             variant="outline"
@@ -151,14 +155,14 @@ export function SmartMenuForm({
           >
             {SERVICES.map(([key, label]) => (
               <ToggleGroupItem key={key} value={key} className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                {label}
+                {t(label)}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
         </Step>
 
         {allergens.length > 0 && (
-          <Step n={4} title="Allergènes à éviter" hint="Facultatif. Filtre appliqué par le serveur, jamais transmis à l’IA.">
+          <Step n={4} title={t('Allergènes à éviter')} hint={t('Facultatif. Filtre appliqué par le serveur, jamais transmis à l’IA.')}>
             <ToggleGroup type="multiple" variant="outline" size="sm" spacing={2} value={value.avoid} onValueChange={(next) => onChange({ avoid: next })} className="flex-wrap justify-start">
               {allergens.map((name) => (
                 <ToggleGroupItem key={name} value={name} className="rounded-full data-[state=on]:border-destructive data-[state=on]:text-destructive">
@@ -169,14 +173,14 @@ export function SmartMenuForm({
           </Step>
         )}
 
-        <Step n={allergens.length > 0 ? 5 : 4} title="Vos envies" hint="Facultatif. N’indiquez aucune information personnelle ou médicale.">
+        <Step n={allergens.length > 0 ? 5 : 4} title={t('Vos envies')} hint={t('Facultatif. N’indiquez aucune information personnelle ou médicale.')}>
           <Textarea
-            aria-label="Vos envies"
+            aria-label={t('Vos envies')}
             maxLength={WISH_MAX}
             rows={2}
             value={value.wish}
             onChange={(e) => onChange({ wish: e.target.value })}
-            placeholder="Par exemple : plutôt du poisson, un plat copieux"
+            placeholder={t('Par exemple : plutôt du poisson, un plat copieux')}
           />
         </Step>
         <FormError message={error} />
@@ -185,11 +189,14 @@ export function SmartMenuForm({
       <div className="flex flex-col gap-2 border-t bg-background/95 p-4 backdrop-blur">
         <Button type="submit" size="lg" disabled={pending || Boolean(missing)} className="w-full">
           {pending ? <Spinner data-icon="inline-start" /> : <SparklesIcon data-icon="inline-start" />}
-          {pending ? 'Recherche en cours…' : 'Proposer des repas'}
+          {pending ? t('Recherche en cours…') : t('Proposer des repas')}
         </Button>
         <p className="text-center text-xs text-muted-foreground tabular-nums" aria-live="polite">
           {missing ??
-            `${value.days.length} jour${value.days.length > 1 ? 's' : ''} · ${formatXof(budget)} · rien n’est réservé sans votre confirmation`}
+            t('{days} · {amount} · rien n’est réservé sans votre confirmation', {
+              days: t(value.days.length > 1 ? '{n} jours' : '{n} jour', { n: value.days.length }),
+              amount: formatXof(budget),
+            })}
         </p>
       </div>
     </form>

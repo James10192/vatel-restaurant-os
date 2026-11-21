@@ -2,13 +2,15 @@ import { useState } from 'react'
 import type { FunctionReturnType } from 'convex/server'
 import { MoonIcon, SunIcon } from 'lucide-react'
 import type { api } from '../../../convex/_generated/api'
-import { SERVICE_LABELS } from '#/lib/format'
+import { SERVICE_LABELS , dateFormat } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { cn } from '#/lib/utils'
 import { AddItemSheet } from './add-item-sheet'
 import { AdminDayCard } from './admin-day-card'
 import { DayPicker } from './day-picker'
 import { MenuItemRow } from './menu-item-row'
+import { useT , useLocale } from '#/i18n/i18n'
+import type { Locale } from '#/i18n/i18n'
 
 type AdminWeekItem = FunctionReturnType<typeof api.menus.adminWeek>[number]
 type WeekProps = {
@@ -21,11 +23,11 @@ const SERVICES: Array<{ service: Service; icon: typeof SunIcon }> = [
   { service: 'lunch', icon: SunIcon },
   { service: 'dinner', icon: MoonIcon },
 ]
-const weekdayShort = new Intl.DateTimeFormat('fr-FR', {
+const weekdayShort = (locale: Locale) => dateFormat(locale, {
   weekday: 'short',
   timeZone: 'UTC',
 })
-const dayNumber = new Intl.DateTimeFormat('fr-FR', {
+const dayNumber = (locale: Locale) => dateFormat(locale, {
   day: 'numeric',
   timeZone: 'UTC',
 })
@@ -38,10 +40,12 @@ const itemsOf = (items: Array<AdminWeekItem>, date: string, service?: Service) =
  * Chaque cellule liste ses plats (fiches compactes par container query) et permet d'en ajouter sur place.
  */
 export function WeekPlanner({ days, items, today }: WeekProps) {
+  const { locale } = useLocale()
+  const t = useT()
   return (
     <div
       role="grid"
-      aria-label="Planning de la semaine"
+      aria-label={t('Planning de la semaine')}
       className="hidden overflow-hidden rounded-3xl border bg-card shadow-card xl:grid xl:grid-cols-[6.5rem_repeat(7,minmax(0,1fr))]"
     >
       <div role="row" className="contents">
@@ -54,10 +58,10 @@ export function WeekPlanner({ days, items, today }: WeekProps) {
               role="columnheader"
               className={cn('flex flex-col gap-0.5 border-b border-l px-3 py-3', date === today ? 'bg-secondary' : 'bg-muted/40')}
             >
-              <span className="text-eyebrow text-muted-foreground">{weekdayShort.format(toDate(date))}</span>
+              <span className="text-eyebrow text-muted-foreground">{weekdayShort(locale).format(toDate(date))}</span>
               <span className="flex items-baseline gap-2">
                 <span className={cn('text-xl font-bold tracking-tight tabular-nums', date === today && 'text-primary')}>
-                  {dayNumber.format(toDate(date))}
+                  {dayNumber(locale).format(toDate(date))}
                 </span>
                 <span className="text-xs text-muted-foreground tabular-nums">
                   {count === 0 ? 'vide' : `${count} plat${count > 1 ? 's' : ''}`}
@@ -74,7 +78,7 @@ export function WeekPlanner({ days, items, today }: WeekProps) {
             className={cn('flex items-start gap-1.5 px-3 py-4 text-eyebrow text-muted-foreground', row > 0 && 'border-t')}
           >
             <Icon className="size-3.5" />
-            {SERVICE_LABELS[service]}
+            {t(SERVICE_LABELS[service])}
           </span>
           {days.map((date) => (
             <div
@@ -105,6 +109,8 @@ export function WeekPlanner({ days, items, today }: WeekProps) {
  * Mobile : jours en pastilles défilantes au-dessus du jour choisi. Tablette : liste des jours à gauche (avec compteurs), jour à droite.
  */
 export function DayBrowser({ days, items, today }: WeekProps) {
+  const { locale } = useLocale()
+  const t = useT()
   const [picked, setPicked] = useState<string | null>(null)
   const day = picked && days.includes(picked) ? picked : (days.find((d) => d === today) ?? days[0])
   const withMenu = new Set(items.map((item) => item.date))
@@ -113,7 +119,7 @@ export function DayBrowser({ days, items, today }: WeekProps) {
       <div className="md:hidden">
         <DayPicker days={days} withMenu={withMenu} value={day} onChange={setPicked} today={today} />
       </div>
-      <nav aria-label="Jours de la semaine" className="hidden flex-col gap-1 md:sticky md:top-6 md:flex">
+      <nav aria-label={t('Jours de la semaine')} className="hidden flex-col gap-1 md:sticky md:top-6 md:flex">
         {days.map((date) => {
           const count = itemsOf(items, date).length
           const drafts = itemsOf(items, date).filter((item) => item.status === 'draft').length
@@ -127,14 +133,14 @@ export function DayBrowser({ days, items, today }: WeekProps) {
             >
               <span className="flex flex-col">
                 <span className="text-sm font-semibold capitalize">
-                  {weekdayShort.format(toDate(date))} {dayNumber.format(toDate(date))}
+                  {weekdayShort(locale).format(toDate(date))} {dayNumber(locale).format(toDate(date))}
                 </span>
                 <span className="text-xs opacity-70">
-                  {count === 0 ? 'Aucun plat' : `${count} plat${count > 1 ? 's' : ''}`}
+                  {count === 0 ? t('Aucun plat') : `${count} plat${count > 1 ? 's' : ''}`}
                   {drafts > 0 && `, ${drafts} brouillon${drafts > 1 ? 's' : ''}`}
                 </span>
               </span>
-              {date === today && <span className="text-eyebrow opacity-80">Auj.</span>}
+              {date === today && <span className="text-eyebrow opacity-80">{t('Auj.')}</span>}
             </button>
           )
         })}

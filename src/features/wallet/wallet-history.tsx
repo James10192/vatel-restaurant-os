@@ -6,20 +6,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '#/components/ui/empty'
 import { Skeleton } from '#/components/ui/skeleton'
 import { Spinner } from '#/components/ui/spinner'
-import { formatXof } from '#/lib/format'
+import { formatXof , dateFormat } from '#/lib/format'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '#/components/ui/table'
 import { cn } from '#/lib/utils'
+import { useT , useLocale } from '#/i18n/i18n'
+import type { Locale } from '#/i18n/i18n'
 
 const PAGE_SIZE = 15
-const dateTime = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' })
+const dateTime = (locale: Locale) => dateFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' })
 
 /** Historique des mouvements : pagination serveur, « Charger plus » léger pour faible débit. */
 export function WalletHistory() {
+  const { locale } = useLocale()
+  const t = useT()
   const { results, status, loadMore } = usePaginatedQuery(api.wallet.history, {}, { initialNumItems: PAGE_SIZE })
   return (
     <Card id="historique" className="@container scroll-mt-6 rounded-3xl">
       <CardHeader>
-        <CardTitle>Historique</CardTitle>
+        <CardTitle>{t('Historique')}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         {status === 'LoadingFirstPage' ? (
@@ -33,8 +37,8 @@ export function WalletHistory() {
               <EmptyMedia variant="icon">
                 <ReceiptIcon />
               </EmptyMedia>
-              <EmptyTitle>Aucun mouvement</EmptyTitle>
-              <EmptyDescription>Vos recharges et réservations apparaîtront ici.</EmptyDescription>
+              <EmptyTitle>{t('Aucun mouvement')}</EmptyTitle>
+              <EmptyDescription>{t('Vos recharges et réservations apparaîtront ici.')}</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
@@ -50,12 +54,12 @@ export function WalletHistory() {
                       <Icon className="size-4" />
                     </span>
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate text-sm font-medium">{entry.label}</span>
-                      <span className="text-xs text-muted-foreground">{dateTime.format(entry._creationTime)}</span>
+                      <span className="truncate text-sm font-medium">{t(entry.label)}</span>
+                      <span className="text-xs text-muted-foreground">{dateTime(locale).format(entry._creationTime)}</span>
                     </div>
                     <div className="flex flex-col items-end">
                       <Amount amountXof={entry.amountXof} />
-                      <span className="text-xs text-muted-foreground">Solde {formatXof(entry.balanceAfterXof)}</span>
+                      <span className="text-xs text-muted-foreground">{t('Solde')} {formatXof(entry.balanceAfterXof)}</span>
                     </div>
                   </li>
                 )
@@ -64,17 +68,17 @@ export function WalletHistory() {
             <Table className="hidden @2xl:table">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Opération</TableHead>
-                  <TableHead className="text-right">Montant</TableHead>
-                  <TableHead className="text-right">Solde après</TableHead>
+                  <TableHead>{t('Date')}</TableHead>
+                  <TableHead>{t('Opération')}</TableHead>
+                  <TableHead className="text-right">{t('Montant')}</TableHead>
+                  <TableHead className="text-right">{t('Solde après')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {results.map((entry) => (
                   <TableRow key={entry._id}>
-                    <TableCell className="text-muted-foreground tabular-nums">{dateTime.format(entry._creationTime)}</TableCell>
-                    <TableCell className="max-w-80 truncate font-medium">{entry.label}</TableCell>
+                    <TableCell className="text-muted-foreground tabular-nums">{dateTime(locale).format(entry._creationTime)}</TableCell>
+                    <TableCell className="max-w-80 truncate font-medium">{t(entry.label)}</TableCell>
                     <TableCell className="text-right">
                       <Amount amountXof={entry.amountXof} />
                     </TableCell>
@@ -88,7 +92,7 @@ export function WalletHistory() {
         {(status === 'CanLoadMore' || status === 'LoadingMore') && (
           <Button variant="outline" className="@2xl:self-start" disabled={status === 'LoadingMore'} onClick={() => loadMore(PAGE_SIZE)}>
             {status === 'LoadingMore' && <Spinner data-icon="inline-start" />}
-            Charger plus
+            {t('Charger plus')}
           </Button>
         )}
       </CardContent>

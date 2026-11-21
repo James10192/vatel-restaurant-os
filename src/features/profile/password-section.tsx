@@ -14,11 +14,13 @@ import { PasswordInput } from '#/features/auth/password-input'
 import { authErrorMessage } from '#/features/auth/auth-errors'
 import { authClient } from '#/lib/auth-client'
 import { SettingsSection, StatusLine } from './settings-section'
+import { useT } from '#/i18n/i18n'
 
 const MIN_LENGTH = 8
 
 /** Changement de mot de passe (Better Auth) : l'ancien est exigé, les autres sessions sont fermées. */
 export function PasswordSection() {
+  const t = useT()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
@@ -31,10 +33,10 @@ export function PasswordSection() {
     const newPassword = String(data.get('newPassword'))
     setDone(false)
     if (newPassword !== String(data.get('confirmPassword')))
-      return setError('Les deux nouveaux mots de passe sont différents.')
+      return setError(t('Les deux nouveaux mots de passe sont différents.'))
     if (newPassword === currentPassword)
       return setError(
-        'Le nouveau mot de passe doit être différent de l’actuel.',
+        t('Le nouveau mot de passe doit être différent de l’actuel.'),
       )
     setPending(true)
     setError(null)
@@ -55,14 +57,14 @@ export function PasswordSection() {
   return (
     <SettingsSection
       icon={KeyRoundIcon}
-      title="Mot de passe"
-      description="Modifiez le mot de passe de connexion de ce compte."
+      title={t('Mot de passe')}
+      description={t('Modifiez le mot de passe de connexion de ce compte.')}
     >
       <form onSubmit={submit} className="flex flex-col gap-4">
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="currentPassword">
-              Mot de passe actuel
+              {t('Mot de passe actuel')}
             </FieldLabel>
             <PasswordInput
               id="currentPassword"
@@ -72,7 +74,7 @@ export function PasswordSection() {
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor="newPassword">Nouveau mot de passe</FieldLabel>
+            <FieldLabel htmlFor="newPassword">{t('Nouveau mot de passe')}</FieldLabel>
             <PasswordInput
               id="newPassword"
               name="newPassword"
@@ -81,12 +83,12 @@ export function PasswordSection() {
               required
             />
             <FieldDescription>
-              Au moins {MIN_LENGTH} caractères.
+              {t('Au moins')} {MIN_LENGTH} {t('caractères.')}
             </FieldDescription>
           </Field>
           <Field>
             <FieldLabel htmlFor="confirmPassword">
-              Confirmer le nouveau mot de passe
+              {t('Confirmer le nouveau mot de passe')}
             </FieldLabel>
             <PasswordInput
               id="confirmPassword"
@@ -100,7 +102,7 @@ export function PasswordSection() {
         <FormError message={error} />
         {done && (
           <StatusLine icon={CheckCircle2Icon} tone="success">
-            Mot de passe modifié. Vos autres appareils seront déconnectés.
+            {t('Mot de passe modifié. Vos autres appareils seront déconnectés.')}
           </StatusLine>
         )}
         <Button
@@ -110,7 +112,7 @@ export function PasswordSection() {
           disabled={pending}
         >
           {pending && <Spinner data-icon="inline-start" />}
-          Enregistrer
+          {t('Enregistrer')}
         </Button>
       </form>
     </SettingsSection>

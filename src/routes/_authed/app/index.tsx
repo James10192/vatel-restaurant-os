@@ -18,10 +18,11 @@ import { WeekSwitcher } from '#/features/menus/week-switcher'
 import { BalanceSummary } from '#/features/wallet/balance-summary'
 import { UpcomingMeals } from '#/features/booking/upcoming-meals'
 import { SmartMenuSheet } from '#/features/smart-menu/smart-menu-sheet'
+import { useT, pageTitle } from '#/i18n/i18n'
 
 export const Route = createFileRoute('/_authed/app/')({
   validateSearch: parseWeekSearch,
-  head: () => ({ meta: [{ title: 'Accueil | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Accueil') }] }),
   component: AppHome,
 })
 
@@ -37,6 +38,7 @@ function AppHome() {
 }
 
 function MemberHome() {
+  const t = useT()
   const week = resolveWeek(Route.useSearch().week)
   const { data: items, isPending } = useQuery(convexQuery(api.menus.publishedWeek, { weekStart: week }))
   const { data: bookings = [] } = useQuery(convexQuery(api.bookings.mine, { from: week }))
@@ -64,7 +66,7 @@ function MemberHome() {
       <section aria-labelledby="menu-semaine" className="flex min-w-0 flex-col gap-4 xl:col-start-1 xl:row-start-1">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 id="menu-semaine" className="text-xl font-semibold tracking-tight">
-            Menu de la semaine
+            {t('Menu de la semaine')}
           </h2>
           <div className="flex flex-wrap items-center gap-2">
             <SmartMenuSheet days={days.filter((d) => d >= today)} menu={items ?? []} balanceXof={balanceXof ?? 0} />
@@ -83,11 +85,11 @@ function MemberHome() {
               <EmptyMedia variant="icon">
                 <UtensilsIcon />
               </EmptyMedia>
-              <EmptyTitle>Pas de menu publié ce jour</EmptyTitle>
+              <EmptyTitle>{t('Pas de menu publié ce jour')}</EmptyTitle>
               <EmptyDescription>
                 {withMenu.size > 0
-                  ? 'Choisissez un jour marqué d’un point.'
-                  : 'Les plats apparaîtront dès leur publication par le service restauration.'}
+                  ? t('Choisissez un jour marqué d’un point.')
+                  : t('Les plats apparaîtront dès leur publication par le service restauration.')}
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -106,7 +108,7 @@ function MemberHome() {
           </div>
         )}
       </section>
-      <aside aria-label="Mon compte repas" className="hidden flex-col gap-4 xl:sticky xl:top-8 xl:col-start-2 xl:row-start-1 xl:flex">
+      <aside aria-label={t('Mon compte repas')} className="hidden flex-col gap-4 xl:sticky xl:top-8 xl:col-start-2 xl:row-start-1 xl:flex">
         <BalanceSummary balanceXof={balanceXof} />
         <UpcomingMeals />
       </aside>
@@ -115,15 +117,16 @@ function MemberHome() {
 }
 
 function PendingAccount() {
+  const t = useT()
   return (
     <Empty className="rounded-3xl border bg-card">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <ClockIcon />
         </EmptyMedia>
-        <EmptyTitle>Compte en attente de rattachement</EmptyTitle>
+        <EmptyTitle>{t('Compte en attente de rattachement')}</EmptyTitle>
         <EmptyDescription>
-          Votre établissement doit valider votre compte avant que vous puissiez réserver. Contactez le service restauration.
+          {t('Votre établissement doit valider votre compte avant que vous puissiez réserver. Contactez le service restauration.')}
         </EmptyDescription>
       </EmptyHeader>
     </Empty>

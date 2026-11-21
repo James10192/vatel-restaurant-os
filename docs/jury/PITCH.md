@@ -48,6 +48,9 @@ au lieu de 5 (dire l'essentiel de chaque diapositive).
      est remboursé.
   3. La réservation arrive en temps réel dans les commandes du jour ; l'équipe marque chaque repas remis.
   4. La vue d'ensemble montre la journée : à servir, remis, annulés, portions libres, détail par plat.
+  En plus : **Aide au choix** (l'étudiant donne budget, jours, allergènes à éviter et envie ; le serveur filtre, un
+  modèle de langage facultatif choisit parmi des plats vérifiés et explique), **Fiches techniques** (allergènes par
+  ingrédient, allergènes du plat déduits par le serveur, perte à la préparation) et application installable.
   Capture : `02-accueil-mobile-375.png` (étudiant) et `05-dashboard-desktop-1440.png` (gérant).
 - **Notes orales** (3 min) : insister sur la chaîne et le temps réel, pas sur le nombre d'écrans. « Le point fort, ce n'est
   pas une fonction isolée : c'est que la réservation de l'étudiant devient, sans ressaisie, une ligne dans la file du
@@ -58,8 +61,8 @@ au lieu de 5 (dire l'essentiel de chaque diapositive).
 
 - **Message clé** : les sept fonctions demandées, en production, avec deux rôles.
 - **Contenu** : la liste des 7 obligations (inscription et connexion, menu de la semaine, réservation, solde et
-  historique, administration des menus, commandes du jour, tableau de bord) ; « Étudiant sur téléphone, gérant sur
-  ordinateur » ; l'URL.
+  historique, administration des menus, commandes du jour, tableau de bord) ; en plus : Aide au choix, Fiches
+  techniques ; « Étudiant sur téléphone, gérant sur ordinateur » ; l'URL.
 - **Notes orales** (10 min) : dérouler `docs/jury/SCENARIO-DEMO.md`. En cas d'incident, appliquer son plan de secours
   et annoncer clairement si l'on passe sur des captures enregistrées.
 
@@ -72,7 +75,10 @@ au lieu de 5 (dire l'essentiel de chaque diapositive).
     données et se mettent à jour seuls (réservation visible chez le gérant **0,4 s** après, test à deux navigateurs).
   - **Better Auth**, via le composant officiel Convex : inscription et connexion par e-mail et mot de passe.
   - **Vercel** : hébergement, HTTPS, compression brotli ; déploiements dev et prod séparés.
-  - **70 tests** automatisés (Vitest et convex-test).
+  - **Vercel AI SDK** pour l'Aide au choix : un seul appel borné (15 s, quotas par usager et par établissement),
+    modèle choisi côté serveur sur liste blanche, repli « Calcul sans IA » si le modèle échoue.
+  - **133 tests** automatisés (Vitest et convex-test) et intégration continue GitHub Actions (typecheck, lint, tests,
+    build, gitleaks) à chaque PR.
 - **Notes orales** (40 s) : « Pas de rechargement, pas d'interrogation périodique : quand une réservation change, le
   serveur pousse la nouvelle donnée. Les règles métier sont dans le serveur, pas dans l'écran. »
 
@@ -107,18 +113,22 @@ au lieu de 5 (dire l'essentiel de chaque diapositive).
 - **Message clé** : ce qui n'est pas fait, nous le disons.
 - **Contenu** (README, section Limites connues) :
   - Rattachement des comptes par commande de l'opérateur ; écran de gestion des usagers prévu.
-  - Fiche recette créée avec le plat mais pas encore modifiable ensuite ; pas encore de calcul des besoins matière ni
-    de suivi des pertes.
+  - Pas encore de calcul des besoins matière à partir des réservations ni de suivi des stocks et du gaspillage réel ;
+    la fiche technique en pose la base (ingrédients, quantités, perte à la préparation).
   - Après déconnexion, l'accès serveur prend fin à l'expiration du jeton de session (quelques minutes).
   - Crédits de démonstration uniquement : aucun prestataire de paiement branché.
-  - Pas d'assistant IA, d'espace parent, de QR code ni de version anglaise dans la version livrée.
+  - Pas d'espace parent, de QR code, de mode hors ligne ni de version anglaise dans la version livrée (anglais en revue,
+    PR #39).
+  - Aide au choix : injection de prompt, quotas et repli couverts par les tests, mais non rejoués à la main en
+    production ; latence non mesurée en réseau lent.
 - **Notes orales** (20 s) : lire les titres, sans s'excuser : « C'est un prototype d'une journée ; voici la suite. »
 
 ## Diapositive 9 : Feuille de route
 
 - **Message clé** : de la cantine anticipative à la cantine pilotée.
 - **Contenu** (épiques du dépôt) :
-  - #3 Smart Menu : menus de la semaine et conseil nutritionnel.
+  - #3 Smart Menu : première tranche livrée (Aide au choix) ; suite : programme sur plusieurs jours, abonnements,
+    conseil nutritionnel.
   - #4 Smart Booking et Queue : créneaux et distribution.
   - #5 Smart Production : prévision des quantités et simulation des imprévus.
   - #6 Smart Waste : stocks, recettes, achats, prévention du gaspillage.
@@ -142,7 +152,8 @@ au lieu de 5 (dire l'essentiel de chaque diapositive).
   - Règles de travail versionnées (`AGENTS.md`) : sécurité serveur obligatoire, aucun secret, aucun faux bouton, rien
     déclaré testé sans preuve ; journal de développement `docs/ai/HANDOFF.md`.
   - Garde-fous automatiques dans Git : analyse gitleaks avant chaque commit, messages de commit normalisés.
-  - L'IA n'est pas dans le produit livré : aucun prix, droit ni allergène n'est calculé par un modèle.
+  - Dans le produit, l'IA est bornée : elle choisit et explique parmi des plats déjà filtrés par le serveur ; aucun prix,
+    budget, droit ni allergène n'est calculé par un modèle, et rien n'est réservé sans confirmation.
   - Dépôt public : https://github.com/James10192/vatel-restaurant-os
 - **Notes orales** (20 s) : « L'IA nous a fait gagner du temps d'écriture ; les décisions, les vérifications en production
   et les limites que vous venez de voir sont les nôtres. » Puis : « Merci, place à vos questions. » Laisser cette
@@ -158,4 +169,6 @@ au lieu de 5 (dire l'essentiel de chaque diapositive).
 | Et les allergies ? | Allergènes déclarés par plat ; inconnus affichés « non renseignés », jamais présentés comme absents. |
 | Le paiement est-il réel ? | Non : crédits de démonstration non convertibles ; un vrai prestataire viendra après validation (#7). |
 | Combien d'utilisateurs ? | Aucun usager réel : prototype avec données fictives ; un pilote mesurerait l'usage. |
+| Pourquoi une IA ? | Pour transformer une envie en sélection expliquée. Les règles (budget, allergènes, portions, échéance) restent dans le serveur ; sans modèle, le même calcul tourne et c'est affiché « Calcul sans IA ». |
+| L'IA peut-elle recommander un plat dangereux pour un allergique ? | Non : les plats contenant l'allergène évité, ou aux allergènes non renseignés, sont écartés avant le modèle, et le serveur revérifie chaque proposition. |
 | Pourquoi le chargement est-il lent sur réseau lent ? | Mesuré : 6 à 7 s en Slow 3G, le socle commun pèse ; pistes dans l'issue #21. |

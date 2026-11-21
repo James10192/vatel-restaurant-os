@@ -20,6 +20,7 @@ import { Spinner } from '#/components/ui/spinner'
 import { SERVICE_LABELS, formatDayLong, formatXof } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
+import { useT , useLocale } from '#/i18n/i18n'
 
 type Meal = { _id: Id<'menuItems'>; dishName: string; date: string; service: Service; priceXof: number }
 
@@ -28,6 +29,8 @@ type Meal = { _id: Id<'menuItems'>; dishName: string; date: string; service: Ser
  * ou une nouvelle tentative après coupure réseau ne débite qu'une fois.
  */
 export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: number }) {
+  const { locale } = useLocale()
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [requestKey, setRequestKey] = useState('')
   const { run, pending, error } = useServerAction(useMutation(api.bookings.book))
@@ -43,34 +46,38 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
     >
       <AlertDialogTrigger asChild>
         <Button size="lg" className="px-6">
-          Réserver
+          {t('Réserver')}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirmer la réservation</AlertDialogTitle>
+          <AlertDialogTitle>{t('Confirmer la réservation')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {meal.dishName}, {SERVICE_LABELS[meal.service].toLowerCase()} du {formatDayLong(meal.date)}.
+            {t('{dish}, {service} du {day}.', {
+              dish: meal.dishName,
+              service: t(SERVICE_LABELS[meal.service]).toLowerCase(),
+              day: formatDayLong(meal.date, locale),
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <dl className="flex flex-col gap-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Prix</dt>
+            <dt className="text-muted-foreground">{t('Prix')}</dt>
             <dd className="font-semibold">{formatXof(meal.priceXof)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Solde actuel</dt>
+            <dt className="text-muted-foreground">{t('Solde actuel')}</dt>
             <dd>{formatXof(balanceXof)}</dd>
           </div>
           <Separator />
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Solde après réservation</dt>
+            <dt className="text-muted-foreground">{t('Solde après réservation')}</dt>
             <dd className="font-semibold">{after >= 0 ? formatXof(after) : 'Insuffisant'}</dd>
           </div>
         </dl>
         <FormError message={error} />
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Retour</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>{t('Retour')}</AlertDialogCancel>
           {after >= 0 ? (
             <Button
               disabled={pending}
@@ -80,11 +87,11 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
               }}
             >
               {pending && <Spinner data-icon="inline-start" />}
-              Confirmer et payer
+              {t('Confirmer et payer')}
             </Button>
           ) : (
             <Button asChild>
-              <Link to="/app/wallet">Recharger mon compte</Link>
+              <Link to="/app/wallet">{t('Recharger mon compte')}</Link>
             </Button>
           )}
         </AlertDialogFooter>
