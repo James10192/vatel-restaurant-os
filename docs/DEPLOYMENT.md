@@ -32,14 +32,18 @@ Légende : **[P]** porteur (compte ou décision personnelle), **[A]** agent apr�
    `admin@demo.test` supprimés du composant `betterAuth` (`user`, `account`, `session`) par identifiant exact, via
    `convex run --component betterAuth adapter:deleteMany / deleteOne`. Vérifié : aucune ligne restante liée à ces comptes.
    Les profils applicatifs restent orphelins et inutilisables (une nouvelle inscription crée un autre identifiant).
-2. **[P] Clé de déploiement** : Convex dashboard > projet > déploiement **prod** > Settings > Deploy keys > générer.
-   La coller directement dans Vercel (étape 4), jamais dans un chat ni un fichier.
+2. **[A] Clé de déploiement : FAITE le 21/11 vers 14h05**, à la demande du porteur, de CLI à CLI sans affichage :
+   `convex deployment token create <nom> --prod` lu en mémoire, format `prod:` vérifié, transmis par l'entrée standard à
+   `vercel env add CONVEX_DEPLOY_KEY production --sensitive` (jamais en argument ni sur disque).
+   Une première clé, créée lors d'un essai raté (jamais affichée ni stockée), n'a pas pu être révoquée par la CLI :
+   **[P]** la révoquer au dashboard Convex (prod > Settings > Deploy keys, nom `vercel-production`).
 3. **[A] Projet Vercel : FAIT le 21/11 vers 14h.** Projet `vatel-restauration` créé par `vercel link`, sans variable,
    **non connecté à GitHub** (aucun déploiement automatique ; connexion GitHub à ajouter au compte Vercel si souhaitée).
    Commande de build versionnée dans `vercel.json` : `pnpm exec convex deploy --cmd 'pnpm build' --cmd-url-env-var-name VITE_CONVEX_URL`.
    Région des fonctions : `iad1`, proche de Convex (US East), car chaque rendu serveur interroge la base.
-4. **[P/A] Variables Vercel (Production)** : `CONVEX_DEPLOY_KEY` (porteur) ; `VITE_CONVEX_URL` et `VITE_CONVEX_SITE_URL`
-   (URL `.convex.cloud` et `.convex.site` du déploiement **prod**, lisibles au dashboard).
+4. **[A] Variables Vercel (Production) : FAITES.** `CONVEX_DEPLOY_KEY` (Secret), `VITE_CONVEX_URL` et `VITE_CONVEX_SITE_URL`
+   (Config, URL du déploiement **prod** ; `.convex.cloud` vérifiée en HTTP 200). Relues par `vercel env pull` dans un
+   fichier temporaire supprimé aussitôt.
 5. **[A] Convex prod** : `convex env set --prod BETTER_AUTH_SECRET` (aléatoire, généré et passé sans affichage) ;
    `SITE_URL` une fois l'URL Vercel connue.
 6. **[A] Premier déploiement** : `vercel deploy --prod`. Puis sur l'URL réelle, en 360 px et 1280 px : inscription, connexion,
