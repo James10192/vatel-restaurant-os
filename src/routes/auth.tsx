@@ -13,7 +13,7 @@ export const Route = createFileRoute('/auth')({
     mode: search.mode === 'signup' ? 'signup' : undefined,
   }),
   beforeLoad: ({ context, search }) => {
-    if (context.isAuthenticated) throw redirect({ to: search.redirect ?? '/app' })
+    if (context.isAuthenticated) throw redirect({ to: search.redirect ?? '/' })
   },
   head: () => ({ meta: [{ title: 'Connexion | Vatel Restauration' }] }),
   component: AuthPage,
@@ -25,7 +25,7 @@ export const Route = createFileRoute('/auth')({
  */
 function AuthPage() {
   const { redirect: redirectParam, mode } = Route.useSearch()
-  const redirectTo = redirectParam ?? '/app'
+  const redirectTo = redirectParam ?? '/'
   const [started, setStarted] = useState(mode === 'signup')
   return (
     <div className="flex min-h-svh overflow-hidden bg-background text-foreground">

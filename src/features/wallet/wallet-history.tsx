@@ -7,6 +7,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '#/
 import { Skeleton } from '#/components/ui/skeleton'
 import { Spinner } from '#/components/ui/spinner'
 import { formatXof } from '#/lib/format'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '#/components/ui/table'
 import { cn } from '#/lib/utils'
 
 const PAGE_SIZE = 15
@@ -16,7 +17,7 @@ const dateTime = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeSty
 export function WalletHistory() {
   const { results, status, loadMore } = usePaginatedQuery(api.wallet.history, {}, { initialNumItems: PAGE_SIZE })
   return (
-    <Card id="historique" className="scroll-mt-6 rounded-3xl">
+    <Card id="historique" className="@container scroll-mt-6 rounded-3xl">
       <CardHeader>
         <CardTitle>Historique</CardTitle>
       </CardHeader>
@@ -37,38 +38,71 @@ export function WalletHistory() {
             </EmptyHeader>
           </Empty>
         ) : (
-          <ul className="divide-y">
-            {results.map((entry) => {
-              const credit = entry.amountXof > 0
-              const Icon = credit ? ArrowDownLeftIcon : ArrowUpRightIcon
-              return (
-                <li key={entry._id} className="flex items-center gap-3 py-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
-                    <Icon className="size-4" />
-                  </span>
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-sm font-medium">{entry.label}</span>
-                    <span className="text-xs text-muted-foreground">{dateTime.format(entry._creationTime)}</span>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className={cn('text-sm font-semibold', credit && 'text-primary')}>
-                      {credit ? '+' : '−'}
-                      {formatXof(Math.abs(entry.amountXof))}
+          <>
+            {/* Zone étroite : lignes compactes. Zone d'au moins 40 rem (tablette, bureau) : tableau aligné. */}
+            <ul className="divide-y @2xl:hidden">
+              {results.map((entry) => {
+                const credit = entry.amountXof > 0
+                const Icon = credit ? ArrowDownLeftIcon : ArrowUpRightIcon
+                return (
+                  <li key={entry._id} className="flex items-center gap-3 py-3">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
+                      <Icon className="size-4" />
                     </span>
-                    <span className="text-xs text-muted-foreground">Solde {formatXof(entry.balanceAfterXof)}</span>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate text-sm font-medium">{entry.label}</span>
+                      <span className="text-xs text-muted-foreground">{dateTime.format(entry._creationTime)}</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <Amount amountXof={entry.amountXof} />
+                      <span className="text-xs text-muted-foreground">Solde {formatXof(entry.balanceAfterXof)}</span>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+            <Table className="hidden @2xl:table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Opération</TableHead>
+                  <TableHead className="text-right">Montant</TableHead>
+                  <TableHead className="text-right">Solde après</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {results.map((entry) => (
+                  <TableRow key={entry._id}>
+                    <TableCell className="text-muted-foreground tabular-nums">{dateTime.format(entry._creationTime)}</TableCell>
+                    <TableCell className="max-w-80 truncate font-medium">{entry.label}</TableCell>
+                    <TableCell className="text-right">
+                      <Amount amountXof={entry.amountXof} />
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground tabular-nums">{formatXof(entry.balanceAfterXof)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
         )}
         {(status === 'CanLoadMore' || status === 'LoadingMore') && (
-          <Button variant="outline" disabled={status === 'LoadingMore'} onClick={() => loadMore(PAGE_SIZE)}>
+          <Button variant="outline" className="@2xl:self-start" disabled={status === 'LoadingMore'} onClick={() => loadMore(PAGE_SIZE)}>
             {status === 'LoadingMore' && <Spinner data-icon="inline-start" />}
             Charger plus
           </Button>
         )}
       </CardContent>
     </Card>
+  )
+}
+
+/** Montant signé : crédit en couleur primaire, débit neutre ; signe moins typographique. */
+function Amount({ amountXof }: { amountXof: number }) {
+  const credit = amountXof > 0
+  return (
+    <span className={cn('text-sm font-semibold tabular-nums', credit && 'text-primary')}>
+      {credit ? '+' : '−'}
+      {formatXof(Math.abs(amountXof))}
+    </span>
   )
 }

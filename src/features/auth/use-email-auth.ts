@@ -39,7 +39,7 @@ export function useEmailAuth(action: keyof typeof ACTIONS, redirectTo: string) {
       return
     }
     // Rechargement complet : le serveur doit relire le cookie de session pour le SSR.
-    window.location.assign(safeRedirectPath(redirectTo) ?? '/app')
+    window.location.assign(safeRedirectPath(redirectTo) ?? '/')
   }
 
   return { pending, error, onSubmit }
