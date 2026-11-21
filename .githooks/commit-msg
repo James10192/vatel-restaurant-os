@@ -1,4 +1,7 @@
 #!/bin/sh
-# Conventional commits obligatoires.
+# Conventional commits obligatoires ; aucune attribution automatique d'IA.
 head -1 "$1" | grep -qE '^(feat|fix|docs|chore|refactor|test|style|perf|build|ci|revert)(\([a-z0-9_./-]+\))?!?: .+' \
   || { echo "commit-msg: format attendu 'type(scope): message'" >&2; exit 1; }
+if grep -qiE '^co-authored-by:|generated (with|by)|claude\.com/claude-code|noreply@anthropic\.com|🤖' "$1"; then
+  echo "commit-msg: attribution IA / Co-authored-by interdite" >&2; exit 1
+fi

@@ -24,12 +24,18 @@ _Mis à jour : 21/11/2026 ~09h10 (Abidjan)_
 - Rendu 360px OK. `pnpm typecheck`, `pnpm lint`, `pnpm build` : OK.
 - Comptes fictifs : `tests/fixtures/demo-accounts.md`.
 
+## Correctifs A0 (retour porteur, 21/11 ~09h40)
+- Auth refaite sur blocs officiels shadcn (login-02/03, signup-03) fusionnés en un seul `AuthForm` piloté par mode ; InputGroup afficher/masquer mot de passe ; Alert/Spinner/Empty.
+- Écran d'accueil animé inspiré de la maquette Dribbble fournie, adapté restauration Vatel.
+- Logo officiel Vatel, palette bleuvatel et Open Sans relevés sur vatel.ci (voir DESIGN.md). Tirets longs supprimés de l'UI.
+- Skill `thermo-nuclear-code-quality-review` installée (invocation agent uniquement) + hook Stop `scripts/hooks/review-gate.mjs` ; commit-msg refuse Co-authored-by et attributions IA ; `attribution` vide dans settings Claude.
+- Vérifié navigateur : accueil mobile → Commencer → formulaire ; œil afficher/masquer ; deux colonnes en 1280px ; connexion invalide puis valide.
+
 ## Non fait / risques
 - Pas encore de tests automatisés (Vitest/convex-test/Playwright) : à poser en A1 avec la première logique métier.
 - Pas de rôles ni d'établissement (tenant) : schéma vide, prévu A1 (staff jamais auto-promu).
 - Pas de déploiement Vercel (après P0, cf. #14) ; `vercel whoami` non vérifié.
 - Charte/logo Vatel officiels toujours non reçus.
-- Texte provisoire sur `/app` (« Votre espace repas arrive au prochain lot ») à remplacer en A1.
 
 ## Prochaine action
 A1 : schéma minimal (canteens, profils/rôles, menus, plats, recette légère), permissions, admin menu brouillon/publié, lecture menu semaine (#1, #11, #13, #22, #19).

@@ -1,63 +1,53 @@
-import { useState  } from 'react'
-import type {FormEvent} from 'react';
+import { Link } from '@tanstack/react-router'
+import { CircleAlertIcon } from 'lucide-react'
+import { Alert, AlertDescription } from '#/components/ui/alert'
 import { Button } from '#/components/ui/button'
-import { Input } from '#/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card'
-import { Field, FieldError, FieldGroup, FieldLabel } from '#/components/ui/field'
-import { authClient } from '#/lib/auth-client'
-import { authErrorMessage } from './auth-errors'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '#/components/ui/field'
+import { Input } from '#/components/ui/input'
+import { Spinner } from '#/components/ui/spinner'
+import { PasswordInput } from './password-input'
+import { useEmailAuth } from './use-email-auth'
 
-type Mode = 'signIn' | 'signUp'
+export type AuthMode = 'login' | 'signup'
 
-const COPY: Record<Mode, { title: string; submit: string; switchLabel: string }> = {
-  signIn: { title: 'Connexion', submit: 'Se connecter', switchLabel: 'Pas encore de compte ? Créer un compte' },
-  signUp: { title: 'Créer un compte', submit: 'Créer mon compte', switchLabel: 'Déjà inscrit ? Se connecter' },
-}
+const MODES = {
+  login: {
+    action: 'signIn',
+    title: 'Bon retour',
+    description: 'Connectez-vous pour réserver vos repas',
+    submit: 'Se connecter',
+    passwordAutoComplete: 'current-password',
+    switchText: 'Pas encore de compte ?',
+    switchLink: 'Créer un compte',
+    switchTo: 'signup',
+  },
+  signup: {
+    action: 'signUp',
+    title: 'Créer votre compte',
+    description: 'Quelques informations suffisent',
+    submit: 'Créer mon compte',
+    passwordAutoComplete: 'new-password',
+    switchText: 'Déjà inscrit ?',
+    switchLink: 'Se connecter',
+    switchTo: undefined,
+  },
+} as const
 
-export function AuthForm({ redirectTo }: { redirectTo: string }) {
-  const [mode, setMode] = useState<Mode>('signIn')
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const copy = COPY[mode]
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const email = String(data.get('email') ?? '').trim()
-    const password = String(data.get('password') ?? '')
-    const name = String(data.get('name') ?? '').trim()
-    setPending(true)
-    setError(null)
-    let result
-    try {
-      result =
-        mode === 'signUp'
-          ? await authClient.signUp.email({ email, password, name })
-          : await authClient.signIn.email({ email, password })
-    } catch {
-      setPending(false)
-      setError(authErrorMessage({}))
-      return
-    }
-    setPending(false)
-    if (result.error) {
-      setError(authErrorMessage(result.error))
-      return
-    }
-    // Rechargement complet volontaire : le token SSR doit être relu par le serveur.
-    window.location.assign(redirectTo)
-  }
-
+// Composition adaptée des blocs officiels @shadcn/login-03 et @shadcn/signup-03.
+export function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirectTo: string }) {
+  const copy = MODES[mode]
+  const { pending, error, onSubmit } = useEmailAuth(copy.action, redirectTo)
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
+    <Card>
+      <CardHeader className="text-center">
         <CardTitle className="text-xl">{copy.title}</CardTitle>
-        <CardDescription>Vatel — Restauration</CardDescription>
+        <CardDescription>{copy.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} noValidate={false}>
+        <form onSubmit={onSubmit}>
           <FieldGroup>
-            {mode === 'signUp' && (
+            {mode === 'signup' && (
               <Field>
                 <FieldLabel htmlFor="name">Nom complet</FieldLabel>
                 <Input id="name" name="name" autoComplete="name" required minLength={2} />
@@ -65,33 +55,37 @@ export function AuthForm({ redirectTo }: { redirectTo: string }) {
             )}
             <Field>
               <FieldLabel htmlFor="email">Adresse e-mail</FieldLabel>
-              <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" required />
+              <Input id="email" name="email" type="email" autoComplete="email" required />
             </Field>
             <Field>
               <FieldLabel htmlFor="password">Mot de passe</FieldLabel>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
-                autoComplete={mode === 'signUp' ? 'new-password' : 'current-password'}
+                autoComplete={copy.passwordAutoComplete}
                 required
-                minLength={8}
+                minLength={mode === 'signup' ? 8 : undefined}
               />
+              {mode === 'signup' && <FieldDescription>Au moins 8 caractères.</FieldDescription>}
             </Field>
-            {error && <FieldError role="alert">{error}</FieldError>}
-            <Button type="submit" size="lg" className="w-full" disabled={pending}>
-              {pending ? 'Patientez…' : copy.submit}
-            </Button>
-            <Button
-              type="button"
-              variant="link"
-              onClick={() => {
-                setMode(mode === 'signIn' ? 'signUp' : 'signIn')
-                setError(null)
-              }}
-            >
-              {copy.switchLabel}
-            </Button>
+            {error && (
+              <Alert variant="destructive">
+                <CircleAlertIcon />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Field>
+              <Button type="submit" disabled={pending}>
+                {pending && <Spinner data-icon="inline-start" />}
+                {copy.submit}
+              </Button>
+              <FieldDescription className="text-center">
+                {copy.switchText}{' '}
+                <Link to="/auth" search={{ redirect: redirectTo, mode: copy.switchTo }}>
+                  {copy.switchLink}
+                </Link>
+              </FieldDescription>
+            </Field>
           </FieldGroup>
         </form>
       </CardContent>

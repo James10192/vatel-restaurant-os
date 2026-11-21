@@ -17,9 +17,12 @@ export const Route = createRootRouteWithContext<{
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Vatel — Restauration' },
+      { title: 'Vatel Restauration' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', type: 'image/svg+xml', href: '/logo-vatel.svg' },
+    ],
   }),
   beforeLoad: async (ctx) => {
     const token = await getAuth()

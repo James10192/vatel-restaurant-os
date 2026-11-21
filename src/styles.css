@@ -1,36 +1,41 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import '@fontsource-variable/open-sans';
 
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Thème Vatel PROVISOIRE — valeurs observées sur vatel.ci le 21/11/2026, non officielles.
- * Source et statut : docs/DESIGN.md. Remplacer dès réception de la charte officielle.
+ * Palette Vatel relevée dans la feuille de style de vatel.ci (classes nommées
+ * bleuvatel, bleuvatel2, bleuvatel3, corail) et dans le logo officiel.
+ * Charte PDF non fournie : voir docs/DESIGN.md.
  */
 :root {
-  --vatel-navy: #072a5d;
-  --vatel-sky: #87c1eb;
-  --vatel-ink: #1d1d1b;
+  --vatel-bleu: #67b2e8;
+  --vatel-bleu-2: #2b85bb;
+  --vatel-bleu-3: #072a5d;
+  --vatel-bleu-logo: #87c1eb;
+  --vatel-noir: #1d1d1b;
+  --vatel-corail: #ff5959;
 
   --background: #ffffff;
-  --foreground: var(--vatel-ink);
+  --foreground: var(--vatel-noir);
   --card: #ffffff;
-  --card-foreground: var(--vatel-ink);
+  --card-foreground: var(--vatel-noir);
   --popover: #ffffff;
-  --popover-foreground: var(--vatel-ink);
-  --primary: var(--vatel-navy);
+  --popover-foreground: var(--vatel-noir);
+  --primary: var(--vatel-bleu-3);
   --primary-foreground: #ffffff;
-  --secondary: #eef5fc;
-  --secondary-foreground: var(--vatel-navy);
-  --muted: #f3f4f6;
-  --muted-foreground: #5b6270;
-  --accent: #e3f0fb;
-  --accent-foreground: var(--vatel-navy);
+  --secondary: #e8f3fc;
+  --secondary-foreground: var(--vatel-bleu-3);
+  --muted: #eef5fc;
+  --muted-foreground: #4f5b6b;
+  --accent: #e8f3fc;
+  --accent-foreground: var(--vatel-bleu-3);
   --destructive: #c62828;
-  --border: #dde3ea;
-  --input: #cfd7e0;
-  --ring: var(--vatel-sky);
-  --radius: 0.5rem;
+  --border: #d6e4f0;
+  --input: #c3d5e6;
+  --ring: var(--vatel-bleu-2);
+  --radius: 0.75rem;
 }
 
 .dark {
@@ -40,8 +45,8 @@
   --card-foreground: #f5f7fa;
   --popover: #111d33;
   --popover-foreground: #f5f7fa;
-  --primary: var(--vatel-sky);
-  --primary-foreground: var(--vatel-navy);
+  --primary: var(--vatel-bleu);
+  --primary-foreground: var(--vatel-bleu-3);
   --secondary: #1a2a47;
   --secondary-foreground: #f5f7fa;
   --muted: #1a2a47;
@@ -51,11 +56,11 @@
   --destructive: #ef5350;
   --border: #24365a;
   --input: #2c4068;
-  --ring: var(--vatel-sky);
+  --ring: var(--vatel-bleu);
 }
 
 @theme inline {
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --font-sans: 'Open Sans Variable', 'Open Sans', system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

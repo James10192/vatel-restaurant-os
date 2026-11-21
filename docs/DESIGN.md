@@ -1,36 +1,39 @@
-# DESIGN.md — Identité Vatel (provisoire, à valider)
+# DESIGN.md : identité Vatel
 
 ## Statut
-Charte officielle Vatel **non reçue** à 08h40. Les valeurs ci-dessous sont **observées** sur https://www.vatel.ci/
-le 21/11/2026 (feuille `/dist/app.966fdddc.css` et logo SVG). Ce ne sont **pas** des valeurs déclarées officielles.
-Dès réception de la charte des organisateurs : remplacer et noter la source ici.
+Charte PDF officielle non fournie. Valeurs **relevées le 21/11/2026** sur https://www.vatel.ci/ :
+feuille `/dist/app.966fdddc.css` (classes nommées par Vatel) et logo SVG officiel. Remplacer si la charte arrive.
 Prototype étudiant : ne jamais le présenter comme produit officiellement approuvé par Vatel.
 
 ## Logo
-- Source observée : `https://www.vatel.ci/assets/svg/logo-vatel-fond-blanc.svg` (fond clair),
-  `https://www.vatel.ci/assets/images/logo-vatel-footer.png` (footer).
-- À intégrer dans `branding/vatel/` **uniquement** après autorisation des organisateurs. Ne jamais redessiner.
-- Anciens `branding/idj-ai-*.png` : archivés, interdits dans l'UI.
-- Libellé provisoire : « Vatel — Restauration ».
+- `branding/vatel/logo-vatel-fond-blanc.svg` (copie intacte de vatel.ci) servi en `public/logo-vatel.svg`, aussi favicon.
+- `branding/vatel/logo-vatel-footer.png` (footer vatel.ci).
+- Composant unique : `src/components/brand-logo.tsx`. Sur fond bleu, poser le logo dans une pastille blanche, jamais le recolorer ni le redessiner.
+- Anciens `branding/idj-ai-*.png` : interdits dans l'UI.
 
-## Couleurs (observées, provisoires)
-| Rôle token shadcn | Valeur | Origine observée |
+## Couleurs (noms Vatel issus du CSS de vatel.ci)
+| Nom Vatel | Hex | Token |
 |---|---|---|
-| `--primary` | `#072a5d` (bleu marine) | couleur custom la plus fréquente du CSS vatel.ci |
-| `--accent` | `#67b2e8` / `#87c1eb` (bleu clair) | CSS vatel.ci / logo SVG |
-| `--foreground` | `#1d1d1b` (quasi noir) | logo SVG |
-| `--background` | `#ffffff` | site |
-| `--destructive` | rouge shadcn par défaut | `#ff5959` vu sur le site, non retenu comme marque |
-Repères du brief : bleu, noir, blanc. Couleurs Bootstrap par défaut (`#007bff`, `#28a745`…) ignorées.
-Contraste AA à vérifier (accent clair interdit en texte sur blanc).
+| bleuvatel3 | `#072a5d` | `--primary` (clair), fond de l'écran d'accueil |
+| bleuvatel2 | `#2b85bb` | `--ring` |
+| bleuvatel | `#67b2e8` | `--primary` (sombre) |
+| bleu logo | `#87c1eb` | réservé au logo |
+| noir logo | `#1d1d1b` | `--foreground` |
+| corail | `#ff5959` | accent ponctuel uniquement, pas pour les erreurs |
+Les couleurs `color1..7` du site (jaune, vert, rose, orange) sont des couleurs de filières : non utilisées.
 
 ## Typographie
-Aucune police de marque observée (le site utilise la pile système Bootstrap). Choix : **pile système**
-(`system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`) — rapide sur Android modeste, zéro téléchargement.
-Pas de Geist/Inter/Manrope imposés.
+**Open Sans** (appliquée à tout le site vatel.ci via `*{font-family:Open Sans}`), auto-hébergée via
+`@fontsource-variable/open-sans` (aucun appel Google Fonts, bon pour le faible débit). Repli : polices système.
 
-## Conventions UX
-- Un seul thème via variables CSS sémantiques shadcn (`src/styles`), aucune couleur en dur dans les composants.
-- Icônes Lucide. Mobile 360px d'abord, cibles tactiles ≥ 44px, texte français simple, prix « 1 500 FCFA ».
-- Composants métier réutilisés (#11) : MealCard, WeeklyMealPlan, BookingCard, WalletCard, StatusBadge, ConfirmationCard.
-- États loading/empty/error systématiques ; pas de gradient « IA », pas de décoration gratuite.
+## Règles d'écriture UI
+- Français simple. **Aucun tiret long (—) ni demi-tiret (–) dans les textes visibles** : utiliser virgule, deux-points ou « | » dans les titres d'onglet.
+- Prix « 1 500 FCFA ». Pas de jargon technique.
+
+## Composants et UX
+- shadcn d'abord : blocs officiels (`@shadcn/login-02/03`, `signup-03`), `Field*`, `InputGroup`, `Alert`, `Spinner`, `Empty`.
+- Mot de passe : toujours `PasswordInput` (afficher/masquer, `aria-pressed`).
+- Rayon `--radius: 0.75rem`. Icônes Lucide avec `data-icon`. Pas de couleur en dur dans les composants.
+- Animations d'entrée `tw-animate-css` sous `motion-safe:` uniquement (respect de « réduire les animations »).
+- `/auth` : écran d'accueil bleu Vatel animé (titre, motif d'assiette, bouton Commencer) puis formulaire sur mobile ; deux colonnes sur ordinateur.
+- Mobile 360px d'abord, cibles tactiles confortables, états loading/empty/error systématiques.
