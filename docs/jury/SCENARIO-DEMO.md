@@ -6,8 +6,11 @@ démonstration non convertibles, aucun paiement réel.**
 
 - URL de production : **https://vatel-restauration.vercel.app**
 - Durée : 10 minutes de démo dans un passage de 20 minutes (voir `docs/jury/PITCH.md`).
-- Ce qui n'est **pas** montré comme opérationnel : assistant IA de menus, plan de production, espace parent, QR code,
-  suivi des pertes, bascule français/anglais. Ces sujets sont des perspectives (épiques #2 à #10).
+- Montré en plus des 7 obligations (livré et vérifié en production) : **Aide au choix** (#3), **Fiches techniques**
+  (#13), application installable.
+- Ce qui n'est **pas** montré comme opérationnel : plan de production, espace parent, QR code, suivi des stocks et du
+  gaspillage réel, mode hors ligne, version anglaise (PR #39 non fusionnée). Ces sujets sont des perspectives
+  (épiques #2 à #10).
 
 ## 1. Deux rôles, deux appareils
 
@@ -59,7 +62,7 @@ Colonnes : écran, action, phrase à dire, ce que le jury doit voir. Les phrases
 |---|---|---|---|
 | Ordinateur, Vue d'ensemble `/admin` | Montrer l'écran, sans cliquer | « Voici la journée du service restauration, en direct, sur l'application en production. Le téléphone, c'est un étudiant. » | L'URL de production, l'identité Vatel, le pourcentage de portions réservées |
 
-### 00:30 à 01:45 : obligation 1, inscription et connexion
+### 00:30 à 01:30 : obligation 1, inscription et connexion
 
 | Écran | Action | Phrase | Le jury voit |
 |---|---|---|---|
@@ -70,20 +73,31 @@ Colonnes : écran, action, phrase à dire, ce que le jury doit voir. Les phrases
 Garantie montrée : inscription sans droit. Connexion : les deux appareils sont déjà connectés ; l'administrateur arrive
 sur la Vue d'ensemble, l'étudiant sur l'accueil.
 
-### 01:45 à 03:15 : obligations 2 et 5, menu de la semaine et administration des menus
+### 01:30 à 03:00 : obligations 2 et 5, menu de la semaine, administration des menus et fiches techniques
 
 | Écran | Action | Phrase | Le jury voit |
 |---|---|---|---|
 | Ordinateur, Menus `/admin/menus` | Montrer le planning de la semaine (7 colonnes, déjeuner et dîner) | « Le gérant compose sa semaine dans un planning. » | Le planning, les prix en FCFA, les portions |
 | Ordinateur, panneau « Ajouter un plat » | Ouvrir le plat préparé en brouillon ou en créer un : nom, prix entier, allergènes, « Fiche recette » avec une ligne (ingrédient, quantité, unité créés sur place) | « La fiche recette est saisie avec le plat. Si un ingrédient ou une unité n'existe pas, on le crée sans quitter le formulaire. » | Le choix « choisir ou créer », la fiche qui garde sa saisie |
+| Ordinateur, Gestion > Fiches techniques `/admin/recettes` | Ouvrir la fiche d'un plat publié | « Chaque plat a sa fiche technique : ingrédients, quantités, perte à la préparation et net par portion. Les allergènes sont déclarés par ingrédient et le serveur en déduit ceux du plat : un seul ingrédient non renseigné, et le plat reste "non renseigné". Un plat publié est verrouillé : on en crée une nouvelle version. » | Liste et détail côte à côte, allergènes par ingrédient, net par portion, proposition de nouvelle version |
 | Ordinateur | « Publier la semaine » | « Tant que ce n'est pas publié, l'étudiant ne voit rien. » | Le compteur de brouillons revient à 0 |
 | Téléphone, accueil `/app` | Changer de jour avec le sélecteur | « Côté étudiant : 7 jours, déjeuner et dîner, prix, portions restantes, allergènes. » | Le nouveau plat publié, la jauge de portions, les allergènes (« non renseignés » si inconnus, jamais présentés comme absents) |
 
-### 03:15 à 05:00 : obligations 3 et 4, réservation avec débit et solde
+### 03:00 à 04:00 : Aide au choix (au-delà des obligations)
 
 | Écran | Action | Phrase | Le jury voit |
 |---|---|---|---|
-| Téléphone, accueil | Sur un repas ouvert (voir la règle d'horaire), « Réserver » | « L'étudiant réserve à l'avance. Avant de valider, il voit le prix et son solde après débit. » | Fenêtre « Confirmer la réservation » avec « Solde après réservation » |
+| Téléphone, accueil, bouton « Aide au choix » | Choisir les jours encore ouverts (voir la règle d'horaire), un budget, un allergène à éviter et une envie (par exemple « plutôt du poulet ») | « L'étudiant dit ce qu'il veut et ce qu'il peut payer. Le serveur filtre d'abord : budget, portions, échéance, allergènes. Le modèle de langage choisit seulement parmi des plats déjà vérifiés et explique ; le serveur revérifie tout. » | Sélection avec total dans le budget, badge « Choix IA vérifié » ou « Calcul sans IA », explication, plats aux allergènes inconnus écartés et signalés |
+| Téléphone | Sur une suggestion, « Réserver » | « Rien n'est réservé sans lui : on retombe sur la confirmation habituelle. » | La fenêtre de confirmation de l'étape suivante |
+
+Si la réponse affiche « Calcul sans IA » (modèle indisponible ou lent), le dire tel quel : c'est le repli prévu, avec
+les mêmes garanties.
+
+### 04:00 à 05:00 : obligations 3 et 4, réservation avec débit et solde
+
+| Écran | Action | Phrase | Le jury voit |
+|---|---|---|---|
+| Téléphone | Depuis la suggestion (ou depuis le menu, sur un repas ouvert), « Réserver » | « Avant de valider, il voit le prix et son solde après débit. » | Fenêtre « Confirmer la réservation » avec « Solde après réservation » |
 | Téléphone | « Confirmer la réservation » | « Le serveur relit le prix en base, vérifie les portions et le solde, puis débite en une seule opération. » | Le solde baisse du prix exact, « Prochain repas » apparaît |
 | Ordinateur, Commandes du jour `/admin/services` à la date du repas | Ne pas recharger la page | « Et le gérant le voit tout de suite, sans recharger. » | La commande apparaît dans « À servir » (mesuré à 0,4 s en test à deux navigateurs) |
 | Téléphone, Solde `/app/wallet` | Ouvrir l'historique | « Chaque mouvement est inscrit dans un journal qui ne s'efface pas, avec le solde après chaque ligne. » | La ligne de réservation, le solde après, la mention « Crédits de démonstration, non convertibles » |
@@ -91,7 +105,7 @@ sur la Vue d'ensemble, l'étudiant sur l'accueil.
 Si le temps le permet, montrer un refus : réserver un deuxième plat sur le même service donne « Déjà un repas ce
 service ».
 
-### 05:00 à 06:15 : annulation remboursée
+### 05:00 à 06:00 : annulation remboursée
 
 | Écran | Action | Phrase | Le jury voit |
 |---|---|---|---|
@@ -99,7 +113,7 @@ service ».
 | Ordinateur, Commandes du jour | Observer | « Côté cuisine, la commande passe en annulée, la portion redevient libre. » | Compteur « Annulés » +1, portions libres +1 |
 | Téléphone, accueil | « Réserver » de nouveau sur le même repas, confirmer | « On le reprend pour la suite de la démo. » | Nouveau débit, commande de nouveau « À servir » |
 
-### 06:15 à 07:45 : obligation 6, commandes du jour et « Marquer remis »
+### 06:00 à 07:15 : obligation 6, commandes du jour et « Marquer remis »
 
 | Écran | Action | Phrase | Le jury voit |
 |---|---|---|---|
@@ -107,20 +121,21 @@ service ».
 | Ordinateur | « Marquer remis » sur la commande de l'étudiant | « On remet le plateau. » | Statut « Remis » |
 | Téléphone, Mes repas | Observer | « L'étudiant voit le statut changer. Un repas remis ne peut plus être annulé, et il ne peut pas être remis deux fois. » | Le repas passe dans l'historique avec le statut « Retirée », sans action d'annulation |
 
-### 07:45 à 08:45 : obligation 7, vue d'ensemble
+### 07:15 à 08:15 : obligation 7, vue d'ensemble
 
 | Écran | Action | Phrase | Le jury voit |
 |---|---|---|---|
 | Ordinateur, Vue d'ensemble `/admin` | Montrer les indicateurs, puis cliquer sur « À servir » | « Le pilotage du jour : à servir, remis, annulés, portions libres, et le détail par plat. Ce sont les vraies réservations, mises à jour en temps réel. Un clic mène aux commandes filtrées. » | Les compteurs cohérents avec ce qu'on vient de faire, la jauge par plat, les montants étiquetés crédits de démonstration |
 
-### 08:45 à 09:40 : interface adaptative
+### 08:15 à 09:30 : interface adaptative et application installable
 
 | Écran | Action | Phrase | Le jury voit |
 |---|---|---|---|
 | Ordinateur | Réduire la fenêtre progressivement (ou mode appareil du navigateur) sur Menus puis Commandes | « Même produit, trois compositions. Ordinateur : barre latérale, planning en 7 colonnes, tableaux. Tablette : rail d'icônes, liste et détail côte à côte. Téléphone : navigation au pouce, cartes verticales. » | Barre latérale, puis rail, puis barre du bas ; jamais de défilement horizontal |
 | Ordinateur | Bascule Clair puis Sombre | « Thème clair, sombre ou celui du système. » | Le changement de thème sans changer de page |
+| Téléphone, Profil | Montrer « Installer l'application » (ou l'application déjà installée sur l'écran d'accueil) | « Elle s'installe comme une application, sans magasin d'applications. Elle demande toujours le réseau : pas de mode hors ligne. » | L'icône Vatel sur l'écran d'accueil du téléphone |
 
-### 09:40 à 10:00 : conclusion
+### 09:30 à 10:00 : conclusion
 
 | Écran | Action | Phrase | Le jury voit |
 |---|---|---|---|
@@ -131,17 +146,18 @@ service ».
 | Obligation (#1) | Moment | Preuve visible |
 |---|---|---|
 | Inscription et connexion | 00:30 | Compte créé en direct, « Compte en attente de rattachement » ; deux comptes déjà connectés selon leur rôle |
-| Menu de la semaine | 01:45 | 7 jours, déjeuner et dîner, prix, portions, allergènes |
-| Réservation d'un repas | 03:15 | Confirmation avec solde après débit, refus d'un second repas sur le service |
-| Solde et historique | 03:15 et 05:00 | Débit, remboursement unique, journal avec solde après chaque ligne |
-| Administration des menus | 01:45 | Plat avec fiche recette, publication de la semaine |
-| Commandes du jour | 06:15 | Filtres serveur, « Marquer remis » |
-| Tableau de bord | 07:45 | Vue d'ensemble en temps réel |
+| Menu de la semaine | 01:30 | 7 jours, déjeuner et dîner, prix, portions, allergènes |
+| Réservation d'un repas | 04:00 | Confirmation avec solde après débit, refus d'un second repas sur le service |
+| Solde et historique | 04:00 et 05:00 | Débit, remboursement unique, journal avec solde après chaque ligne |
+| Administration des menus | 01:30 | Plat avec fiche recette, fiches techniques, publication de la semaine |
+| Commandes du jour | 06:00 | Filtres serveur, « Marquer remis » |
+| Tableau de bord | 07:15 | Vue d'ensemble en temps réel |
 
 ## 5. Simulation recettes (explication orale, pas une fonctionnalité livrée)
 
-L'application enregistre une fiche recette par plat (portions de référence, ingrédients, quantités, unités). Le calcul
-des besoins matière n'est **pas** encore un écran du produit (épiques #5 et #6). Si le jury demande l'intérêt de la
+L'application enregistre une fiche technique par plat (ingrédients, quantités, unités, perte à la préparation, net par
+portion). Le calcul des besoins matière à partir des réservations n'est **pas** encore un écran du produit (épiques #5
+et #6). Si le jury demande l'intérêt de la
 fiche recette, on montre le raisonnement sur l'exemple fictif de l'issue #15, **en le présentant comme un calcul sur
 hypothèses, pas comme une mesure chez Vatel** :
 
@@ -171,7 +187,8 @@ se mesurerait pendant un pilote. » Ne jamais parler d'économies réalisées ni
 | Réservation refusée « Les réservations sont closes pour ce service » | C'est l'échéance : réserver le service suivant ouvert. En faire un argument. | « Le serveur applique l'échéance de 2 heures, même pour nous. » |
 | « Solde insuffisant » | Montrer la proposition de recharge, recharger en démonstration (1 000, 2 500, 5 000 ou 10 000), puis réserver. | « Le serveur refuse sans rien débiter ; on recharge en crédits de démonstration. » |
 | « Plus de portions disponibles » | Choisir un autre plat publié. | « Pas de survente : quand il n'y a plus de place, c'est refusé. » |
-| Le temps manque | Couper la partie adaptative (08:45), puis l'annulation (05:00). Ne jamais couper une des 7 obligations. | |
+| L'Aide au choix répond « Calcul sans IA » ou tarde | Le dire : c'est le repli prévu, mêmes règles serveur. Si rien ne s'affiche après 15 s, fermer le panneau et réserver depuis le menu. | « Le modèle ne répond pas : le serveur calcule sans lui, avec les mêmes garanties. » |
+| Le temps manque | Couper la partie adaptative (08:15), puis l'Aide au choix (03:00), puis l'annulation (05:00). Ne jamais couper une des 7 obligations. | |
 
 Captures de secours (réelles, faites sur l'application, mobile 375 px, tablette 834 px, ordinateur 1440 px) :
 
@@ -191,7 +208,8 @@ complet sur la production, à présenter comme un enregistrement.
 ## 7. À ne pas dire
 
 - Pas de chiffre d'usage, de client, d'économie ou de gaspillage évité : il n'y en a pas.
-- Pas d'IA dans le produit livré : l'IA a servi à développer (voir le pitch), pas à calculer.
+- L'IA ne calcule ni prix, ni budget, ni allergènes, et ne réserve jamais : elle choisit parmi des plats déjà vérifiés
+  et explique. Ne pas dire « l'IA garantit » quoi que ce soit.
 - Pas de « paiement » : ce sont des crédits de démonstration.
 - Ne pas dire qu'un repas remis est un repas mangé.
 - Ne pas montrer : terminal, commandes d'opérateur, tableau de bord Convex ou Vercel, mot de passe, e-mail réel.
