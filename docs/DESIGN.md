@@ -9,7 +9,7 @@ Prototype étudiant : ne jamais le présenter comme produit officiellement appro
 - `branding/vatel/logo-vatel-fond-blanc.svg` (copie intacte de vatel.ci) servi en `public/logo-vatel.svg`, aussi favicon.
 - `branding/vatel/logo-vatel-footer.png` (footer vatel.ci).
 - Composant unique : `src/components/brand-logo.tsx`. Sur fond bleu, poser le logo dans une pastille blanche, jamais le recolorer ni le redessiner.
-- Anciens `branding/idj-ai-*.png` : interdits dans l'UI.
+- Les anciens fichiers de marque non-Vatel sont supprimés du dépôt ; ne pas les réintroduire.
 
 ## Couleurs (noms Vatel issus du CSS de vatel.ci)
 | Nom Vatel | Hex | Token |
