@@ -101,6 +101,12 @@ _Mis à jour : 21/11/2026 ~11h30 (Abidjan)_
 - **Décision porteur (21/11 ~14h50)** : modèle B1 retenu = `anthropic/claude-haiku-5.5` via OpenRouter.
 - **Gate humain restant** : (1) fusion après la livraison P0 ; (2) variables prod (`SMART_MENU_PROVIDER=openrouter`, `SMART_MENU_MODEL`, `OPENROUTER_API_KEY`) seulement après fusion ; (3) limite de dépense et rotation de la clé OpenRouter, révocation de `vatel-b1-local`.
 
+## B2 Smart Production + Smart Waste (branche `claude/trusting-tesla-oeg1av`, 21/11 ~17h20)
+- `/admin/production` (onglets Préparer / Pertes réelles), `convex/production.ts`, calcul pur `convex/lib/production/`,
+  table `productionEvents` (ajout seul), `requireKitchen` (admin ou chef). Détails, preuves, limites : `docs/ai/b2/SMART-PRODUCTION.md`.
+- Fichiers du lead touchés : `convex/schema.ts` (table ajoutée), `convex/lib/access.ts` (helper ajouté), `_generated/api.d.ts`.
+- typecheck, lint, 155 tests, build OK. Skill `frontend-design` (Anthropic) installée dans `.claude/skills` et `.agents/skills`.
+
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
 - Révocation : accès serveur basé sur le JWT, effectif à son expiration.

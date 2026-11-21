@@ -31,6 +31,13 @@ export async function requireAdmin(ctx: QueryCtx): Promise<Membership> {
   return membership
 }
 
+/** Cuisine et gestion : administration ou chef de cuisine (#5, #6). Usagers, parents et distribution refusés. */
+export async function requireKitchen(ctx: QueryCtx): Promise<Membership> {
+  const membership = await requireMember(ctx)
+  if (membership.role !== 'admin' && membership.role !== 'chef') throw new ConvexError('Action réservée à la cuisine et à l’administration.')
+  return membership
+}
+
 /** Charge un document et vérifie qu'il appartient à l'établissement du membre (isolation tenant). */
 export async function getOwned<T extends 'dishes' | 'menuItems' | 'units' | 'ingredients'>(
   ctx: QueryCtx,
