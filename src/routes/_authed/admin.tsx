@@ -56,7 +56,7 @@ function AdminLayout() {
                 {ADMIN_LINKS.map(({ to, label, icon: Icon }) => (
                   <SidebarMenuItem key={to}>
                     <SidebarMenuButton asChild>
-                      <Link to={to} activeOptions={{ exact: true }} activeProps={{ 'data-active': true }}>
+                      <Link to={to} activeOptions={{ exact: true, includeSearch: false }} activeProps={{ 'data-active': true }}>
                         <Icon />
                         {label}
                       </Link>
