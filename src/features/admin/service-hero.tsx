@@ -1,13 +1,12 @@
 import { Link } from '@tanstack/react-router'
-import type { FunctionReturnType } from 'convex/server'
 import { ArrowRightIcon } from 'lucide-react'
-import type { api } from '../../../convex/_generated/api'
 import { Button } from '#/components/ui/button'
 import { formatXof } from '#/lib/format'
 import { useT } from '#/i18n/i18n'
 import { percent } from './overview'
+import type { Summary } from './overview'
 
-type Totals = FunctionReturnType<typeof api.admin.daySummary>['totals']
+type Totals = Summary['totals']
 
 /**
  * Carte maîtresse du service : une seule lecture (taux de réservation), le chiffre clé, ce qui reste,

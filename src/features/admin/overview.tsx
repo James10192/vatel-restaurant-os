@@ -1,33 +1,32 @@
-import { Link } from '@tanstack/react-router'
 import type { FunctionReturnType } from 'convex/server'
-import { ChevronRightIcon, CircleSlashIcon, ClockIcon, HandPlatterIcon, SoupIcon } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import type { api } from '../../../convex/_generated/api'
-import { DishVisual } from '#/components/dish-visual'
-import { Badge } from '#/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card'
-import { SERVICE_LABELS, formatXof } from '#/lib/format'
-import type { Service } from '#/lib/format'
 import { cn } from '#/lib/utils'
 import { useT } from '#/i18n/i18n'
 
-type Summary = FunctionReturnType<typeof api.admin.daySummary>
-type Offer = Summary['offers'][number]
-type OrderStatus = 'confirmed' | 'picked_up' | 'cancelled'
+/** Briques partagées de la Vue d'ensemble : types, pourcentage, jauge de capacité, pastilles de statut. */
+export type Summary = FunctionReturnType<typeof api.admin.daySummary>
+export type Offer = Summary['offers'][number]
+export type OrderStatus = 'confirmed' | 'picked_up' | 'cancelled'
 
 export const percent = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0)
+
 /**
  * Jauge segmentée d'une capacité : remis, à servir, libres. Une seule lecture, de gauche à droite,
  * au lieu de trois chiffres à additionner. `onBrand` : posée sur la surface bleu Vatel.
  */
-export function CapacityBar({ offer, onBrand = false }: { offer: Pick<Offer, 'pickedUp' | 'confirmed' | 'capacity'>; onBrand?: boolean }) {
+export function CapacityBar({
+  offer,
+  onBrand = false,
+  className,
+}: {
+  offer: Pick<Offer, 'pickedUp' | 'confirmed' | 'capacity'>
+  onBrand?: boolean
+  className?: string
+}) {
   const t = useT()
   const segments = [
     { value: offer.pickedUp, className: onBrand ? 'bg-white' : 'bg-success' },
-    {
-      value: offer.confirmed,
-      className: onBrand ? 'bg-vatel-sky' : 'bg-primary',
-    },
+    { value: offer.confirmed, className: onBrand ? 'bg-vatel-sky' : 'bg-primary' },
   ]
   return (
     <div
@@ -37,7 +36,7 @@ export function CapacityBar({ offer, onBrand = false }: { offer: Pick<Offer, 'pi
         confirmed: offer.confirmed,
         capacity: offer.capacity,
       })}
-      className={cn('flex h-2 w-full overflow-hidden rounded-full', onBrand ? 'bg-white/15' : 'bg-muted')}
+      className={cn('flex h-1.5 w-full overflow-hidden rounded-full', onBrand ? 'bg-white/15' : 'bg-muted', className)}
     >
       {segments.map((segment, i) => (
         <span
@@ -50,147 +49,21 @@ export function CapacityBar({ offer, onBrand = false }: { offer: Pick<Offer, 'pi
   )
 }
 
-function Legend({ className, label, value }: { className: string; label: string; value: number }) {
-  const t = useT()
+/** Couleur de chaque statut, la même partout (tuiles, pastilles, jauges) : une seule convention à apprendre. */
+export const TONES = {
+  confirmed: { chip: 'bg-secondary text-primary', bar: 'bg-primary' },
+  picked_up: { chip: 'bg-success-soft text-success', bar: 'bg-success' },
+  cancelled: { chip: 'bg-muted text-muted-foreground', bar: 'bg-muted-foreground/40' },
+  remaining: { chip: 'bg-vatel-sky/15 text-vatel-sky', bar: 'bg-vatel-sky' },
+} as const
+export type Tone = keyof typeof TONES
+
+/** Pastille « 3 à servir » : chiffre en gras, libellé discret, couleur du statut. */
+export function StatusPill({ tone, value, label }: { tone: Tone; value: number; label: string }) {
   return (
-    <span className="flex items-center gap-2">
-      <span aria-hidden className={cn('size-2 rounded-full', className)} />
-      <span className="tabular-nums">{value}</span>
-      <span className="opacity-70">{t(label)}</span>
+    <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs', TONES[tone].chip)}>
+      <span className="font-semibold tabular-nums">{value}</span>
+      <span className="opacity-80">{label}</span>
     </span>
-  )
-}
-
-const STATS: {
-  key: 'confirmed' | 'pickedUp' | 'cancelled' | 'remaining'
-  label: string
-  icon: LucideIcon
-  status?: OrderStatus
-}[] = [
-  { key: 'confirmed', label: 'À servir', icon: ClockIcon, status: 'confirmed' },
-  {
-    key: 'pickedUp',
-    label: 'Remis',
-    icon: HandPlatterIcon,
-    status: 'picked_up',
-  },
-  {
-    key: 'cancelled',
-    label: 'Annulés',
-    icon: CircleSlashIcon,
-    status: 'cancelled',
-  },
-  { key: 'remaining', label: 'Libres', icon: SoupIcon },
-]
-
-/** Quatre chiffres compacts ; chacun ouvre les commandes déjà filtrées sur ce statut. */
-export function StatTiles({ date, totals }: { date: string; totals: Summary['totals'] }) {
-  const t = useT()
-  return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {STATS.map(({ key, label, icon: Icon, status }) => {
-        const body = (
-          <>
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary">
-              <Icon className="size-5" />
-            </span>
-            <span className="flex min-w-0 flex-col">
-              <span className="text-2xl leading-none font-bold tracking-tight tabular-nums">{totals[key]}</span>
-              <span className="text-sm leading-tight text-muted-foreground">{t(label)}</span>
-            </span>
-          </>
-        )
-        const tile = 'flex items-center gap-3 rounded-3xl border bg-card p-4 shadow-card'
-        return status ? (
-          <Link
-            key={key}
-            to="/admin/services"
-            search={{ date, status }}
-            className={cn(
-              tile,
-              'press transition-colors hover:border-ring/40 hover:bg-accent/40 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
-            )}
-          >
-            {body}
-          </Link>
-        ) : (
-          <div key={key} className={tile}>
-            {body}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function OfferRow({ date, offer }: { date: string; offer: Offer }) {
-  const t = useT()
-  return (
-    <li>
-      <Link
-        to="/admin/services"
-        search={{ date, item: offer.menuItemId }}
-        className="group flex items-center gap-4 rounded-2xl p-3 transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-      >
-        <DishVisual name={offer.dishName} className="size-14 shrink-0 rounded-2xl text-base" />
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="truncate font-semibold">{offer.dishName}</span>
-            <span className="shrink-0 text-sm text-muted-foreground tabular-nums">{formatXof(offer.priceXof)}</span>
-          </div>
-          <CapacityBar offer={offer} />
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <Legend className="bg-success" label="remis" value={offer.pickedUp} />
-            <Legend className="bg-primary" label={t('à servir')} value={offer.confirmed} />
-            <span className="tabular-nums">
-              {t('{remaining} / {capacity} libres', { remaining: offer.remaining, capacity: offer.capacity })}
-            </span>
-            {offer.cancelled > 0 && <span className="tabular-nums">
-                {t(offer.cancelled > 1 ? '{n} annulations' : '{n} annulation', { n: offer.cancelled })}
-              </span>}
-          </div>
-        </div>
-        <ChevronRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-      </Link>
-    </li>
-  )
-}
-
-/** Plats du jour regroupés par service, dans l'ordre de la journée. */
-export function OffersByService({ date, offers }: { date: string; offers: Offer[] }) {
-  const t = useT()
-  const services = (Object.keys(SERVICE_LABELS) as Service[])
-    .map((service) => ({
-      service,
-      offers: offers.filter((offer) => offer.service === service),
-    }))
-    .filter((group) => group.offers.length > 0)
-  return (
-    <div className={cn('grid gap-4', services.length > 1 && 'lg:grid-cols-2')}>
-      {services.map(({ service, offers: list }) => {
-        const served = list.reduce((n, o) => n + o.pickedUp, 0)
-        const booked = list.reduce((n, o) => n + o.pickedUp + o.confirmed, 0)
-        return (
-          <Card key={service} className="gap-2 rounded-3xl">
-            <CardHeader className="flex flex-row items-center justify-between gap-3">
-              <div className="flex flex-col gap-1">
-                <CardTitle>{t(SERVICE_LABELS[service])}</CardTitle>
-                <CardDescription className="tabular-nums">
-                  {t(booked > 1 ? '{served} remis sur {n} réservations' : '{served} remis sur {n} réservation', { served, n: booked })}
-                </CardDescription>
-              </div>
-              <Badge variant="outline">{t(list.length > 1 ? '{n} plats' : '{n} plat', { n: list.length })}</Badge>
-            </CardHeader>
-            <CardContent className="px-3">
-              <ul className="flex flex-col">
-                {list.map((offer) => (
-                  <OfferRow key={offer.menuItemId} date={date} offer={offer} />
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )
-      })}
-    </div>
   )
 }
