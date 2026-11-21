@@ -1,5 +1,6 @@
+import { useId } from 'react'
 import type { FormEvent, ReactNode } from 'react'
-import { SparklesIcon } from 'lucide-react'
+import { BookmarkIcon, SparklesIcon } from 'lucide-react'
 import { FormError } from '#/components/form-error'
 import { Button } from '#/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '#/components/ui/input-group'
@@ -28,17 +29,25 @@ const SERVICES: Array<[ServiceWish, string]> = [
 /** Montant saisi : chiffres seulement (plus de « 5000 » qui se colle à la saisie), affiché avec séparateurs. */
 export const budgetValue = (budget: string) => Number(budget || 0)
 
-function Step({ n, title, hint, children }: { n: number; title: string; hint?: string; children: ReactNode }) {
+/**
+ * Étape numérotée (la demande est une vraie suite) : numéro dans une colonne, titre, aide et champs alignés
+ * dans la seconde ; un trait relie les étapes jusqu'à la dernière.
+ */
+function Step({ n, last = false, title, hint, children }: { n: number; last?: boolean; title: string; hint?: string; children: ReactNode }) {
+  const id = useId()
   return (
-    <fieldset className="flex flex-col gap-3">
-      <legend className="flex items-center gap-2.5">
-        <span aria-hidden className="flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+    <fieldset aria-labelledby={id} className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3">
+      <span aria-hidden className="row-span-3 flex flex-col items-center">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground tabular-nums">
           {n}
         </span>
-        <span className="font-semibold">{title}</span>
-      </legend>
-      {hint && <p className="-mt-1 text-sm text-muted-foreground">{hint}</p>}
-      {children}
+        {!last && <span className="mt-1.5 w-px flex-1 bg-border" />}
+      </span>
+      <h3 id={id} className="col-start-2 leading-7 font-semibold">
+        {title}
+      </h3>
+      {hint && <p className="col-start-2 text-sm text-muted-foreground">{hint}</p>}
+      <div className={cn('col-start-2 mt-3 flex min-w-0 flex-col gap-3', !last && 'pb-7')}>{children}</div>
     </fieldset>
   )
 }
@@ -53,6 +62,7 @@ export function SmartMenuForm({
   onSubmit,
   pending,
   error,
+  habit,
 }: {
   days: Array<string>
   daysWithMenu: Set<string>
@@ -62,6 +72,8 @@ export function SmartMenuForm({
   onSubmit: () => void
   pending: boolean
   error: string | null
+  /** Habitudes : la demande courante peut devenir la demande par défaut des semaines suivantes. */
+  habit: { saved: boolean; saving: boolean; error: string | null; onSave: () => void }
 }) {
   const t = useT()
   const { locale } = useLocale()
@@ -75,7 +87,7 @@ export function SmartMenuForm({
 
   return (
     <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-1 flex-col gap-7 overflow-y-auto px-4 pb-6 @container">
+      <div className="flex flex-1 flex-col overflow-y-auto px-4 pb-6 @container">
         <Step n={1} title={t('Vos jours')} hint={available.length ? undefined : t('Aucun menu publié sur ces jours.')}>
           <ToggleGroup
             type="multiple"
@@ -173,7 +185,7 @@ export function SmartMenuForm({
           </Step>
         )}
 
-        <Step n={allergens.length > 0 ? 5 : 4} title={t('Vos envies')} hint={t('Facultatif. N’indiquez aucune information personnelle ou médicale.')}>
+        <Step n={allergens.length > 0 ? 5 : 4} last title={t('Vos envies')} hint={t('Facultatif. N’indiquez aucune information personnelle ou médicale.')}>
           <Textarea
             aria-label={t('Vos envies')}
             maxLength={WISH_MAX}
@@ -191,9 +203,14 @@ export function SmartMenuForm({
           {pending ? <Spinner data-icon="inline-start" /> : <SparklesIcon data-icon="inline-start" />}
           {pending ? t('Recherche en cours…') : t('Proposer des repas')}
         </Button>
+        <Button type="button" variant="link" size="sm" className="h-auto self-center p-0" disabled={Boolean(missing) || habit.saving} onClick={habit.onSave}>
+          {habit.saving ? <Spinner data-icon="inline-start" /> : <BookmarkIcon data-icon="inline-start" />}
+          {habit.saved ? t('Mettre à jour mes habitudes') : t('Enregistrer comme habitude')}
+        </Button>
+        <FormError message={habit.error} />
         <p className="text-center text-xs text-muted-foreground tabular-nums" aria-live="polite">
           {missing ??
-            t('{days} · {amount} · rien n’est réservé sans votre confirmation', {
+            t('{days}, {amount}. Rien n’est réservé sans votre confirmation.', {
               days: t(value.days.length > 1 ? '{n} jours' : '{n} jour', { n: value.days.length }),
               amount: formatXof(budget),
             })}

@@ -4,7 +4,6 @@ import { api } from '../../../convex/_generated/api'
 import { MAX_EVENT_PORTIONS, WASTE_REASONS, WASTE_REASON_LABELS } from '../../../convex/lib/production/waste'
 import type { WasteReason } from '../../../convex/lib/production/waste'
 import { CountField, parseCount } from './count-field'
-import { newRequestKey } from './types'
 import type { ProductionOffer } from './types'
 import { FormError } from '#/components/form-error'
 import { Button } from '#/components/ui/button'
@@ -13,30 +12,13 @@ import { Field, FieldLabel } from '#/components/ui/field'
 import { NativeSelect, NativeSelectOption } from '#/components/ui/native-select'
 import { Spinner } from '#/components/ui/spinner'
 import { Switch } from '#/components/ui/switch'
-import { useServerAction } from '#/lib/server-action'
+import { useEntryDialog } from '#/lib/use-entry-dialog'
 import { useT } from '#/i18n/i18n'
 
 type Props = { offer: ProductionOffer; trigger: React.ReactNode }
 
 const RANGE = `Entier entre 1 et ${MAX_EVENT_PORTIONS}.`
 
-/**
- * État commun d'une saisie en fenêtre : chaque ouverture repart d'un formulaire vide et d'une nouvelle clé
- * d'idempotence (un double envoi pendant la même ouverture n'ajoute rien côté serveur).
- */
-function useEntryDialog<TArgs extends Array<unknown>, TResult>(mutation: (...args: TArgs) => Promise<TResult>, onOpen: () => void) {
-  const [open, setOpen] = useState(false)
-  const [key, setKey] = useState(newRequestKey)
-  const action = useServerAction(mutation)
-  const onOpenChange = (next: boolean) => {
-    setOpen(next)
-    if (!next) return
-    setKey(newRequestKey())
-    action.setError(null)
-    onOpen()
-  }
-  return { open, setOpen, onOpenChange, key, action }
-}
 const inRange = (n: number) => Number.isInteger(n) && n >= 1 && n <= MAX_EVENT_PORTIONS
 
 /** Ajout de portions sorties de cuisine, ou correction (retrait) signalée. Le total affiché vient du serveur. */
@@ -143,6 +125,63 @@ export function DeclareWasteDialog({ offer, trigger, max }: Props & { max: numbe
             <Button type="submit" variant="destructive" disabled={action.pending || !valid}>
               {action.pending && <Spinner data-icon="inline-start" />}
               {t('Déclarer la perte')}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/**
+ * Surplus récupéré (#6) : portions encore sûres, redistribuées après contrôle du chef. Le contrôle est une
+ * déclaration humaine obligatoire ; l'application ne garantit jamais la sécurité d'un plat.
+ */
+export function RecoverDialog({ offer, trigger, max }: Props & { max: number }) {
+  const t = useT()
+  const [value, setValue] = useState('')
+  const [checked, setChecked] = useState(false)
+  const { open, setOpen, onOpenChange, key, action } = useEntryDialog(useMutation(api.production.recordRecovered), () => {
+    setValue('')
+    setChecked(false)
+  })
+  const count = parseCount(value)
+  const valid = inRange(count) && count <= max && checked
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={async (e) => {
+            e.preventDefault()
+            if (!valid) return
+            const done = await action.run({ menuItemId: offer.menuItemId, portions: count, hygieneChecked: checked, idempotencyKey: key })
+            if (done !== undefined) setOpen(false)
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>{t('Surplus récupéré')}</DialogTitle>
+            <DialogDescription>{t('Portions encore sûres, redistribuées (personnel, association) : ni vendues, ni perdues.')}</DialogDescription>
+          </DialogHeader>
+          <CountField
+            id="recover-count"
+            label={t('Portions récupérées')}
+            value={value}
+            onChange={setValue}
+            min={1}
+            hint={t('Au plus {n} (préparé moins remis moins déjà déclaré).', { n: max })}
+            error={value !== '' && !(inRange(count) && count <= max) ? t('Au plus {n} (préparé moins remis moins déjà déclaré).', { n: max }) : undefined}
+          />
+          <Field orientation="horizontal">
+            <Switch id="recover-hygiene" checked={checked} onCheckedChange={setChecked} />
+            <FieldLabel htmlFor="recover-hygiene">{t('Le chef a vérifié la conservation et l’hygiène de ces portions.')}</FieldLabel>
+          </Field>
+          <FormError message={action.error} />
+          <DialogFooter>
+            <Button type="submit" disabled={action.pending || !valid}>
+              {action.pending && <Spinner data-icon="inline-start" />}
+              {t('Enregistrer le surplus récupéré')}
             </Button>
           </DialogFooter>
         </form>

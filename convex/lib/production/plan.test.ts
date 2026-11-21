@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { materialsFor, simulate, sumMaterials, validateInputs } from './plan'
 import type { Baseline, Recipe } from './plan'
-import { maxDeclarableWaste, wasteBalance } from './waste'
+import { maxDeclarable, wasteBalance } from './waste'
 
 const none = { walkIns: 0, margin: 0, preparedAssumed: 0 }
 const base = (prepared: number | null, capacity = 200): Baseline => ({ capacity, confirmed: 150, pickedUp: 0, prepared })
@@ -94,13 +94,18 @@ describe('Matières', () => {
 
 describe('Smart Waste : bilan réel (#6)', () => {
   test('préparé, remis, perdu et reste à déclarer distincts', () => {
-    const b = wasteBalance(100, 70, 10, { surplus: 10, not_picked_up: 5, kitchen: 0, quality: 0 })
-    expect(b).toEqual({ prepared: 100, served: 70, wasted: 15, pending: 10, unexplained: 5, servedExceedsPrepared: false, wasteRate: 15 })
-    expect(maxDeclarableWaste(100, 70, 15)).toBe(15)
+    const b = wasteBalance({ prepared: 100, pickedUp: 70, walkIns: 0, confirmed: 10, waste: { surplus: 10, not_picked_up: 5, kitchen: 0, quality: 0 }, recovered: 3 })
+    expect(b).toEqual({ prepared: 100, served: 70, wasted: 15, recovered: 3, pending: 10, unexplained: 2, servedExceedsPrepared: false, wasteRate: 15 })
+    expect(maxDeclarable(100, 70, 18)).toBe(12)
+  })
+
+  test('servis sans réservation : sortis du préparé, jamais comptés « sans explication »', () => {
+    const b = wasteBalance({ prepared: 100, pickedUp: 80, walkIns: 15, confirmed: 0, waste: { surplus: 0, not_picked_up: 0, kitchen: 0, quality: 0 }, recovered: 0 })
+    expect(b).toMatchObject({ served: 95, unexplained: 5 })
   })
 
   test('préparé inconnu : pas de taux inventé ; remis au-delà du préparé signalé', () => {
-    expect(wasteBalance(null, 3, 0, { surplus: 0, not_picked_up: 0, kitchen: 0, quality: 0 }).wasteRate).toBeNull()
-    expect(wasteBalance(2, 3, 0, { surplus: 0, not_picked_up: 0, kitchen: 0, quality: 0 }).servedExceedsPrepared).toBe(true)
+    expect(wasteBalance({ prepared: null, pickedUp: 3, walkIns: 0, confirmed: 0, waste: { surplus: 0, not_picked_up: 0, kitchen: 0, quality: 0 }, recovered: 0 }).wasteRate).toBeNull()
+    expect(wasteBalance({ prepared: 2, pickedUp: 3, walkIns: 0, confirmed: 0, waste: { surplus: 0, not_picked_up: 0, kitchen: 0, quality: 0 }, recovered: 0 }).servedExceedsPrepared).toBe(true)
   })
 })

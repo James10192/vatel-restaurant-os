@@ -77,7 +77,8 @@ export function evaluate<TRow extends OfferRow>(rows: Array<TRow>, request: Smar
 
 /**
  * Plan sans IA : au plus un repas par jour, le moins cher du jour, en couvrant le maximum de jours
- * dans le budget (jours les moins chers d'abord). Toujours disponible, y compris si l'IA est coupée.
+ * dans le budget (jours les moins chers d'abord), puis varié (voir `diversify`). Toujours disponible,
+ * y compris si l'IA est coupée.
  */
 export function planByRules<TRow extends OfferRow>(evaluation: Evaluation<TRow>, request: SmartRequest): Plan<TRow> {
   const cheapest = [...evaluation.eligibleByDay.values()].map((offers) =>
@@ -93,7 +94,7 @@ export function planByRules<TRow extends OfferRow>(evaluation: Evaluation<TRow>,
       totalXof += offer.priceXof
     } else overBudget.push({ date: offer.date, reason: 'budget' })
   }
-  return finalize(picks, [...evaluation.uncovered, ...overBudget])
+  return finalize(diversify(picks, evaluation, request.budgetXof), [...evaluation.uncovered, ...overBudget])
 }
 
 export type AiPick = { offerId: string; reason: string }
@@ -137,6 +138,33 @@ export function validateAiPicks<TRow extends OfferRow>(
   const notPicked = [...evaluation.eligibleByDay.keys()].filter((date) => !days.has(date))
   return { ok: true, plan: finalize(picks, [...evaluation.uncovered, ...notPicked.map((date) => ({ date, reason: 'budget' as const }))]) }
 }
+
+/**
+ * Diversité : un plat déjà proposé un autre jour est remplacé, si possible, par une autre offre éligible du même
+ * jour qui n'est pas encore dans la sélection, la moins chère, et seulement si le budget le permet encore.
+ * Les jours couverts ne changent jamais : on ne sacrifie pas un repas pour la variété.
+ */
+export function diversify<TRow extends OfferRow>(picks: Plan<TRow>['picks'], evaluation: Evaluation<TRow>, budgetXof: number): Plan<TRow>['picks'] {
+  const result = [...picks].sort((a, b) => a.offer.date.localeCompare(b.offer.date))
+  let total = result.reduce((n, p) => n + p.offer.priceXof, 0)
+  for (const [i, pick] of result.entries()) {
+    const taken = new Set(result.filter((_, j) => j !== i).map((p) => p.offer.dishName))
+    if (!taken.has(pick.offer.dishName)) continue
+    const swap = (evaluation.eligibleByDay.get(pick.offer.date) ?? [])
+      .filter((o) => !taken.has(o.dishName) && total - pick.offer.priceXof + o.priceXof <= budgetXof)
+      .sort((a, b) => a.priceXof - b.priceXof)
+      .at(0)
+    if (swap) {
+      total += swap.priceXof - pick.offer.priceXof
+      result[i] = { offer: swap }
+    }
+  }
+  return result
+}
+
+/** Autres offres éligibles du même jour qu'un repas proposé : l'usager peut changer de plat avant de réserver. */
+export const alternativesOf = <TRow extends OfferRow>(evaluation: Evaluation<TRow>, offer: TRow) =>
+  (evaluation.eligibleByDay.get(offer.date) ?? []).filter((o) => o.id !== offer.id)
 
 function finalize<TRow extends OfferRow>(picks: Plan<TRow>['picks'], uncovered: Plan['uncovered']): Plan<TRow> {
   picks.sort((a, b) => a.offer.date.localeCompare(b.offer.date) || a.offer.service.localeCompare(b.offer.service))

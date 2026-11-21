@@ -18,13 +18,18 @@ export const MAX_EVENT_PORTIONS = 1_000
 export type WasteByReason = Record<WasteReason, number>
 export const emptyWaste = (): WasteByReason => ({ surplus: 0, not_picked_up: 0, kitchen: 0, quality: 0 })
 
+/** Ce que le bilan lit d'une offre : exactement les champs renvoyés par production.day. */
+export type WasteInput = { prepared: number | null; pickedUp: number; walkIns: number; confirmed: number; waste: WasteByReason; recovered: number }
+
 export type WasteBalance = {
   prepared: number | null
   served: number
   wasted: number
+  /** Surplus sûr redistribué après contrôle hygiène du chef : ni perte, ni vente. */
+  recovered: number
   /** Portions préparées encore attendues par des réservations non retirées. Null si P inconnu. */
   pending: number | null
-  /** Préparé moins remis, perdu et attendu : ni servi ni déclaré, à expliquer. Null si P inconnu. */
+  /** Préparé moins remis, perdu, récupéré et attendu : à expliquer. Null si P inconnu. */
   unexplained: number | null
   /** Remis plus que préparé : saisie de production incomplète. */
   servedExceedsPrepared: boolean
@@ -32,14 +37,17 @@ export type WasteBalance = {
   wasteRate: number | null
 }
 
-export function wasteBalance(prepared: number | null, served: number, awaiting: number, waste: WasteByReason): WasteBalance {
+export function wasteBalance({ prepared, pickedUp, walkIns, confirmed, waste, recovered }: WasteInput): WasteBalance {
+  // Servi = remis sur réservation + servi au comptoir sans réservation : les deux sortent du préparé.
+  const served = pickedUp + walkIns
   const wasted = WASTE_REASONS.reduce((sum, reason) => sum + waste[reason], 0)
-  const left = prepared === null ? null : Math.max(0, prepared - served - wasted)
-  const pending = left === null ? null : Math.min(left, awaiting)
+  const left = prepared === null ? null : Math.max(0, prepared - served - wasted - recovered)
+  const pending = left === null ? null : Math.min(left, confirmed)
   return {
     prepared,
     served,
     wasted,
+    recovered,
     pending,
     unexplained: left === null ? null : left - (pending ?? 0),
     servedExceedsPrepared: prepared !== null && served > prepared,
@@ -47,5 +55,5 @@ export function wasteBalance(prepared: number | null, served: number, awaiting: 
   }
 }
 
-/** Nouvelle perte acceptable : au plus ce qui a été préparé et n'a été ni remis ni déjà déclaré perdu. */
-export const maxDeclarableWaste = (prepared: number, served: number, wasted: number) => Math.max(0, prepared - served - wasted)
+/** Portions encore déclarables (perte ou récupération) : préparé moins remis, perdu et déjà récupéré. */
+export const maxDeclarable = (prepared: number, served: number, wastedOrRecovered: number) => Math.max(0, prepared - served - wastedOrRecovered)

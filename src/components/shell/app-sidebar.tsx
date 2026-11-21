@@ -5,7 +5,7 @@ import { BrandLogo } from '#/components/brand-logo'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { ROLE_LABELS, currentUserQuery } from '#/lib/session'
 import { AccountMenu } from './account-menu'
-import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV, initials } from './nav-model'
+import { ACTIVE_OPTIONS, MEAL_NAV, initials, staffNav } from './nav-model'
 import type { NavItem } from './nav-model'
 import { useT } from '#/i18n/i18n'
 
@@ -18,13 +18,14 @@ import { useT } from '#/i18n/i18n'
 export function AppSidebar() {
   const t = useT()
   const { data: user } = useSuspenseQuery(currentUserQuery)
-  const isAdmin = user?.membership?.role === 'admin'
+  const staff = staffNav(user?.membership?.role)
+  const isStaff = staff.length > 0
   return (
     <aside
       aria-label={t('Navigation principale')}
       className="fixed inset-y-0 left-0 z-30 hidden w-19 flex-col gap-4 border-r bg-sidebar py-4 text-sidebar-foreground md:flex xl:w-64 xl:px-3"
     >
-      <Link to={isAdmin ? '/admin' : '/app'} aria-label={t('Accueil')} className="flex items-center justify-center gap-3 xl:justify-start xl:px-2">
+      <Link to={isStaff ? staff[0].to : '/app'} aria-label={t('Accueil')} className="flex items-center justify-center gap-3 xl:justify-start xl:px-2">
         <BrandLogo className="h-10 shrink-0" />
         <span className="hidden flex-col leading-tight xl:flex">
           <span className="text-sm font-semibold">{t('Restauration')}</span>
@@ -34,8 +35,8 @@ export function AppSidebar() {
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-2 xl:px-0">
         {/* Administrateur : la gestion est son travail, l'espace repas reste accessible (il peut aussi réserver). */}
-        {isAdmin && <NavSection title={t('Gestion')} items={ADMIN_NAV} />}
-        <NavSection title={isAdmin ? 'Mon espace repas' : 'Espace repas'} items={MEAL_NAV} divider={isAdmin} />
+        {isStaff && <NavSection title={t('Gestion')} items={staff} />}
+        <NavSection title={isStaff ? 'Mon espace repas' : 'Espace repas'} items={MEAL_NAV} divider={isStaff} />
       </nav>
 
       <AccountMenu

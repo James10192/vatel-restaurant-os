@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { CalendarXIcon, CircleHelpIcon, InfoIcon, SparklesIcon, TriangleAlertIcon } from 'lucide-react'
 import { DishVisual } from '#/components/dish-visual'
 import { Alert, AlertDescription } from '#/components/ui/alert'
 import { Badge } from '#/components/ui/badge'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '#/components/ui/empty'
+import { NativeSelect, NativeSelectOption } from '#/components/ui/native-select'
 import { SERVICE_LABELS, formatDayLong, formatXof } from '#/lib/format'
 import { BookMealDialog } from '#/features/booking/book-meal-dialog'
 import { AllergenBadges } from '#/features/menus/allergen-badges'
@@ -38,6 +40,9 @@ function Summary({ result, balanceXof, toBookXof }: { result: Suggestion; balanc
       </div>
       <p className="mt-1 text-3xl font-bold tracking-tight tabular-nums">{formatXof(result.totalXof)}</p>
       <p className="text-sm text-white/80 tabular-nums">{t('sur un budget de {amount}', { amount: formatXof(result.budgetXof) })}</p>
+      {result.totalXof > result.budgetXof && (
+        <p className="mt-1 text-sm font-semibold">{t('Vos changements dépassent le budget de {amount}.', { amount: formatXof(result.totalXof - result.budgetXof) })}</p>
+      )}
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15" role="img" aria-label={t('{pct} % du budget', { pct: Math.round(ratio * 100) })}>
         <span className="block h-full rounded-full bg-vatel-sky" style={{ width: `${ratio * 100}%` }} />
       </div>
@@ -60,11 +65,18 @@ function Summary({ result, balanceXof, toBookXof }: { result: Suggestion; balanc
 export function SuggestionResults({ result, balanceXof }: { result: Suggestion; balanceXof: number }) {
   const t = useT()
   const { locale } = useLocale()
-  const picks = useLivePicks(result.picks)
+  // Plat choisi par jour quand l'usager change la proposition (parmi les alternatives vérifiées par le serveur).
+  const [swaps, setSwaps] = useState<Record<string, string>>({})
+  const chosen = result.picks.map((pick) => {
+    const option = pick.alternatives.find((alt) => alt.menuItemId === swaps[pick.date])
+    return option ? { ...pick, ...option, description: undefined, reason: undefined } : pick
+  })
+  const totalXof = chosen.reduce((sum, pick) => sum + pick.priceXof, 0)
+  const picks = useLivePicks(chosen)
   const open = picks.filter((pick) => pick.bookable)
   return (
     <section aria-label={t('Propositions')} className="flex flex-col gap-4" aria-live="polite">
-      <Summary result={result} balanceXof={balanceXof} toBookXof={open.reduce((sum, pick) => sum + pick.priceXof, 0)} />
+      <Summary result={{ ...result, totalXof }} balanceXof={balanceXof} toBookXof={open.reduce((sum, pick) => sum + pick.priceXof, 0)} />
       {result.notice && (
         <Alert>
           <InfoIcon />
@@ -81,13 +93,13 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
         </Empty>
       ) : (
         <ul className="flex flex-col gap-3">
-          {picks.map((pick) => (
+          {picks.map((pick, index) => (
             <li key={pick.menuItemId} className="flex flex-col gap-3 rounded-3xl border bg-card p-4 shadow-card">
               <div className="flex items-start gap-3">
                 <DishVisual name={pick.dishName} className="size-14 shrink-0 rounded-2xl text-sm" />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-xs font-medium text-muted-foreground first-letter:uppercase">
-                    {formatDayLong(pick.date, locale)} · {t(SERVICE_LABELS[pick.service])}
+                    {formatDayLong(pick.date, locale)}, {t(SERVICE_LABELS[pick.service]).toLowerCase()}
                   </span>
                   <span className="leading-snug font-semibold">{pick.dishName}</span>
                   <span className="text-xs text-muted-foreground tabular-nums">
@@ -101,6 +113,13 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
                   <SparklesIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
                   <span>{pick.reason}</span>
                 </p>
+              )}
+              {pick.alternatives.length > 0 && !pick.booked && (
+                <AlternativeSelect
+                  pick={result.picks[index]}
+                  value={swaps[pick.date] ?? result.picks[index].menuItemId}
+                  onChange={(menuItemId) => setSwaps((prev) => ({ ...prev, [pick.date]: menuItemId }))}
+                />
               )}
               <div className="flex items-center justify-between gap-3">
                 <AllergenBadges allergens={pick.allergens} />
@@ -147,5 +166,20 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
         {t('Les allergènes affichés viennent de la fiche du plat. Un allergène non renseigné n’est pas vérifié : en cas de doute, demandez au service restauration.')}
       </p>
     </section>
+  )
+}
+
+/** Changer le plat d'un jour : seulement parmi les plats éligibles renvoyés par le serveur (allergènes, places, échéance). */
+function AlternativeSelect({ pick, value, onChange }: { pick: Suggestion['picks'][number]; value: string; onChange: (menuItemId: string) => void }) {
+  const t = useT()
+  const options = [pick, ...pick.alternatives]
+  return (
+    <NativeSelect aria-label={t('Changer le plat de ce jour')} value={value} onChange={(e) => onChange(e.target.value)} className="w-full">
+      {options.map((option) => (
+        <NativeSelectOption key={option.menuItemId} value={option.menuItemId}>
+          {option.dishName}, {formatXof(option.priceXof)}
+        </NativeSelectOption>
+      ))}
+    </NativeSelect>
   )
 }

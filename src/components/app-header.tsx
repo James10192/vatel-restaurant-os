@@ -2,7 +2,7 @@ import { Link, useMatchRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { BrandLogo } from '#/components/brand-logo'
 import { InstallIconButton } from '#/components/install-icon-button'
-import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV, PROFILE_NAV } from '#/components/shell/nav-model'
+import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV, PROFILE_NAV, staffNav } from '#/components/shell/nav-model'
 import { currentUserQuery } from '#/lib/session'
 import { useT } from '#/i18n/i18n'
 
@@ -15,7 +15,7 @@ const tabClass =
 export function MobileTabBar() {
   const t = useT()
   const { data: user } = useSuspenseQuery(currentUserQuery)
-  const isAdmin = user?.membership?.role === 'admin'
+  const staff = staffNav(user?.membership?.role)
   return (
     <nav
       aria-label={t('Navigation principale')}
@@ -27,9 +27,9 @@ export function MobileTabBar() {
           {t(short)}
         </Link>
       ))}
-      {isAdmin && (
+      {staff.length > 0 && (
         // Un seul onglet pour toute la gestion ; les sous-pages ont leurs onglets en haut de page.
-        <Link to="/admin" activeOptions={{ includeSearch: false }} className={tabClass}>
+        <Link to={staff[0].to} activeOptions={{ includeSearch: false }} className={tabClass}>
           <GestionIcon className="size-5" />
           {t('Gestion')}
         </Link>
@@ -79,9 +79,12 @@ export function MobileBrand() {
 /** Sous-navigation de la gestion sur mobile : onglets défilants en haut de page (le rail les montre dès la tablette). */
 export function AdminMobileTabs() {
   const t = useT()
+  const { data: user } = useSuspenseQuery(currentUserQuery)
+  const pages = staffNav(user?.membership?.role)
+  if (pages.length < 2) return null
   return (
     <nav aria-label={t('Gestion')} className="flex gap-2 overflow-x-auto px-4 pt-4 [scrollbar-width:none] md:hidden">
-      {ADMIN_NAV.map(({ to, short, icon: Icon }) => (
+      {pages.map(({ to, short, icon: Icon }) => (
         <Link
           key={to}
           to={to}

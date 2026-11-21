@@ -1,12 +1,12 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { TrashIcon } from 'lucide-react'
+import { HeartHandshakeIcon, TrashIcon } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { materialsFor, sumMaterials } from '../../../convex/lib/production/plan'
 import type { MaterialNeed } from '../../../convex/lib/production/plan'
-import { WASTE_REASONS, WASTE_REASON_LABELS, maxDeclarableWaste, wasteBalance } from '../../../convex/lib/production/waste'
+import { WASTE_REASONS, WASTE_REASON_LABELS, maxDeclarable, wasteBalance } from '../../../convex/lib/production/waste'
 import { MaterialsList } from './quantities'
-import { DeclareWasteDialog } from './record-dialogs'
+import { DeclareWasteDialog, RecoverDialog } from './record-dialogs'
 import type { ProductionOffer } from './types'
 import { Button } from '#/components/ui/button'
 import { formatDayShort } from '#/lib/format'
@@ -23,7 +23,7 @@ export function WasteView({ date, offers, canRecord }: { date: string; offers: A
   const t = useT()
   const lost = sumMaterials(
     offers
-      .map((o) => materialsFor(o.recipe, wasteBalance(o.prepared, o.pickedUp, o.confirmed, o.waste).wasted))
+      .map((o) => materialsFor(o.recipe, wasteBalance(o).wasted))
       .filter((n): n is Array<MaterialNeed> => n !== null),
   )
   return (
@@ -47,14 +47,15 @@ export function WasteView({ date, offers, canRecord }: { date: string; offers: A
 
 function WasteRow({ offer, canRecord }: { offer: ProductionOffer; canRecord: boolean }) {
   const t = useT()
-  const b = wasteBalance(offer.prepared, offer.pickedUp, offer.confirmed, offer.waste)
-  const max = offer.prepared === null ? 0 : maxDeclarableWaste(offer.prepared, offer.pickedUp, b.wasted)
+  const b = wasteBalance(offer)
+  const max = offer.prepared === null ? 0 : maxDeclarable(offer.prepared, b.served, b.wasted + b.recovered)
   return (
     <li className="flex flex-col gap-3 rounded-3xl border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 flex-col gap-1">
         <h3 className="truncate font-semibold">{offer.dishName}</h3>
         <p className="text-sm text-muted-foreground tabular-nums">
           {t('Préparé {p}, remis {s}, perdu {w}', { p: b.prepared ?? '?', s: b.served, w: b.wasted })}
+          {b.recovered > 0 && <>, {t('{n} récupérées', { n: b.recovered })}</>}
           {b.pending !== null && b.pending > 0 && <>, {t('{n} encore à servir', { n: b.pending })}</>}
           {b.unexplained !== null && b.unexplained > 0 && <>, {t('{n} sans explication', { n: b.unexplained })}</>}
         </p>
@@ -67,10 +68,22 @@ function WasteRow({ offer, canRecord }: { offer: ProductionOffer; canRecord: boo
         )}
         {b.servedExceedsPrepared && <p className="text-xs text-warning">{t('Plus de repas remis que préparés : saisie de cuisine incomplète.')}</p>}
       </div>
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
         <span className={cn('text-2xl font-bold tabular-nums', (b.wasteRate ?? 0) >= 10 && 'text-destructive')}>
           {b.wasteRate === null ? '?' : `${b.wasteRate} %`}
         </span>
+        {canRecord && (
+          <RecoverDialog
+            offer={offer}
+            max={max}
+            trigger={
+              <Button variant="outline" size="sm" disabled={offer.prepared === null || max === 0}>
+                <HeartHandshakeIcon data-icon="inline-start" />
+                {t('Surplus récupéré')}
+              </Button>
+            }
+          />
+        )}
         {canRecord && (
           <DeclareWasteDialog
             offer={offer}

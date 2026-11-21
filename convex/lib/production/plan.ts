@@ -58,9 +58,15 @@ const snapshot = (demand: number, prepared: number): Snapshot => ({
 export const demandOf = (baseline: Baseline, assumptions: Pick<Assumptions, 'walkIns' | 'margin'>) =>
   baseline.confirmed + baseline.pickedUp + assumptions.walkIns + assumptions.margin
 
-/** Situation réelle (réservations seules, sans hypothèse) ; null si le préparé n'a jamais été saisi. */
-export const situationOf = (baseline: Baseline): Snapshot | null =>
-  baseline.prepared === null ? null : snapshot(demandOf(baseline, { walkIns: 0, margin: 0 }), baseline.prepared)
+type PlanAssumptions = Pick<Assumptions, 'walkIns' | 'margin'>
+const NO_PLAN: PlanAssumptions = { walkIns: 0, margin: 0 }
+
+/**
+ * Situation réelle : réservations, plus les hypothèses du plan validé par le chef s'il existe.
+ * Null si le préparé n'a jamais été saisi (inconnu, jamais zéro).
+ */
+export const situationOf = (baseline: Baseline, plan: PlanAssumptions | null = null): Snapshot | null =>
+  baseline.prepared === null ? null : snapshot(demandOf(baseline, plan ?? NO_PLAN), baseline.prepared)
 
 /** Avant / après un imprévu. Lève une erreur si la saisie n'a pas été validée (jamais d'écrêtage silencieux). */
 export function simulate(baseline: Baseline, assumptions: Assumptions, scenario: Scenario): Simulation {
@@ -121,3 +127,30 @@ export function sumMaterials(lists: Array<Array<MaterialNeed>>): Array<MaterialN
 
 /** Affichage seulement : 2 décimales au plus (l'arrondi n'intervient jamais dans les calculs). */
 export const roundQty = (value: number) => Math.round(value * 100) / 100
+
+/** Demande d'une offre : réservations actives plus les hypothèses du plan validé, s'il existe. */
+export const plannedDemand = (baseline: Baseline, plan: PlanAssumptions | null) => demandOf(baseline, plan ?? NO_PLAN)
+
+/**
+ * Portions encore à produire pour une offre : aujourd'hui, la demande moins le déjà préparé ; un jour à venir,
+ * toute la demande (rien ne peut y être saisi) ; un jour passé, rien. Base de la matière à prévoir et des achats.
+ */
+export function toProduce(baseline: Baseline, plan: PlanAssumptions | null, date: string, today: string): number {
+  if (date < today) return 0
+  return Math.max(0, plannedDemand(baseline, plan) - (date === today ? (baseline.prepared ?? 0) : 0))
+}
+
+type DayOffers = { date: string; offers: Array<Baseline & { plan: PlanAssumptions | null; recipe: Recipe | null; dishName: string }> }
+
+/**
+ * Matière brute encore nécessaire sur des jours de production (aujourd'hui : demande moins préparé ; à venir :
+ * toute la demande) et plats sans fiche exploitable. Même calcul pour l'onglet Semaine et pour les achats.
+ */
+export function remainingMaterials(days: Array<DayOffers>, today: string) {
+  const remaining = days.flatMap((day) => day.offers.map((o) => ({ o, portions: toProduce(o, o.plan, day.date, today) }))).filter((x) => x.portions > 0)
+  const needs = remaining.map(({ o, portions }) => materialsFor(o.recipe, portions))
+  return {
+    materials: sumMaterials(needs.filter((n): n is Array<MaterialNeed> => n !== null)),
+    withoutRecipe: [...new Set(remaining.filter((_, i) => needs[i] === null).map(({ o }) => o.dishName))],
+  }
+}

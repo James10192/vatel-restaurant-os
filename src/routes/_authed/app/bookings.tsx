@@ -11,6 +11,9 @@ import { SERVICE_LABELS, formatDayLong, formatXof, todayIso } from '#/lib/format
 import { useNow } from '#/lib/use-now'
 import { CancelBookingDialog } from '#/features/booking/cancel-booking-dialog'
 import { usePickupPass } from '#/features/booking/pickup-pass-dialog'
+import { RateMeal } from '#/features/booking/rate-meal'
+import { addDays } from '../../../../convex/lib/dates'
+import { ChangeSlotDialog } from '#/features/booking/change-slot-dialog'
 import type { MyBooking } from '#/features/menus/meal-card'
 import { useT , useLocale, pageTitle } from '#/i18n/i18n'
 
@@ -29,10 +32,16 @@ export const Route = createFileRoute('/_authed/app/bookings')({
 function BookingsPage() {
   const { locale } = useLocale()
   const t = useT()
-  const { data: bookings, isPending } = useQuery(convexQuery(api.bookings.mine, { from: todayIso() }))
+  // Une semaine en arrière : les repas retirés restent visibles pour être notés.
+  const from = addDays(todayIso(), -7)
+  const { data: bookings, isPending } = useQuery(convexQuery(api.bookings.mine, { from }))
+  const { data: ratings } = useQuery(convexQuery(api.ratings.mine, { from }))
+  const scoreOf = (id: MyBooking['_id']) => ratings?.find((r) => r.bookingId === id)?.score
   const now = useNow()
-  const upcoming = (bookings ?? []).filter((b) => b.status === 'confirmed')
-  const done = (bookings ?? []).filter((b) => b.status !== 'confirmed')
+  const today = todayIso()
+  const upcoming = (bookings ?? []).filter((b) => b.status === 'confirmed' && b.date >= today)
+  // Passés et non retirés exclus : ni à venir, ni à noter.
+  const done = (bookings ?? []).filter((b) => b.status !== 'confirmed').sort((a, b) => b.date.localeCompare(a.date))
   const engagedXof = upcoming.reduce((sum, b) => sum + b.priceXof, 0)
   const pass = usePickupPass(bookings)
   const cancellable = (b: MyBooking) => b.status === 'confirmed' && now < b.cancellableUntil
@@ -89,12 +98,14 @@ function BookingsPage() {
                           <span className="text-sm text-muted-foreground first-letter:uppercase">
                             {formatDayLong(booking.date, locale)}, {t(SERVICE_LABELS[booking.service]).toLowerCase()}
                           </span>
+                          <SlotLine booking={booking} cancellable={cancellable(booking)} />
                         </div>
                         <Badge variant={STATUS[booking.status].variant}>{t(STATUS[booking.status].label)}</Badge>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-primary tabular-nums">{formatXof(booking.priceXof)}</span>
                         <div className="flex gap-2">
+                          {booking.status === 'picked_up' && <RateMeal bookingId={booking._id} score={scoreOf(booking._id)} />}
                           {booking.status === 'confirmed' && pass.trigger(booking)}
                           {cancellable(booking) && (
                             <CancelBookingDialog bookingId={booking._id} dishName={booking.dishName} priceXof={booking.priceXof} />
@@ -122,7 +133,10 @@ function BookingsPage() {
               <TableBody>
                 {[...upcoming, ...done].map((booking) => (
                   <TableRow key={booking._id}>
-                    <TableCell className="font-medium first-letter:uppercase">{formatDayLong(booking.date, locale)}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="block first-letter:uppercase">{formatDayLong(booking.date, locale)}</span>
+                      <SlotLine booking={booking} cancellable={cancellable(booking)} />
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{t(SERVICE_LABELS[booking.service])}</TableCell>
                     <TableCell className="max-w-72 truncate">{booking.dishName}</TableCell>
                     <TableCell className="text-right tabular-nums">{formatXof(booking.priceXof)}</TableCell>
@@ -131,11 +145,12 @@ function BookingsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {booking.status === 'picked_up' && <RateMeal bookingId={booking._id} score={scoreOf(booking._id)} />}
                         {booking.status === 'confirmed' && pass.trigger(booking)}
                         {cancellable(booking) ? (
                           <CancelBookingDialog bookingId={booking._id} dishName={booking.dishName} priceXof={booking.priceXof} />
                         ) : (
-                          booking.status !== 'confirmed' && <span className="text-xs text-muted-foreground">{t('Aucune')}</span>
+                          booking.status === 'cancelled' && <span className="text-xs text-muted-foreground">{t('Aucune')}</span>
                         )}
                       </div>
                     </TableCell>
@@ -149,4 +164,12 @@ function BookingsPage() {
       {pass.dialog}
     </main>
   )
+}
+
+/** Créneau de retrait : modifiable tant que la réservation l'est, sinon simple rappel. */
+function SlotLine({ booking, cancellable }: { booking: MyBooking; cancellable: boolean }) {
+  const t = useT()
+  if (!booking.slot) return null
+  if (cancellable) return <ChangeSlotDialog booking={{ _id: booking._id, menuItemId: booking.menuItemId, slot: booking.slot }} />
+  return <span className="text-xs text-muted-foreground tabular-nums">{t('Retrait à {slot}', { slot: booking.slot })}</span>
 }

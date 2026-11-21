@@ -2,7 +2,11 @@ import { ArrowDownIcon, ArrowUpIcon, CircleAlertIcon, HandIcon, PauseIcon } from
 import type { LucideIcon } from 'lucide-react'
 import type { MaterialNeed, Recommendation, Simulation } from '../../../convex/lib/production/plan'
 import { MaterialsList } from './quantities'
+import { checkAgainstStock } from './stock-check'
+import type { StockRow } from '../stock/stock-model'
+import type { StockCheck } from './stock-check'
 import { Alert, AlertDescription, AlertTitle } from '#/components/ui/alert'
+import { formatXof } from '#/lib/format'
 import { useT } from '#/i18n/i18n'
 
 const ADVICE: Record<Recommendation, { icon: LucideIcon; title: string; body: string }> = {
@@ -24,7 +28,17 @@ const ROWS = [
 ] as const
 
 /** Avant / après, recommandation déterministe, matière théorique et limites (stock et coût non connus). */
-export function SimulationResult({ result, materials, capacity }: { result: Simulation; materials: Array<MaterialNeed> | null; capacity: number }) {
+export function SimulationResult({
+  result,
+  materials,
+  capacity,
+  stock,
+}: {
+  result: Simulation
+  materials: Array<MaterialNeed> | null
+  capacity: number
+  stock: Array<StockRow> | undefined
+}) {
   const t = useT()
   const advice = ADVICE[result.recommendation]
   const Icon = advice.icon
@@ -85,10 +99,27 @@ export function SimulationResult({ result, materials, capacity }: { result: Simu
 
       <ul className="flex list-disc flex-col gap-1 pl-5 text-xs text-muted-foreground">
         {!result.preparedKnown && <li>{t('Préparé inconnu : le calcul repose sur votre hypothèse.')}</li>}
-        <li>{t('Stock non renseigné : vérifier la réserve avant de lancer.')}</li>
-        <li>{t('Coût matière non calculé : prix des ingrédients non renseignés.')}</li>
+        {delta > 0 && stock && materials && <StockLines check={checkAgainstStock(materials, stock)} saving={result.avoidable > 0} />}
+        {(delta === 0 || !stock || !materials) && <li>{t('Stock non renseigné : vérifier la réserve avant de lancer.')}</li>}
         <li>{t('Économie théorique, pas un gain mesuré : la matière déjà sortie ou cuite n’est pas récupérable.')}</li>
       </ul>
     </section>
+  )
+}
+
+/** Couverture par le stock suivi et coût estimé : chaque inconnue est nommée, rien n'est supposé disponible. */
+function StockLines({ check, saving }: { check: StockCheck; saving: boolean }) {
+  const t = useT()
+  return (
+    <>
+      {check.unknown.length > 0 && <li>{t('Stock non suivi pour : {names}. Vérifier la réserve.', { names: check.unknown.join(', ') })}</li>}
+      {!saving && check.short.length > 0 && <li className="text-destructive">{t('Stock insuffisant pour : {names}.', { names: check.short.join(', ') })}</li>}
+      {!saving && check.unknown.length === 0 && check.short.length === 0 && <li>{t('Le stock théorique couvre cette matière.')}</li>}
+      <li>
+        {check.costXof === null
+          ? t('Coût matière non calculé : prix des ingrédients non renseignés.')
+          : t(saving ? 'Coût matière théorique non engagé : environ {amount}.' : 'Coût matière supplémentaire : environ {amount}.', { amount: formatXof(check.costXof) })}
+      </li>
+    </>
   )
 }

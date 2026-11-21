@@ -11,5 +11,3 @@ export const baselineOf = (offer: ProductionOffer): Baseline => ({
   prepared: offer.prepared,
 })
 
-/** Clé d'idempotence d'une saisie : une par ouverture de formulaire (un double envoi n'ajoute rien). */
-export const newRequestKey = () => crypto.randomUUID()

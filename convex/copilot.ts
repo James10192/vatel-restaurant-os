@@ -10,7 +10,8 @@ import type { Id } from './_generated/dataModel'
 import { action, internalMutation, internalQuery } from './_generated/server'
 import { requireKitchen } from './lib/access'
 import { addAiTokens, takeAiCall } from './lib/aiQuota'
-import { POINT_KINDS, buildPoints } from './lib/copilot/brief'
+import { POINT_KINDS, buildPoints, managerPoints, sortPoints } from './lib/copilot/brief'
+import { managerFacts } from './lib/copilot/facts'
 import type { Point } from './lib/copilot/brief'
 import { checkDraft, draftWithAi } from './lib/copilot/llm'
 import { localeValidator } from './lib/locale'
@@ -33,8 +34,8 @@ export const facts = internalQuery({
   handler: async (ctx, { date }): Promise<Array<Point>> => {
     const { canteenId } = await requireKitchen(ctx)
     const day = assertIsoDate(date)
-    const [offers, week] = await Promise.all([loadProductionDay(ctx, canteenId, day), loadWasteWeek(ctx, canteenId, day)])
-    return buildPoints(offers, week)
+    const [offers, week, manager] = await Promise.all([loadProductionDay(ctx, canteenId, day), loadWasteWeek(ctx, canteenId, day), managerFacts(ctx, canteenId, day)])
+    return sortPoints([...buildPoints(offers, week), ...managerPoints(manager)])
   },
 })
 
