@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 
 export type GreetingMoment = 'morning' | 'afternoon' | 'evening' | 'night'
-export type Greeting = { moment: GreetingMoment; title: string; subtitle: string | null }
+/** `salutation` : formule seule (traduisible) ; `title` : formule + prénom (français). */
+export type Greeting = { moment: GreetingMoment; salutation: string; title: string; subtitle: string | null }
 
 const LAST_VISIT_KEY = 'vatel-last-visit'
 const DAY_MS = 86_400_000
@@ -28,12 +29,13 @@ const HELLO: Record<GreetingMoment, string> = {
 export function buildGreeting(firstName: string, now: Date, lastVisit: number | null): Greeting {
   const moment = momentOf(now.getHours())
   const name = firstName ? ` ${firstName}` : ''
-  if (lastVisit === null) return { moment, title: `Bienvenue${name}`, subtitle: 'Ravi de vous accueillir.' }
+  if (lastVisit === null) return { moment, salutation: 'Bienvenue', title: `Bienvenue${name}`, subtitle: 'Ravi de vous accueillir.' }
   const away = now.getTime() - lastVisit
-  if (away >= 7 * DAY_MS) return { moment, title: `Bon retour${name}`, subtitle: 'Cela faisait un moment, voici la carte.' }
-  if (away >= 2 * DAY_MS) return { moment, title: `Bon retour${name}`, subtitle: null }
-  if (moment === 'night') return { moment, title: `${HELLO.night}${name}`, subtitle: 'Il se fait tard.' }
-  return { moment, title: `${HELLO[moment]}${name}`, subtitle: null }
+  if (away >= 7 * DAY_MS)
+    return { moment, salutation: 'Bon retour', title: `Bon retour${name}`, subtitle: 'Cela faisait un moment, voici la carte.' }
+  if (away >= 2 * DAY_MS) return { moment, salutation: 'Bon retour', title: `Bon retour${name}`, subtitle: null }
+  if (moment === 'night') return { moment, salutation: HELLO.night, title: `${HELLO.night}${name}`, subtitle: 'Il se fait tard.' }
+  return { moment, salutation: HELLO[moment], title: `${HELLO[moment]}${name}`, subtitle: null }
 }
 
 function readLastVisit(): number | null {
@@ -47,7 +49,7 @@ function readLastVisit(): number | null {
 
 /** Calculée après montage (heure et stockage de l'appareil) ; neutre au rendu serveur. */
 export function useGreeting(firstName: string): Greeting {
-  const [greeting, setGreeting] = useState<Greeting>({ moment: 'morning', title: `Bonjour ${firstName}`.trim(), subtitle: null })
+  const [greeting, setGreeting] = useState<Greeting>({ moment: 'morning', salutation: 'Bonjour', title: `Bonjour ${firstName}`.trim(), subtitle: null })
   useEffect(() => {
     setGreeting(buildGreeting(firstName, new Date(), readLastVisit()))
     try {

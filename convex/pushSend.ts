@@ -5,11 +5,17 @@ import { internal } from './_generated/api'
 import { internalAction } from './_generated/server'
 import {
   NOTIFICATIONS,
+  NOTIFICATIONS_EN,
   notificationKindValidator,
   pushTargetValidator,
 } from './lib/notifications'
 
-type Subscription = { endpoint: string; p256dh: string; auth: string }
+type Subscription = {
+  endpoint: string
+  p256dh: string
+  auth: string
+  locale?: 'fr' | 'en'
+}
 
 /** Douze heures : un « menus publiés » plus vieux n'a plus d'intérêt. */
 const TTL_SECONDS = 12 * 60 * 60
@@ -39,17 +45,18 @@ export const deliver = internalAction({
       publicKey: VAPID_PUBLIC_KEY,
       privateKey: VAPID_PRIVATE_KEY,
     }
-    const payload = JSON.stringify(NOTIFICATIONS[kind])
     const subscriptions: Array<Subscription> = await ctx.runQuery(
       internal.push.recipients,
       { target, kind },
     )
 
     const results = await Promise.allSettled(
-      subscriptions.map(({ endpoint, p256dh, auth }) =>
+      subscriptions.map(({ endpoint, p256dh, auth, locale }) =>
         webpush.sendNotification(
           { endpoint, keys: { p256dh, auth } },
-          payload,
+          JSON.stringify(
+            locale === 'en' ? NOTIFICATIONS_EN[kind] : NOTIFICATIONS[kind],
+          ),
           { vapidDetails, TTL: TTL_SECONDS },
         ),
       ),

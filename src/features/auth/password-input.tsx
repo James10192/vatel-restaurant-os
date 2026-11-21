@@ -2,9 +2,11 @@ import { useState } from 'react'
 import type { ComponentProps } from 'react'
 import { EyeIcon, EyeOffIcon, LockIcon } from 'lucide-react'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '#/components/ui/input-group'
+import { useT } from '#/i18n/i18n'
 
 /** Champ mot de passe avec bouton afficher/masquer (InputGroup shadcn). */
 export function PasswordInput({ className, ...props }: Omit<ComponentProps<typeof InputGroupInput>, 'type'>) {
+  const t = useT()
   const [visible, setVisible] = useState(false)
   const Icon = visible ? EyeOffIcon : EyeIcon
   return (
@@ -16,7 +18,7 @@ export function PasswordInput({ className, ...props }: Omit<ComponentProps<typeo
       <InputGroupAddon align="inline-end">
         <InputGroupButton
           size="icon-xs"
-          aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          aria-label={visible ? t('Masquer le mot de passe') : t('Afficher le mot de passe')}
           aria-pressed={visible}
           onClick={() => setVisible(!visible)}
         >

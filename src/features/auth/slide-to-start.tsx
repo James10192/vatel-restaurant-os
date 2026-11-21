@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
 import { ArrowRightIcon, ChevronsRightIcon } from 'lucide-react'
 import { cn } from '#/lib/utils'
+import { useT } from '#/i18n/i18n'
 
 const THRESHOLD = 0.75
 
@@ -10,6 +11,7 @@ const THRESHOLD = 0.75
  * l'action est déclenchée. Clic ou Entrée sur le curseur déclenchent aussi (clavier, lecteurs d'écran).
  */
 export function SlideToStart({ label, onComplete, className }: { label: string; onComplete: () => void; className?: string }) {
+  const t = useT()
   const trackRef = useRef<HTMLDivElement>(null)
   const drag = useRef<{ startX: number; max: number; moved: boolean } | null>(null)
   const [offset, setOffset] = useState(0)
@@ -68,12 +70,12 @@ export function SlideToStart({ label, onComplete, className }: { label: string; 
         className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 pl-14 text-sm font-semibold tracking-wide"
         style={{ opacity: 1 - progress }}
       >
-        {label}
+        {t(label)}
         <ChevronsRightIcon className="motion-safe:animate-pulse" />
       </span>
       <button
         type="button"
-        aria-label={label}
+        aria-label={t(label)}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

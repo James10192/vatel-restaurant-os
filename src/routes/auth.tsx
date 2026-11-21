@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { BrandLogo } from '#/components/brand-logo'
+import { LanguageToggle } from '#/components/language-toggle'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { AuthForm } from '#/features/auth/auth-form'
 import { AuthIntro } from '#/features/auth/auth-intro'
 import { safeRedirectPath } from '#/lib/safe-redirect'
 import { cn } from '#/lib/utils'
+import { useT } from '#/i18n/i18n'
 
 export const Route = createFileRoute('/auth')({
   validateSearch: (search: Record<string, unknown>): { redirect?: string; mode?: 'signup' } => ({
@@ -24,6 +26,7 @@ export const Route = createFileRoute('/auth')({
  * ordinateur, l'accueil se replie à 50 % et le formulaire entre à droite ; mobile, le formulaire remplace l'accueil.
  */
 function AuthPage() {
+  const t = useT()
   const { redirect: redirectParam, mode } = Route.useSearch()
   const redirectTo = redirectParam ?? '/'
   const [started, setStarted] = useState(mode === 'signup')
@@ -40,7 +43,10 @@ function AuthPage() {
       />
       {started && (
         <main className="relative flex min-h-svh flex-1 flex-col items-center justify-center px-6 py-16 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:delay-300 motion-safe:duration-700 motion-safe:fill-mode-both">
-          <ThemeToggle className="absolute top-4 right-4" />
+          <div className="absolute top-4 right-4 flex gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
           <div className="flex w-full max-w-md flex-col gap-8">
             <div className="flex justify-center md:hidden">
               <span className="rounded-xl bg-white p-1.5">
@@ -49,7 +55,7 @@ function AuthPage() {
             </div>
             <AuthForm mode={mode ?? 'login'} redirectTo={redirectTo} />
             <p className="text-center text-xs text-muted-foreground">
-              Prototype étudiant du hackathon Vatel × Epitech. Données fictives.
+              {t('Prototype étudiant du hackathon Vatel × Epitech. Données fictives.')}
             </p>
           </div>
         </main>

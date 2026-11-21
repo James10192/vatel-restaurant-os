@@ -14,6 +14,7 @@ import { Textarea } from '#/components/ui/textarea'
 import { useServerAction } from '#/lib/server-action'
 import { RecipeLines, newLine } from './recipe-lines'
 import type { RecipeLineDraft } from './recipe-lines'
+import { useT } from '#/i18n/i18n'
 
 const splitList = (value: string) =>
   value
@@ -23,6 +24,7 @@ const splitList = (value: string) =>
 
 /** Création d'un plat avec allergènes déclarés (ou explicitement non renseignés) et fiche recette légère. */
 export function DishForm({ onSaved }: { onSaved: (dishId: Id<'dishes'>) => void }) {
+  const t = useT()
   const { run, pending, error, setError } = useServerAction(useMutation(api.dishes.save))
   const [allergenStatus, setAllergenStatus] = useState<'unknown' | 'declared'>('unknown')
   const [portions, setPortions] = useState('1')
@@ -38,7 +40,7 @@ export function DishForm({ onSaved }: { onSaved: (dishId: Id<'dishes'>) => void 
       return ingredientId && unitId && value > 0 ? [{ ingredientId, unitId, quantity: value }] : []
     })
     if (recipeLines.length !== filled.length) {
-      setError('Chaque ligne de recette doit avoir un ingrédient, une quantité positive et une unité.')
+      setError(t('Chaque ligne de recette doit avoir un ingrédient, une quantité positive et une unité.'))
       return
     }
     const dishId = await run({
@@ -63,41 +65,41 @@ export function DishForm({ onSaved }: { onSaved: (dishId: Id<'dishes'>) => void 
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="name">Nom du plat</FieldLabel>
-          <Input id="name" name="name" required maxLength={80} placeholder="Attiéké poisson braisé" />
+          <FieldLabel htmlFor="name">{t('Nom du plat')}</FieldLabel>
+          <Input id="name" name="name" required maxLength={80} placeholder={t('Attiéké poisson braisé')} />
         </Field>
         <Field>
-          <FieldLabel htmlFor="description">Description</FieldLabel>
+          <FieldLabel htmlFor="description">{t('Description')}</FieldLabel>
           <Textarea id="description" name="description" rows={2} maxLength={300} />
         </Field>
         <Field>
-          <FieldLabel htmlFor="price">Prix par défaut (FCFA)</FieldLabel>
+          <FieldLabel htmlFor="price">{t('Prix par défaut (FCFA)')}</FieldLabel>
           <Input id="price" name="price" inputMode="numeric" pattern="[0-9]*" required placeholder="1500" />
         </Field>
       </FieldGroup>
 
       <FieldSet>
-        <FieldLegend>Allergènes</FieldLegend>
+        <FieldLegend>{t('Allergènes')}</FieldLegend>
         <RadioGroup value={allergenStatus} onValueChange={(v) => setAllergenStatus(v as 'unknown' | 'declared')}>
           <div className="flex items-center gap-2">
             <RadioGroupItem value="unknown" id="allergens-unknown" />
-            <Label htmlFor="allergens-unknown">Non renseignés (affiché comme inconnu)</Label>
+            <Label htmlFor="allergens-unknown">{t('Non renseignés (affiché comme inconnu)')}</Label>
           </div>
           <div className="flex items-center gap-2">
             <RadioGroupItem value="declared" id="allergens-declared" />
-            <Label htmlFor="allergens-declared">Déclarés par la cuisine</Label>
+            <Label htmlFor="allergens-declared">{t('Déclarés par la cuisine')}</Label>
           </div>
         </RadioGroup>
         {allergenStatus === 'declared' && (
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="present">Contient</FieldLabel>
-              <Input id="present" name="present" placeholder="Poisson, Arachide" />
+              <FieldLabel htmlFor="present">{t('Contient')}</FieldLabel>
+              <Input id="present" name="present" placeholder={t('Poisson, Arachide')} />
             </Field>
             <Field>
-              <FieldLabel htmlFor="traces">Traces possibles</FieldLabel>
-              <Input id="traces" name="traces" placeholder="Gluten" />
-              <FieldDescription>Séparez par des virgules. Laisser vide = aucun allergène déclaré.</FieldDescription>
+              <FieldLabel htmlFor="traces">{t('Traces possibles')}</FieldLabel>
+              <Input id="traces" name="traces" placeholder={t('Gluten')} />
+              <FieldDescription>{t('Séparez par des virgules. Laisser vide = aucun allergène déclaré.')}</FieldDescription>
             </Field>
           </FieldGroup>
         )}
@@ -108,7 +110,7 @@ export function DishForm({ onSaved }: { onSaved: (dishId: Id<'dishes'>) => void 
       <FormError message={error} />
       <Button type="submit" disabled={pending}>
         {pending && <Spinner data-icon="inline-start" />}
-        Enregistrer le plat
+        {t('Enregistrer le plat')}
       </Button>
     </form>
   )

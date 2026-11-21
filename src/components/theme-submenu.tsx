@@ -8,15 +8,17 @@ import {
   DropdownMenuSubTrigger,
 } from '#/components/ui/dropdown-menu'
 import { THEMES, THEME_LABELS, useTheme } from '#/lib/theme'
+import { useT } from '#/i18n/i18n'
 
 /** Apparence dans le menu Profil (#11) : réglage rangé, la navigation principale reste dégagée. */
 export function ThemeSubmenu() {
+  const t = useT()
   const { preference, choose } = useTheme()
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
         <PaletteIcon />
-        Apparence : {THEME_LABELS[preference]}
+        {t('Apparence :')} {t(THEME_LABELS[preference])}
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
         <DropdownMenuRadioGroup value={preference} onValueChange={choose}>
@@ -25,7 +27,7 @@ export function ThemeSubmenu() {
             return (
               <DropdownMenuRadioItem key={theme} value={theme}>
                 <Icon />
-                {THEME_LABELS[theme]}
+                {t(THEME_LABELS[theme])}
               </DropdownMenuRadioItem>
             )
           })}

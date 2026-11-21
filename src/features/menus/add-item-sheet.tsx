@@ -19,9 +19,12 @@ import type { Service } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
 import { cn } from '#/lib/utils'
 import { DishForm } from './dish-form'
+import { useT , useLocale } from '#/i18n/i18n'
 
 /** Programme un plat (existant ou créé sur place) pour un jour et un service, en brouillon. */
 export function AddItemSheet({ date, service, className }: { date: string; service: Service; className?: string }) {
+  const { locale } = useLocale()
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'existing' | 'new'>('existing')
   const [dishId, setDishId] = useState<string>('')
@@ -52,32 +55,32 @@ export function AddItemSheet({ date, service, className }: { date: string; servi
           variant="outline"
           size="sm"
           className={cn('rounded-full', className)}
-          aria-label={`Ajouter un plat, ${SERVICE_LABELS[service]}, ${formatDayLong(date)}`}
+          aria-label={t('Ajouter un plat, {service}, {day}', { service: t(SERVICE_LABELS[service]), day: formatDayLong(date, locale) })}
         >
           <PlusIcon data-icon="inline-start" />
-          Ajouter
+          {t('Ajouter')}
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>Ajouter un plat</SheetTitle>
+          <SheetTitle>{t('Ajouter un plat')}</SheetTitle>
           <SheetDescription>
-            {SERVICE_LABELS[service]}, {formatDayLong(date)}. Ajouté en brouillon.
+            {t(SERVICE_LABELS[service])}, {formatDayLong(date, locale)}{t('. Ajouté en brouillon.')}
           </SheetDescription>
         </SheetHeader>
         <Tabs value={tab} onValueChange={(v) => setTab(v as 'existing' | 'new')} className="px-4 pb-6">
           <TabsList className="w-full">
-            <TabsTrigger value="existing">Plat du catalogue</TabsTrigger>
-            <TabsTrigger value="new">Nouveau plat</TabsTrigger>
+            <TabsTrigger value="existing">{t('Plat du catalogue')}</TabsTrigger>
+            <TabsTrigger value="new">{t('Nouveau plat')}</TabsTrigger>
           </TabsList>
           <TabsContent value="existing" className="pt-4">
             <form onSubmit={onSubmit} className="flex flex-col gap-6">
               <FieldGroup>
                 <Field>
-                  <FieldLabel htmlFor="dish">Plat</FieldLabel>
+                  <FieldLabel htmlFor="dish">{t('Plat')}</FieldLabel>
                   <NativeSelect id="dish" required value={dishId} onChange={(e) => setDishId(e.target.value)}>
                     <NativeSelectOption value="" disabled>
-                      {dishes ? 'Choisir un plat' : 'Chargement…'}
+                      {dishes ? t('Choisir un plat') : 'Chargement…'}
                     </NativeSelectOption>
                     {dishes?.map((dish) => (
                       <NativeSelectOption key={dish._id} value={dish._id}>
@@ -87,14 +90,14 @@ export function AddItemSheet({ date, service, className }: { date: string; servi
                   </NativeSelect>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="capacity">Portions disponibles</FieldLabel>
+                  <FieldLabel htmlFor="capacity">{t('Portions disponibles')}</FieldLabel>
                   <Input id="capacity" name="capacity" inputMode="numeric" pattern="[0-9]*" required placeholder="80" />
                 </Field>
               </FieldGroup>
               <FormError message={error} />
               <Button type="submit" disabled={pending || !dishId}>
                 {pending && <Spinner data-icon="inline-start" />}
-                Ajouter au menu
+                {t('Ajouter au menu')}
               </Button>
             </form>
           </TabsContent>

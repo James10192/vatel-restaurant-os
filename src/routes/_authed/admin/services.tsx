@@ -22,6 +22,7 @@ import { useServerAction } from '#/lib/server-action'
 import { DayNav, parseDateSearch, resolveDate } from '#/features/admin/day'
 import { ORDER_STATUS, OrderRows } from '#/features/admin/orders'
 import type { OrderStatus } from '#/features/admin/orders'
+import { useT } from '#/i18n/i18n'
 
 const PAGE_SIZE = 25
 const summaryQuery = (date: string) => convexQuery(api.admin.daySummary, { date })
@@ -53,6 +54,7 @@ export const Route = createFileRoute('/_authed/admin/services')({
 })
 
 function DayOrders() {
+  const t = useT()
   const search = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
   const date = resolveDate(search.date)
@@ -73,9 +75,9 @@ function DayOrders() {
     <main className="workspace flex flex-col gap-5 py-6 md:py-8">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-col gap-1">
-          <p className="text-eyebrow text-muted-foreground">Service</p>
-          <h1 className="text-display">Commandes du jour</h1>
-          <p className="text-sm text-muted-foreground">Repas réservés, à servir et remis, mis à jour en temps réel.</p>
+          <p className="text-eyebrow text-muted-foreground">{t('Service')}</p>
+          <h1 className="text-display">{t('Commandes du jour')}</h1>
+          <p className="text-sm text-muted-foreground">{t('Repas réservés, à servir et remis, mis à jour en temps réel.')}</p>
         </div>
         <DayNav date={date} to="/admin/services" />
       </header>
@@ -90,14 +92,14 @@ function DayOrders() {
           <SheetTrigger asChild>
             <Button variant="outline" className="self-start md:hidden">
               <SlidersHorizontalIcon data-icon="inline-start" />
-              Filtres
+              {t('Filtres')}
               {activeFilters > 0 && <Badge className="ml-1">{activeFilters}</Badge>}
             </Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-3xl pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <SheetHeader>
-              <SheetTitle>Filtrer les commandes</SheetTitle>
-              <SheetDescription>Les filtres s’appliquent immédiatement.</SheetDescription>
+              <SheetTitle>{t('Filtrer les commandes')}</SheetTitle>
+              <SheetDescription>{t('Les filtres s’appliquent immédiatement.')}</SheetDescription>
             </SheetHeader>
             <div className="flex flex-col gap-4 px-4">
               <FilterFields offers={offers} search={search} setFilter={setFilter} />
@@ -108,7 +110,7 @@ function DayOrders() {
 
       <FormError message={markPickedUp.error} />
 
-      <section aria-label="Commandes" className="rounded-3xl border bg-card p-2 shadow-card lg:px-4 lg:py-2">
+      <section aria-label={t('Commandes')} className="rounded-3xl border bg-card p-2 shadow-card lg:px-4 lg:py-2">
         {status === 'LoadingFirstPage' ? (
           <div className="flex flex-col gap-2 p-2">
             <Skeleton className="h-14" />
@@ -120,8 +122,8 @@ function DayOrders() {
               <EmptyMedia variant="icon">
                 <ClipboardListIcon />
               </EmptyMedia>
-              <EmptyTitle>Aucune commande</EmptyTitle>
-              <EmptyDescription>Aucune réservation ne correspond à ces filtres pour ce jour.</EmptyDescription>
+              <EmptyTitle>{t('Aucune commande')}</EmptyTitle>
+              <EmptyDescription>{t('Aucune réservation ne correspond à ces filtres pour ce jour.')}</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
@@ -131,14 +133,13 @@ function DayOrders() {
           <div className="p-2">
             <Button variant="outline" className="w-full lg:w-auto" disabled={status === 'LoadingMore'} onClick={() => loadMore(PAGE_SIZE)}>
               {status === 'LoadingMore' && <Spinner data-icon="inline-start" />}
-              Charger plus
+              {t('Charger plus')}
             </Button>
           </div>
         )}
         {status === 'Exhausted' && results.length > 0 && (
           <p className="p-2 text-center text-xs text-muted-foreground">
-            Fin de la liste ({results.length} commande
-            {results.length > 1 ? 's' : ''}).
+            {t(results.length > 1 ? 'Fin de la liste ({n} commandes).' : 'Fin de la liste ({n} commande).', { n: results.length })}
           </p>
         )}
       </section>
@@ -148,6 +149,7 @@ function DayOrders() {
 
 /** Onglets-compteurs : chiffres réels du jour (service et plat filtrés), un clic filtre la liste par statut. */
 function StatusTabs({ offers, value, onChange }: { offers: Array<Offer>; value: OrderStatus | undefined; onChange: SetFilter }) {
+  const t = useT()
   const count = (key: 'confirmed' | 'pickedUp' | 'cancelled') => offers.reduce((n, offer) => n + offer[key], 0)
   const counts = {
     confirmed: count('confirmed'),
@@ -168,14 +170,14 @@ function StatusTabs({ offers, value, onChange }: { offers: Array<Offer>; value: 
       type="single"
       variant="outline"
       spacing={2}
-      aria-label="Statut"
+      aria-label={t('Statut')}
       value={value ?? 'all'}
       onValueChange={(next) => next && onChange({ status: next === 'all' ? undefined : (next as OrderStatus) })}
       className="-mx-4 w-[calc(100%+2rem)] justify-start overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:w-auto md:px-0"
     >
       {tabs.map((tab) => (
         <ToggleGroupItem key={tab.value} value={tab.value} className="shrink-0 gap-2 rounded-full px-4 data-[state=on]:border-primary">
-          {tab.label}
+          {t(tab.label)}
           <span className="rounded-full bg-muted px-1.5 text-xs font-semibold tabular-nums">{tab.n}</span>
         </ToggleGroupItem>
       ))}
@@ -184,10 +186,11 @@ function StatusTabs({ offers, value, onChange }: { offers: Array<Offer>; value: 
 }
 
 function FilterFields({ offers, search, setFilter }: { offers: Array<Offer>; search: Search; setFilter: SetFilter }) {
+  const t = useT()
   return (
     <>
       <Field className="md:w-auto">
-        <FieldLabel>Service</FieldLabel>
+        <FieldLabel>{t('Service')}</FieldLabel>
         <ToggleGroup
           type="single"
           variant="outline"
@@ -202,23 +205,23 @@ function FilterFields({ offers, search, setFilter }: { offers: Array<Offer>; sea
           className="w-full md:w-auto"
         >
           <ToggleGroupItem value="all" className="flex-1 px-3">
-            Tous
+            {t('Tous')}
           </ToggleGroupItem>
           <ToggleGroupItem value="lunch" className="flex-1 px-3">
-            {SERVICE_LABELS.lunch}
+            {t(SERVICE_LABELS.lunch)}
           </ToggleGroupItem>
           <ToggleGroupItem value="dinner" className="flex-1 px-3">
-            {SERVICE_LABELS.dinner}
+            {t(SERVICE_LABELS.dinner)}
           </ToggleGroupItem>
         </ToggleGroup>
       </Field>
       <Field className="md:w-56">
-        <FieldLabel htmlFor="filter-item">Plat</FieldLabel>
+        <FieldLabel htmlFor="filter-item">{t('Plat')}</FieldLabel>
         <NativeSelect id="filter-item" value={search.item ?? ''} onChange={(e) => setFilter({ item: e.target.value || undefined })}>
-          <NativeSelectOption value="">Tous les plats</NativeSelectOption>
+          <NativeSelectOption value="">{t('Tous les plats')}</NativeSelectOption>
           {offers.map((offer) => (
             <NativeSelectOption key={offer.menuItemId} value={offer.menuItemId}>
-              {offer.dishName} ({SERVICE_LABELS[offer.service].toLowerCase()})
+              {offer.dishName} ({t(SERVICE_LABELS[offer.service]).toLowerCase()})
             </NativeSelectOption>
           ))}
         </NativeSelect>

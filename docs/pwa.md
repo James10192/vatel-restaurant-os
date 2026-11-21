@@ -181,6 +181,27 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
   en « Awa Koné » (initiales AK), conservé après rechargement, `displayName` vu par le personnel = « Awa Koné », puis
   nom d'origine restauré.
 
+### Langue FR/EN (ajout du 21/11, ~17h)
+- Sélecteur FR | EN : Profil (section Langue) et écran de connexion (à côté du thème). Choix propre à l'appareil.
+- **Sans nouvelle bibliothèque.** Approche « gettext » : le texte français reste la clé dans le code (`t('Mes repas')`),
+  `src/i18n/en.ts` donne l'anglais (≈ 380 entrées), un texte absent retombe en français. `src/i18n/i18n.tsx` :
+  `LocaleProvider`, `useT`, `useLocale`, `translate` (variables `{nom}`).
+- **Rendu serveur dans la bonne langue** : cookie `vatel-lang` lu par `__root` (même appel serveur que le jeton),
+  `<html lang>` à jour, aucun clignotement ni écart d'hydratation ; changement de langue immédiat, sans rechargement.
+- Dates dans la langue choisie (`formatDayLong/Short(iso, locale)`, `dateFormat(locale, options)`) ; montants en FCFA
+  inchangés. Pluriels écrits en phrases entières (`{n} plats` / `{n} plat`), jamais par ajout de « s ».
+- Messages d'erreur du serveur : traduits à l'affichage par `FormError` (même texte = même clé) ; un message avec
+  valeur variable non répertorié reste en français.
+- Notifications push : chaque abonnement enregistre la langue de l'application (`pushSubscriptions.locale`),
+  les textes partent dans cette langue (`NOTIFICATIONS_EN`).
+- Conversion faite par deux scripts (analyse TypeScript) puis corrections manuelles ; 59 fichiers `src/` touchés,
+  textes français inchangés.
+- Vérifications : test `src/i18n/catalog.test.ts` (chaque `t('…')` du code a sa traduction, pas de tiret long,
+  variables conservées) ; typecheck, lint, 102 tests, build ; navigateur : 8 écrans étudiant et gestionnaire à 360 et
+  1440 px en anglais puis en français, aucun texte de l'autre langue détecté (hors données : noms, établissement),
+  pas de défilement horizontal ; bascule FR → EN sans rechargement, conservée après rechargement.
+- Limites : titres d'onglet du navigateur restés en français ; dates des e-mails ou exports : sans objet.
+
 ### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
 Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :
 ```bash
@@ -200,7 +221,7 @@ Ne jamais commiter la clé privée. Changer de paire invalide tous les abonnemen
 ### Vérifications de la tranche 2 (exécutées)
 Backend Convex **local anonyme** (`convex deployment select local`), propre à ce conteneur, jamais relié au dev du lead ;
 comptes fictifs `qa.admin@demo.test`, `qa.awa@demo.test`, mot de passe aléatoire non conservé.
-- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**98 tests** avec le rappel, l'alerte de solde et le choix des notifications ; 89 à cette étape, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**102 tests** avec le rappel, l'alerte de solde, le choix des notifications et FR/EN ; 89 à cette étape, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
   invalides, idempotence et réattribution, retrait d'un appareil d'autrui refusé, test sans appareil refusé,
   isolation A/B, planification à la publication), `pnpm build` : OK. Déploiement local des fonctions (dont l'action
   Node `web-push`) : OK.

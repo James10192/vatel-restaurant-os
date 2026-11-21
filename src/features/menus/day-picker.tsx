@@ -1,8 +1,11 @@
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { cn } from '#/lib/utils'
+import { useT , useLocale } from '#/i18n/i18n'
+import { dateFormat } from '#/lib/format'
+import type { Locale } from '#/i18n/i18n'
 
-const weekday = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', timeZone: 'UTC' })
-const dayNumber = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', timeZone: 'UTC' })
+const weekday = (locale: Locale) => dateFormat(locale, { weekday: 'short', timeZone: 'UTC' })
+const dayNumber = (locale: Locale) => dateFormat(locale, { day: 'numeric', timeZone: 'UTC' })
 const toDate = (iso: string) => new Date(`${iso}T00:00:00Z`)
 
 /** Jours de la semaine en pastilles défilantes ; un point signale les jours avec menu publié. */
@@ -19,26 +22,28 @@ export function DayPicker({
   onChange: (day: string) => void
   today: string
 }) {
+  const { locale } = useLocale()
+  const t = useT()
   return (
     <ToggleGroup
       type="single"
       value={value}
       onValueChange={(day) => day && onChange(day)}
-      aria-label="Choisir un jour"
+      aria-label={t('Choisir un jour')}
       className="-mx-4 flex w-[calc(100%+2rem)] justify-start gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]"
     >
       {days.map((day) => (
         <ToggleGroupItem
           key={day}
           value={day}
-          aria-label={toDate(day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', timeZone: 'UTC' })}
+          aria-label={dateFormat(locale, { weekday: 'long', day: 'numeric', timeZone: 'UTC' }).format(toDate(day))}
           className={cn(
             'flex h-auto min-w-14 shrink-0 flex-col gap-0.5 rounded-2xl border bg-card px-3 py-2.5 data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground',
             !withMenu.has(day) && 'opacity-60',
           )}
         >
-          <span className="text-xs font-medium capitalize">{weekday.format(toDate(day)).replace('.', '')}</span>
-          <span className="text-lg leading-none font-bold">{dayNumber.format(toDate(day))}</span>
+          <span className="text-xs font-medium capitalize">{weekday(locale).format(toDate(day)).replace('.', '')}</span>
+          <span className="text-lg leading-none font-bold">{dayNumber(locale).format(toDate(day))}</span>
           <span
             aria-hidden
             className={cn(

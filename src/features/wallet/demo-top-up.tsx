@@ -10,12 +10,14 @@ import { Spinner } from '#/components/ui/spinner'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { formatXof } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
+import { useT } from '#/i18n/i18n'
 
 /** Montants proposés à l'écran ; le plafond réel est appliqué par le serveur (politique de l'établissement). */
 const AMOUNTS = [1000, 2500, 5000, 10000]
 
 /** Recharge FICTIVE pour la démonstration : aucun paiement réel n'est effectué. */
 export function DemoTopUp() {
+  const t = useT()
   const [amount, setAmount] = useState(String(AMOUNTS[1]))
   const [requestKey, setRequestKey] = useState(() => crypto.randomUUID())
   const [done, setDone] = useState<number | null>(null)
@@ -24,21 +26,21 @@ export function DemoTopUp() {
   return (
     <Card className="@container rounded-3xl">
       <CardHeader>
-        <CardTitle>Recharger</CardTitle>
-        <CardDescription>Choisissez un montant.</CardDescription>
+        <CardTitle>{t('Recharger')}</CardTitle>
+        <CardDescription>{t('Choisissez un montant.')}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Alert>
           <FlaskConicalIcon />
-          <AlertTitle>Mode démonstration</AlertTitle>
-          <AlertDescription>Crédits fictifs, non convertibles. Aucun paiement Mobile Money réel.</AlertDescription>
+          <AlertTitle>{t('Mode démonstration')}</AlertTitle>
+          <AlertDescription>{t('Crédits fictifs, non convertibles. Aucun paiement Mobile Money réel.')}</AlertDescription>
         </Alert>
         <ToggleGroup
           type="single"
           variant="outline"
           value={amount}
           onValueChange={(value) => value && setAmount(value)}
-          aria-label="Montant de la recharge"
+          aria-label={t('Montant de la recharge')}
           className="grid w-full grid-cols-2 gap-2 @md:grid-cols-4"
         >
           {AMOUNTS.map((value) => (
@@ -50,7 +52,7 @@ export function DemoTopUp() {
         <FormError message={error} />
         {done !== null && !error && (
           <p className="text-sm text-primary" role="status">
-            Recharge confirmée par le serveur. Nouveau solde : {formatXof(done)}.
+            {t('Recharge confirmée par le serveur. Nouveau solde :')} {formatXof(done)}.
           </p>
         )}
         <Button
@@ -64,7 +66,7 @@ export function DemoTopUp() {
           }}
         >
           {pending && <Spinner data-icon="inline-start" />}
-          Recharger {formatXof(Number(amount))} (démo)
+          {t('Recharger')} {formatXof(Number(amount))} {t('(démo)')}
         </Button>
       </CardContent>
     </Card>

@@ -10,19 +10,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/com
 import { SERVICE_LABELS, formatXof } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { cn } from '#/lib/utils'
+import { useT } from '#/i18n/i18n'
 
 type Summary = FunctionReturnType<typeof api.admin.daySummary>
 type Offer = Summary['offers'][number]
 type OrderStatus = 'confirmed' | 'picked_up' | 'cancelled'
 
 const percent = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0)
-const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`
-
 /**
  * Jauge segmentée d'une capacité : remis, à servir, libres. Une seule lecture, de gauche à droite,
  * au lieu de trois chiffres à additionner. `onBrand` : posée sur la surface bleu Vatel.
  */
 export function CapacityBar({ offer, onBrand = false }: { offer: Pick<Offer, 'pickedUp' | 'confirmed' | 'capacity'>; onBrand?: boolean }) {
+  const t = useT()
   const segments = [
     { value: offer.pickedUp, className: onBrand ? 'bg-white' : 'bg-success' },
     {
@@ -33,7 +33,11 @@ export function CapacityBar({ offer, onBrand = false }: { offer: Pick<Offer, 'pi
   return (
     <div
       role="img"
-      aria-label={`${offer.pickedUp} remis, ${offer.confirmed} à servir, sur ${offer.capacity} portions`}
+      aria-label={t('{pickedUp} remis, {confirmed} à servir, sur {capacity} portions', {
+        pickedUp: offer.pickedUp,
+        confirmed: offer.confirmed,
+        capacity: offer.capacity,
+      })}
       className={cn('flex h-2 w-full overflow-hidden rounded-full', onBrand ? 'bg-white/15' : 'bg-muted')}
     >
       {segments.map((segment, i) => (
@@ -48,17 +52,19 @@ export function CapacityBar({ offer, onBrand = false }: { offer: Pick<Offer, 'pi
 }
 
 function Legend({ className, label, value }: { className: string; label: string; value: number }) {
+  const t = useT()
   return (
     <span className="flex items-center gap-2">
       <span aria-hidden className={cn('size-2 rounded-full', className)} />
       <span className="tabular-nums">{value}</span>
-      <span className="opacity-70">{label}</span>
+      <span className="opacity-70">{t(label)}</span>
     </span>
   )
 }
 
 /** Carte maîtresse : où en est le service, en un coup d'œil, et l'action suivante. */
 export function ServiceHero({ date, dayLabel, totals }: { date: string; dayLabel: string; totals: Summary['totals'] }) {
+  const t = useT()
   const booked = totals.confirmed + totals.pickedUp
   return (
     // Surface de marque : bleu Vatel foncé dans les deux thèmes (en sombre, --primary devient bleu clair).
@@ -67,23 +73,26 @@ export function ServiceHero({ date, dayLabel, totals }: { date: string; dayLabel
       <div aria-hidden className="absolute right-24 -bottom-24 -z-10 size-48 rounded-full bg-white/5" />
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="flex flex-col gap-2">
-          <p className="text-eyebrow text-white/70">Service {dayLabel}</p>
+          <p className="text-eyebrow text-white/70">{t('Service')} {dayLabel}</p>
           <p className="flex items-baseline gap-3">
             <span className="text-6xl font-bold tracking-[-0.04em] tabular-nums md:text-7xl">
               {percent(booked, totals.capacity)}
               <span className="text-3xl md:text-4xl">%</span>
             </span>
-            <span className="max-w-40 text-sm leading-snug text-white/80">des portions réservées</span>
+            <span className="max-w-40 text-sm leading-snug text-white/80">{t('des portions réservées')}</span>
           </p>
           <p className="text-sm text-white/80">
-            <span className="font-semibold text-white tabular-nums">{booked}</span> sur{' '}
-            <span className="tabular-nums">{plural(totals.capacity, 'portion')}</span> proposée
-            {totals.capacity > 1 ? 's' : ''}
+            <span className="tabular-nums">
+              {t(totals.capacity > 1 ? '{booked} sur {n} portions proposées' : '{booked} sur {n} portion proposée', {
+                booked,
+                n: totals.capacity,
+              })}
+            </span>
           </p>
         </div>
         <div className="flex flex-col items-start gap-3 md:items-end">
           <Badge variant="secondary" className="tabular-nums">
-            {formatXof(totals.demoAmountXof)} en crédits démo
+            {formatXof(totals.demoAmountXof)} {t('en crédits démo')}
           </Badge>
           <Button variant="secondary" size="lg" asChild>
             <Link
@@ -93,7 +102,7 @@ export function ServiceHero({ date, dayLabel, totals }: { date: string; dayLabel
                 status: totals.confirmed > 0 ? 'confirmed' : undefined,
               }}
             >
-              {totals.confirmed > 0 ? `Servir ${totals.confirmed} repas` : 'Voir les commandes'}
+              {totals.confirmed > 0 ? `Servir ${totals.confirmed} repas` : t('Voir les commandes')}
               <ArrowRightIcon data-icon="inline-end" />
             </Link>
           </Button>
@@ -102,8 +111,8 @@ export function ServiceHero({ date, dayLabel, totals }: { date: string; dayLabel
       <div className="mt-6 flex flex-col gap-3">
         <CapacityBar offer={totals} onBrand />
         <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
-          <Legend className="bg-white" label="remis" value={totals.pickedUp} />
-          <Legend className="bg-vatel-sky" label="à servir" value={totals.confirmed} />
+          <Legend className="bg-white" label={t('remis')} value={totals.pickedUp} />
+          <Legend className="bg-vatel-sky" label={t('à servir')} value={totals.confirmed} />
           <Legend className="border border-white/60" label="libres" value={totals.remaining} />
         </div>
       </div>
@@ -135,6 +144,7 @@ const STATS: {
 
 /** Quatre chiffres compacts ; chacun ouvre les commandes déjà filtrées sur ce statut. */
 export function StatTiles({ date, totals }: { date: string; totals: Summary['totals'] }) {
+  const t = useT()
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {STATS.map(({ key, label, icon: Icon, status }) => {
@@ -145,7 +155,7 @@ export function StatTiles({ date, totals }: { date: string; totals: Summary['tot
             </span>
             <span className="flex min-w-0 flex-col">
               <span className="text-2xl leading-none font-bold tracking-tight tabular-nums">{totals[key]}</span>
-              <span className="text-sm leading-tight text-muted-foreground">{label}</span>
+              <span className="text-sm leading-tight text-muted-foreground">{t(label)}</span>
             </span>
           </>
         )
@@ -173,6 +183,7 @@ export function StatTiles({ date, totals }: { date: string; totals: Summary['tot
 }
 
 function OfferRow({ date, offer }: { date: string; offer: Offer }) {
+  const t = useT()
   return (
     <li>
       <Link
@@ -189,11 +200,13 @@ function OfferRow({ date, offer }: { date: string; offer: Offer }) {
           <CapacityBar offer={offer} />
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <Legend className="bg-success" label="remis" value={offer.pickedUp} />
-            <Legend className="bg-primary" label="à servir" value={offer.confirmed} />
+            <Legend className="bg-primary" label={t('à servir')} value={offer.confirmed} />
             <span className="tabular-nums">
-              {offer.remaining} / {offer.capacity} libres
+              {t('{remaining} / {capacity} libres', { remaining: offer.remaining, capacity: offer.capacity })}
             </span>
-            {offer.cancelled > 0 && <span className="tabular-nums">{plural(offer.cancelled, 'annulation')}</span>}
+            {offer.cancelled > 0 && <span className="tabular-nums">
+                {t(offer.cancelled > 1 ? '{n} annulations' : '{n} annulation', { n: offer.cancelled })}
+              </span>}
           </div>
         </div>
         <ChevronRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
@@ -204,6 +217,7 @@ function OfferRow({ date, offer }: { date: string; offer: Offer }) {
 
 /** Plats du jour regroupés par service, dans l'ordre de la journée. */
 export function OffersByService({ date, offers }: { date: string; offers: Offer[] }) {
+  const t = useT()
   const services = (Object.keys(SERVICE_LABELS) as Service[])
     .map((service) => ({
       service,
@@ -219,12 +233,12 @@ export function OffersByService({ date, offers }: { date: string; offers: Offer[
           <Card key={service} className="gap-2 rounded-3xl">
             <CardHeader className="flex flex-row items-center justify-between gap-3">
               <div className="flex flex-col gap-1">
-                <CardTitle>{SERVICE_LABELS[service]}</CardTitle>
+                <CardTitle>{t(SERVICE_LABELS[service])}</CardTitle>
                 <CardDescription className="tabular-nums">
-                  {served} remis sur {plural(booked, 'réservation')}
+                  {t(booked > 1 ? '{served} remis sur {n} réservations' : '{served} remis sur {n} réservation', { served, n: booked })}
                 </CardDescription>
               </div>
-              <Badge variant="outline">{plural(list.length, 'plat')}</Badge>
+              <Badge variant="outline">{t(list.length > 1 ? '{n} plats' : '{n} plat', { n: list.length })}</Badge>
             </CardHeader>
             <CardContent className="px-3">
               <ul className="flex flex-col">

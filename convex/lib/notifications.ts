@@ -33,6 +33,40 @@ export const NOTIFICATIONS = {
   },
 } as const
 
+/** Mêmes notifications en anglais (langue choisie dans l'application, enregistrée avec l'abonnement). */
+export const NOTIFICATIONS_EN: Record<
+  keyof typeof NOTIFICATIONS,
+  { title: string; body: string; url: string }
+> = {
+  test: {
+    title: 'Vatel Dining',
+    body: 'Notifications work on this device.',
+    url: '/app/profile',
+  },
+  menuPublished: {
+    title: 'Menus published',
+    body: 'This week’s menus are available. Book your meals.',
+    url: '/app',
+  },
+  lunchReminder: {
+    title: 'Lunch bookings',
+    body: 'They close soon. Book your meal before closing.',
+    url: '/app',
+  },
+  lowBalance: {
+    title: 'Low balance',
+    body: 'Your balance will soon no longer cover a meal. Top it up in the app.',
+    url: '/app/wallet',
+  },
+  dinnerReminder: {
+    title: 'Dinner bookings',
+    body: 'They close soon. Book your meal before closing.',
+    url: '/app',
+  },
+}
+
+export const pushLocaleValidator = v.union(v.literal('fr'), v.literal('en'))
+
 export const notificationKindValidator = v.union(
   v.literal('test'),
   v.literal('menuPublished'),

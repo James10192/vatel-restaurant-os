@@ -8,6 +8,7 @@ import { CreatableCombobox } from '#/components/creatable-combobox'
 import { Button } from '#/components/ui/button'
 import { Field, FieldDescription, FieldLabel, FieldLegend, FieldSet } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
+import { useT } from '#/i18n/i18n'
 
 export type RecipeLineDraft = { key: string; ingredientId?: Id<'ingredients'>; quantity: string; unitId?: Id<'units'> }
 
@@ -25,6 +26,7 @@ export function RecipeLines({
   lines: Array<RecipeLineDraft>
   onLinesChange: (lines: Array<RecipeLineDraft>) => void
 }) {
+  const t = useT()
   const { data: refs } = useQuery(convexQuery(api.catalog.references, {}))
   const createIngredient = useMutation(api.catalog.createIngredient)
   const createUnit = useMutation(api.catalog.createUnit)
@@ -33,9 +35,9 @@ export function RecipeLines({
 
   return (
     <FieldSet>
-      <FieldLegend>Fiche recette</FieldLegend>
+      <FieldLegend>{t('Fiche recette')}</FieldLegend>
       <Field orientation="horizontal">
-        <FieldLabel htmlFor="portions">Pour</FieldLabel>
+        <FieldLabel htmlFor="portions">{t('Pour')}</FieldLabel>
         <Input
           id="portions"
           inputMode="numeric"
@@ -43,29 +45,29 @@ export function RecipeLines({
           value={portions}
           onChange={(e) => onPortionsChange(e.target.value)}
         />
-        <span className="text-sm text-muted-foreground">portions</span>
+        <span className="text-sm text-muted-foreground">{t('portions')}</span>
       </Field>
       <div className="flex flex-col gap-3">
         {lines.map((line) => (
           <div key={line.key} className="grid grid-cols-[1fr_5rem_1fr_auto] items-center gap-2">
             <CreatableCombobox
-              label="Ingrédient"
-              placeholder="Ingrédient"
+              label={t('Ingrédient')}
+              placeholder={t('Ingrédient')}
               options={refs?.ingredients ?? []}
               value={line.ingredientId}
               onChange={(id) => update(line.key, { ingredientId: id as Id<'ingredients'> })}
               onCreate={(name) => createIngredient({ name })}
             />
             <Input
-              aria-label="Quantité"
+              aria-label={t('Quantité')}
               inputMode="decimal"
-              placeholder="Qté"
+              placeholder={t('Qté')}
               value={line.quantity}
               onChange={(e) => update(line.key, { quantity: e.target.value })}
             />
             <CreatableCombobox
-              label="Unité"
-              placeholder="Unité"
+              label={t('Unité')}
+              placeholder={t('Unité')}
               options={refs?.units ?? []}
               value={line.unitId}
               onChange={(id) => update(line.key, { unitId: id as Id<'units'> })}
@@ -75,7 +77,7 @@ export function RecipeLines({
               type="button"
               variant="ghost"
               size="icon"
-              aria-label="Retirer la ligne"
+              aria-label={t('Retirer la ligne')}
               onClick={() => onLinesChange(lines.filter((l) => l.key !== line.key))}
             >
               <Trash2Icon />
@@ -85,9 +87,9 @@ export function RecipeLines({
       </div>
       <Button type="button" variant="outline" size="sm" className="w-fit" onClick={() => onLinesChange([...lines, newLine()])}>
         <PlusIcon data-icon="inline-start" />
-        Ajouter un ingrédient
+        {t('Ajouter un ingrédient')}
       </Button>
-      <FieldDescription>Ingrédient ou unité absent : tapez son nom puis « Créer », la fiche reste intacte.</FieldDescription>
+      <FieldDescription>{t('Ingrédient ou unité absent : tapez son nom puis « Créer », la fiche reste intacte.')}</FieldDescription>
     </FieldSet>
   )
 }

@@ -14,6 +14,7 @@ import { formatXof } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
 import { AllergenBadges } from './allergen-badges'
 import { StatusPill } from './status-pill'
+import { useT } from '#/i18n/i18n'
 
 type AdminItem = Doc<'menuItems'> & {
   dishName: string
@@ -25,6 +26,7 @@ type AdminItem = Doc<'menuItems'> & {
  * Container query : s'adapte à sa cellule (colonne large en liste, cellule étroite du planning hebdomadaire).
  */
 export function MenuItemRow({ item }: { item: AdminItem }) {
+  const t = useT()
   return (
     <li className="@container rounded-2xl border bg-card shadow-card">
       <div className="flex gap-3 p-2.5 pr-1.5 @max-[15rem]:gap-1.5 @max-[15rem]:p-2 @max-[15rem]:pr-1">
@@ -36,7 +38,7 @@ export function MenuItemRow({ item }: { item: AdminItem }) {
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <StatusPill status={item.status} />
-            <span className="tabular-nums">{item.capacity} portions</span>
+            <span className="tabular-nums">{t('{n} portions', { n: item.capacity })}</span>
           </div>
           <div className="min-w-0 [&_[data-slot=badge]]:h-auto [&_[data-slot=badge]]:max-w-full [&_[data-slot=badge]]:whitespace-normal">
             <AllergenBadges allergens={item.allergens} />
@@ -52,6 +54,7 @@ export function MenuItemRow({ item }: { item: AdminItem }) {
 }
 
 function EditItemPopover({ item }: { item: AdminItem }) {
+  const t = useT()
   const { run, pending, error } = useServerAction(useMutation(api.menus.updateItem))
   const [open, setOpen] = useState(false)
 
@@ -77,17 +80,17 @@ function EditItemPopover({ item }: { item: AdminItem }) {
         <form onSubmit={onSubmit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor={`price-${item._id}`}>Prix (FCFA)</FieldLabel>
+              <FieldLabel htmlFor={`price-${item._id}`}>{t('Prix (FCFA)')}</FieldLabel>
               <Input id={`price-${item._id}`} name="price" inputMode="numeric" defaultValue={item.priceXof} required />
             </Field>
             <Field>
-              <FieldLabel htmlFor={`capacity-${item._id}`}>Portions disponibles</FieldLabel>
+              <FieldLabel htmlFor={`capacity-${item._id}`}>{t('Portions disponibles')}</FieldLabel>
               <Input id={`capacity-${item._id}`} name="capacity" inputMode="numeric" defaultValue={item.capacity} required />
             </Field>
             {error && <FieldError>{error}</FieldError>}
             <Button type="submit" size="sm" disabled={pending}>
               {pending && <Spinner data-icon="inline-start" />}
-              Enregistrer
+              {t('Enregistrer')}
             </Button>
           </FieldGroup>
         </form>
@@ -98,13 +101,14 @@ function EditItemPopover({ item }: { item: AdminItem }) {
 
 /** Retrait d'un brouillon ; l'erreur serveur éventuelle reste visible au survol (jamais de succès supposé). */
 function RemoveItemButton({ item }: { item: AdminItem }) {
+  const t = useT()
   const { run, pending, error } = useServerAction(useMutation(api.menus.removeItem))
   return (
     <Button
       variant="ghost"
       size="icon-sm"
       className="text-muted-foreground hover:text-destructive"
-      aria-label={error ? `Échec du retrait : ${error}` : `Retirer ${item.dishName}`}
+      aria-label={error ? t('Échec du retrait : {error}', { error: t(error) }) : t('Retirer {dish}', { dish: item.dishName })}
       title={error ?? undefined}
       disabled={pending}
       onClick={() => run({ itemId: item._id })}

@@ -10,6 +10,7 @@ import { cn } from '#/lib/utils'
 import { BookMealDialog } from '#/features/booking/book-meal-dialog'
 import { CancelBookingDialog } from '#/features/booking/cancel-booking-dialog'
 import { AllergenBadges } from './allergen-badges'
+import { useT } from '#/i18n/i18n'
 
 export type PublishedItem = FunctionReturnType<typeof api.menus.publishedWeek>[number]
 export type MyBooking = FunctionReturnType<typeof api.bookings.mine>[number]
@@ -22,7 +23,7 @@ function availabilityOf(item: PublishedItem, closed: boolean) {
   if (item.remaining === 0) return { label: 'Complet', tone: 'text-destructive' }
   const low = item.remaining <= Math.max(1, Math.floor(item.capacity * 0.2))
   return {
-    label: `${item.remaining} portion${item.remaining > 1 ? 's' : ''} restante${item.remaining > 1 ? 's' : ''}`,
+    label: item.remaining > 1 ? '{n} portions restantes' : '{n} portion restante',
     tone: low ? 'text-warning' : 'text-success',
   }
 }
@@ -41,6 +42,7 @@ export function MealCard({
   balanceXof: number
   now: number
 }) {
+  const t = useT()
   const closed = now >= item.bookableUntil
   const ServiceIcon = SERVICE_ICONS[item.service]
   const availability = availabilityOf(item, closed)
@@ -51,12 +53,12 @@ export function MealCard({
         <DishVisual name={item.dishName} className="h-28 text-2xl sm:h-32" />
         <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-card/95 px-2.5 py-1 text-eyebrow text-muted-foreground shadow-card">
           <ServiceIcon className="size-3.5" />
-          {SERVICE_LABELS[item.service]}
+          {t(SERVICE_LABELS[item.service])}
         </span>
         {booking && (
           <Badge className="absolute top-3 right-3">
             <CircleCheckIcon />
-            {booking.status === 'picked_up' ? 'Retiré' : 'Réservé'}
+            {booking.status === 'picked_up' ? t('Retiré') : t('Réservé')}
           </Badge>
         )}
       </div>
@@ -70,10 +72,10 @@ export function MealCard({
           <div className="flex flex-col gap-1.5">
             <Progress
               value={item.capacity > 0 ? (item.remaining / item.capacity) * 100 : 0}
-              aria-label={availability.label}
+              aria-label={t(availability.label, { n: item.remaining })}
               className="h-1.5"
             />
-            <span className={cn('text-xs font-medium', availability.tone)}>{availability.label}</span>
+            <span className={cn('text-xs font-medium', availability.tone)}>{t(availability.label, { n: item.remaining })}</span>
           </div>
         )}
       </div>
@@ -87,7 +89,7 @@ export function MealCard({
         ) : !closed && item.remaining > 0 && !bookedThisService ? (
           <BookMealDialog meal={item} balanceXof={balanceXof} />
         ) : bookedThisService ? (
-          <span className="text-right text-sm text-muted-foreground">Déjà un repas ce service</span>
+          <span className="text-right text-sm text-muted-foreground">{t('Déjà un repas ce service')}</span>
         ) : null}
       </div>
     </Card>

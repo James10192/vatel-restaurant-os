@@ -15,6 +15,7 @@ import {
   isAllowedPushEndpoint,
   isPushKey,
   notificationKindValidator,
+  pushLocaleValidator,
   pushTargetValidator,
 } from './lib/notifications'
 import { withoutMuted } from './notificationPreferences'
@@ -49,7 +50,12 @@ export const publicKey = query({
 
 /** Enregistre (ou réattribue au membre connecté) l'abonnement de cet appareil. Idempotent. */
 export const subscribe = mutation({
-  args: { endpoint: v.string(), p256dh: v.string(), auth: v.string() },
+  args: {
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    locale: v.optional(pushLocaleValidator),
+  },
   returns: v.null(),
   handler: async (ctx, subscription) => {
     const { _id: profileId, canteenId } = await requireMember(ctx)
@@ -119,7 +125,12 @@ export const sendTest = mutation({
 export const recipients = internalQuery({
   args: { target: pushTargetValidator, kind: notificationKindValidator },
   returns: v.array(
-    v.object({ endpoint: v.string(), p256dh: v.string(), auth: v.string() }),
+    v.object({
+      endpoint: v.string(),
+      p256dh: v.string(),
+      auth: v.string(),
+      locale: v.optional(pushLocaleValidator),
+    }),
   ),
   handler: async (ctx, { target, kind }) => {
     const candidates =
@@ -137,10 +148,11 @@ export const recipients = internalQuery({
             )
           ).flat()
     const rows = await withoutMuted(ctx, candidates, CATEGORY_OF[kind])
-    return rows.map(({ endpoint, p256dh, auth }) => ({
+    return rows.map(({ endpoint, p256dh, auth, locale }) => ({
       endpoint,
       p256dh,
       auth,
+      locale,
     }))
   },
 })

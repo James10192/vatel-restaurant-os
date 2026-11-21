@@ -1,0 +1,457 @@
+/**
+ * Dictionnaire anglais : clé = texte français exact affiché dans l'interface (ou renvoyé par le serveur).
+ * Un texte absent reste en français. `src/i18n/catalog.test.ts` vérifie que chaque `t('…')` du code est traduit.
+ */
+export const EN: Record<string, string> = {
+  // Navigation, coquille, rôles, thèmes, services
+  Accueil: 'Home',
+  'Mes repas': 'My meals',
+  Repas: 'Meals',
+  Solde: 'Balance',
+  'Mon profil': 'My profile',
+  Profil: 'Profile',
+  'Vue d’ensemble': 'Overview',
+  Pilotage: 'Dashboard',
+  Menus: 'Menus',
+  'Commandes du jour': 'Today’s orders',
+  Service: 'Service',
+  Gestion: 'Management',
+  'Espace repas': 'Meals',
+  'Mon espace repas': 'My meals area',
+  'Vatel Restauration': 'Vatel Dining',
+  'Navigation principale': 'Main navigation',
+  'Mon compte': 'My account',
+  'Mon compte repas': 'My meal account',
+  Restauration: 'Dining',
+  Vatel: 'Vatel',
+  'Compte non rattaché': 'Account not linked',
+  'Non rattaché': 'Not linked',
+  Administrateur: 'Administrator',
+  Étudiant: 'Student',
+  Parent: 'Parent',
+  Cuisine: 'Kitchen',
+  Distribution: 'Serving',
+  Apparence: 'Appearance',
+  'Apparence :': 'Appearance:',
+  Clair: 'Light',
+  Sombre: 'Dark',
+  Système: 'System',
+  Déjeuner: 'Lunch',
+  Dîner: 'Dinner',
+  'Se connecter': 'Sign in',
+  'Se déconnecter': 'Sign out',
+  'Installer l’application': 'Install the app',
+  Retour: 'Back',
+  Voir: 'View',
+  Tous: 'All',
+  Toutes: 'All',
+  Aucune: 'None',
+  '…': '…',
+  'Chargement…': 'Loading…',
+  'Charger plus': 'Load more',
+  'Rechercher…': 'Search…',
+  'Aucun résultat.': 'No results.',
+  'Créer «': 'Create “',
+  'Création impossible. Vérifiez la connexion et réessayez.':
+    'Could not create it. Check your connection and try again.',
+  'Échec. Vérifiez la connexion et réessayez.':
+    'Something went wrong. Check your connection and try again.',
+  'Accueil | Vatel Restauration': 'Home | Vatel Dining',
+  'Mes repas | Vatel Restauration': 'My meals | Vatel Dining',
+  'Menus | Vatel Restauration': 'Menus | Vatel Dining',
+  'Vue d’ensemble | Vatel Restauration': 'Overview | Vatel Dining',
+  'Commandes du jour | Vatel Restauration': 'Today’s orders | Vatel Dining',
+
+  // Connexion, inscription, accueil /auth
+  'Bon retour parmi nous': 'Welcome back',
+  'Connectez-vous pour réserver vos repas.': 'Sign in to book your meals.',
+  'Créer un compte': 'Create an account',
+  'Créer mon compte': 'Create my account',
+  'Votre établissement validera ensuite votre accès.':
+    'Your school will then approve your access.',
+  'Adresse e-mail': 'Email address',
+  Prénom: 'First name',
+  Nom: 'Last name',
+  'Mot de passe': 'Password',
+  'Confirmer le mot de passe': 'Confirm password',
+  'Au moins': 'At least',
+  'caractères.': 'characters.',
+  'Au moins 8 caractères.': 'At least 8 characters.',
+  'Afficher le mot de passe': 'Show password',
+  'Masquer le mot de passe': 'Hide password',
+  'Les deux mots de passe ne correspondent pas.':
+    'The two passwords do not match.',
+  'E-mail ou mot de passe incorrect.': 'Incorrect email or password.',
+  'Adresse e-mail invalide.': 'Invalid email address.',
+  'Le mot de passe doit contenir au moins 8 caractères.':
+    'The password must be at least 8 characters long.',
+  'Un compte existe déjà avec cet e-mail.':
+    'An account already exists with this email.',
+  'Échec. Vérifiez vos informations et votre connexion internet.':
+    'Something went wrong. Check your details and your internet connection.',
+  'Trop de tentatives. Réessayez dans un instant.':
+    'Too many attempts. Try again in a moment.',
+  'Glisser pour commencer': 'Slide to start',
+  'L’art de recevoir,': 'The art of hospitality,',
+  'jusque dans votre assiette.': 'right down to your plate.',
+  'Consultez les menus de la semaine, réservez votre repas et suivez votre solde en quelques gestes.':
+    'Browse this week’s menus, book your meal and track your balance in a few taps.',
+  'Hotel &amp; Tourism Business School': 'Hotel &amp; Tourism Business School',
+  'Prototype étudiant du hackathon Vatel × Epitech. Données fictives.':
+    'Student prototype from the Vatel × Epitech hackathon. Fictitious data.',
+  'Compte en attente de rattachement': 'Account awaiting approval',
+  'L’administration de votre établissement doit valider votre compte.':
+    'Your school’s administration must approve your account.',
+  'Votre établissement doit valider votre compte avant que vous puissiez réserver. Contactez le service restauration.':
+    'Your school must approve your account before you can book. Contact the dining service.',
+
+  // Accueil usager, salutation, menu
+  Bonjour: 'Good morning',
+  'Bon après-midi': 'Good afternoon',
+  Bonsoir: 'Good evening',
+  Bienvenue: 'Welcome',
+  'Bon retour': 'Welcome back',
+  'Ravi de vous accueillir.': 'Glad to have you here.',
+  'Cela faisait un moment, voici la carte.':
+    'It’s been a while, here is the menu.',
+  'Il se fait tard.': 'It’s getting late.',
+  'Menu de la semaine': 'This week’s menu',
+  'Carte de la semaine': 'This week’s menu',
+  'Choisir un jour': 'Choose a day',
+  'Jours de la semaine': 'Days of the week',
+  'Pas de menu publié ce jour': 'No menu published for this day',
+  'Choisissez un jour marqué d’un point.': 'Choose a day marked with a dot.',
+  'Les plats apparaîtront dès leur publication par le service restauration.':
+    'Dishes will appear as soon as the dining service publishes them.',
+  'Aujourd’hui': 'Today',
+  'Auj.': 'Today',
+  'aujourd’hui': 'today',
+  'ce jour': 'this day',
+  'Prochain repas': 'Next meal',
+  'Mes prochains repas': 'My upcoming meals',
+  'Aucune réservation à venir': 'No upcoming bookings',
+  '{n} à venir': '{n} upcoming',
+  'Réservez un plat dans le menu de la semaine.':
+    'Book a dish from this week’s menu.',
+  'Réservez depuis le menu de la semaine.': 'Book from this week’s menu.',
+  Allergènes: 'Allergens',
+  'Allergènes non renseignés': 'Allergens not provided',
+  'Aucun allergène déclaré': 'No allergens declared',
+  'Déclarés par la cuisine': 'Declared by the kitchen',
+  Contient: 'Contains',
+  'Traces :': 'Traces:',
+  'Traces possibles': 'Possible traces',
+  Gluten: 'Gluten',
+  Complet: 'Full',
+  'Réservations closes': 'Bookings closed',
+  '{n} portions restantes': '{n} portions left',
+  '{n} portion restante': '{n} portion left',
+  Réserver: 'Book',
+  Réservé: 'Booked',
+  Retiré: 'Collected',
+  'Déjà un repas ce service': 'Already a meal this service',
+
+  // Réservation, annulation
+  'Confirmer la réservation': 'Confirm the booking',
+  'Confirmer et payer': 'Confirm and pay',
+  '{dish}, {service} du {day}.': '{dish}, {service} on {day}.',
+  'Solde actuel': 'Current balance',
+  'Solde après réservation': 'Balance after booking',
+  'Solde après': 'Balance after',
+  'Recharger mon compte': 'Top up my account',
+  'Annuler cette réservation ?': 'Cancel this booking?',
+  'Annuler la réservation': 'Cancel the booking',
+  Garder: 'Keep',
+  'seront recrédités sur votre solde.':
+    'will be credited back to your balance.',
+  Annuler: 'Cancel',
+  'Tous mes repas': 'All my meals',
+  'À venir': 'Upcoming',
+  'Retirés et annulés': 'Collected and cancelled',
+  Confirmée: 'Confirmed',
+  Retirée: 'Collected',
+  Annulée: 'Cancelled',
+  Date: 'Date',
+  Plat: 'Dish',
+  Prix: 'Price',
+  Statut: 'Status',
+  Action: 'Action',
+
+  // Solde
+  'Mon solde': 'My balance',
+  'Solde disponible': 'Available balance',
+  'Crédits de démonstration, non convertibles.':
+    'Demo credits, not convertible.',
+  'Crédits de démonstration, non convertibles : aucun paiement réel.':
+    'Demo credits, not convertible: no real payment.',
+  Recharger: 'Top up',
+  'Choisissez un montant.': 'Choose an amount.',
+  'Montant de la recharge': 'Top-up amount',
+  'Mode démonstration': 'Demo mode',
+  'Crédits fictifs, non convertibles. Aucun paiement Mobile Money réel.':
+    'Fictitious credits, not convertible. No real Mobile Money payment.',
+  'Recharge confirmée par le serveur. Nouveau solde :':
+    'Top-up confirmed by the server. New balance:',
+  Historique: 'History',
+  'Aucun mouvement': 'No transactions',
+  'Vos recharges et réservations apparaîtront ici.':
+    'Your top-ups and bookings will appear here.',
+  Opération: 'Transaction',
+  Montant: 'Amount',
+  'Fin de la liste (': 'End of list (',
+  '(démo)': '(demo)',
+
+  // Administration : vue d'ensemble, commandes
+  'du jour': 'today',
+  'de demain': 'tomorrow',
+  'd’hier': 'yesterday',
+  'du {day}': 'on {day}',
+  'Jour précédent': 'Previous day',
+  'Jour suivant': 'Next day',
+  'Chiffres réels des réservations, mis à jour en direct.':
+    'Real booking figures, updated live.',
+  'Repas réservés, à servir et remis, mis à jour en temps réel.':
+    'Booked, to-serve and collected meals, updated in real time.',
+  'Les chiffres s’afficheront dès qu’un plat de ce jour sera publié.':
+    'Figures will appear as soon as a dish for this day is published.',
+  'Aucun plat publié': 'No dish published',
+  'Composer le menu': 'Plan the menu',
+  'À servir': 'To serve',
+  'À servir maintenant': 'To serve now',
+  'à servir': 'to serve',
+  Remis: 'Collected',
+  Annulé: 'Cancelled',
+  Annulés: 'Cancelled',
+  Libres: 'Available',
+  'Crédits engagés': 'Credits committed',
+  'en crédits démo': 'in demo credits',
+  'Montants en crédits de démonstration : aucun encaissement réel n’est effectué.':
+    'Amounts in demo credits: no real payment is collected.',
+  'Par plat': 'By dish',
+  'Voir les commandes': 'View orders',
+  'remis sur': 'collected out of',
+  'des portions réservées': 'of booked portions',
+  '{pickedUp} remis, {confirmed} à servir, sur {capacity} portions':
+    '{pickedUp} collected, {confirmed} to serve, out of {capacity} portions',
+  'Aucun repas en attente': 'No meals waiting',
+  'Tous les repas réservés ont été remis.':
+    'All booked meals have been collected.',
+  'Marquer remis': 'Mark collected',
+  'Réservé à': 'Booked at',
+  Réservations: 'Bookings',
+  Convive: 'Diner',
+  Commandes: 'Orders',
+  'Aucune commande': 'No orders',
+  'Aucune réservation ne correspond à ces filtres pour ce jour.':
+    'No booking matches these filters for this day.',
+  'Filtrer les commandes': 'Filter orders',
+  Filtres: 'Filters',
+  'Les filtres s’appliquent immédiatement.': 'Filters apply immediately.',
+  'Toutes les commandes': 'All orders',
+  'Tous les plats': 'All dishes',
+  'Choisir l’action': 'Choose the action',
+  réservation: 'booking',
+  'des usagers': 'from diners',
+
+  // Administration : menus et plats
+  'Planning de la semaine': 'Weekly planner',
+  'Composez les services, puis publiez : les brouillons restent invisibles des usagers.':
+    'Plan the services, then publish: drafts stay hidden from diners.',
+  'Semaine précédente': 'Previous week',
+  'Semaine suivante': 'Next week',
+  '{from} au {to}': '{from} to {to}',
+  'Plats programmés': 'Scheduled dishes',
+  Brouillons: 'Drafts',
+  Brouillon: 'Draft',
+  Publié: 'Published',
+  'non visible': 'not visible',
+  proposée: 'offered',
+  'Publier la semaine': 'Publish the week',
+  'Aucun plat': 'No dish',
+  'Aucun plat programmé': 'No dish scheduled',
+  Ajouter: 'Add',
+  'Ajouter un plat': 'Add a dish',
+  'Ajouter un plat, {service}, {day}': 'Add a dish, {service}, {day}',
+  '. Ajouté en brouillon.': '. Added as a draft.',
+  'Ajouter au menu': 'Add to the menu',
+  'Plat du catalogue': 'Catalogue dish',
+  'Nouveau plat': 'New dish',
+  'Choisir un plat': 'Choose a dish',
+  'Nom du plat': 'Dish name',
+  Description: 'Description',
+  'Prix par défaut (FCFA)': 'Default price (FCFA)',
+  'Prix (FCFA)': 'Price (FCFA)',
+  Capacité: 'Capacity',
+  'Portions offertes': 'Portions offered',
+  'Portions disponibles': 'Portions available',
+  'Séparez par des virgules. Laisser vide = aucun allergène déclaré.':
+    'Separate with commas. Leave empty = no allergens declared.',
+  'Non renseignés (affiché comme inconnu)': 'Not provided (shown as unknown)',
+  'Fiche recette': 'Recipe sheet',
+  Pour: 'For',
+  Ingrédient: 'Ingredient',
+  Quantité: 'Quantity',
+  Qté: 'Qty',
+  Unité: 'Unit',
+  'Ajouter un ingrédient': 'Add an ingredient',
+  'Retirer la ligne': 'Remove the line',
+  'Ingrédient ou unité absent : tapez son nom puis « Créer », la fiche reste intacte.':
+    'Ingredient or unit missing: type its name then “Create”, the form keeps your input.',
+  'Chaque ligne de recette doit avoir un ingrédient, une quantité positive et une unité.':
+    'Each recipe line needs an ingredient, a positive quantity and a unit.',
+  'Enregistrer le plat': 'Save the dish',
+  'Retirer {dish}': 'Remove {dish}',
+  'Échec du retrait : {error}': 'Could not remove it: {error}',
+  'Attiéké poisson braisé': 'Attiéké with grilled fish',
+  'Poisson, Arachide': 'Fish, Peanut',
+
+  '{booked} sur {n} portions proposées': '{booked} of {n} portions offered',
+  '{booked} sur {n} portion proposée': '{booked} of {n} portion offered',
+  '{remaining} / {capacity} libres': '{remaining} / {capacity} available',
+  '{n} annulations': '{n} cancellations',
+  '{n} annulation': '{n} cancellation',
+  '{served} remis sur {n} réservations': '{served} collected out of {n} bookings',
+  '{served} remis sur {n} réservation': '{served} collected out of {n} booking',
+  '{n} plats': '{n} dishes',
+  '{n} plat': '{n} dish',
+  remis: 'collected',
+  '{n} portions': '{n} portions',
+  portions: 'portions',
+  '{n} brouillons': '{n} drafts',
+  '{n} brouillon': '{n} draft',
+  'non visibles des usagers': 'not visible to diners',
+  'non visible des usagers': 'not visible to diners',
+  'Fin de la liste ({n} commandes).': 'End of list ({n} orders).',
+  'Fin de la liste ({n} commande).': 'End of list ({n} order).',
+  'Porte-monnaie': 'Wallet',
+  'Envoi accepté par le serveur pour {n} appareils. La notification arrive en général en quelques secondes.':
+    'Sending accepted by the server for {n} devices. The notification usually arrives within seconds.',
+  'Envoi accepté par le serveur pour {n} appareil. La notification arrive en général en quelques secondes.':
+    'Sending accepted by the server for {n} device. The notification usually arrives within seconds.',
+
+  // Profil et réglages
+  'Modifier le nom': 'Edit name',
+  'Nom affiché': 'Display name',
+  'Visible par le personnel au moment du service.':
+    'Visible to staff during service.',
+  Enregistrer: 'Save',
+  Notifications: 'Notifications',
+  'Menus publiés, rappel avant la clôture des réservations, solde bas. Aucun détail personnel ne s’affiche sur l’écran verrouillé.':
+    'Published menus, reminder before bookings close, low balance. No personal details appear on the lock screen.',
+  'Activer sur cet appareil': 'Turn on for this device',
+  'Activées sur cet appareil.': 'On for this device.',
+  'Envoyer un test': 'Send a test',
+  Désactiver: 'Turn off',
+  'Envoi accepté par le serveur pour': 'Sending accepted by the server for',
+  '. La notification arrive en général en quelques secondes.':
+    '. The notification usually arrives within seconds.',
+  'Ce navigateur ne prend pas en charge les notifications. Essayez Chrome, Edge, Firefox ou Safari récent.':
+    'This browser does not support notifications. Try a recent Chrome, Edge, Firefox or Safari.',
+  'Sur iPhone et iPad, installez d’abord l’application (section Application), puis ouvrez-la depuis l’écran d’accueil.':
+    'On iPhone and iPad, first install the app (Application section), then open it from the home screen.',
+  'Les notifications ne sont pas encore ouvertes par votre établissement.':
+    'Notifications are not yet enabled by your school.',
+  'Notifications bloquées pour ce site. Autorisez-les dans les réglages du navigateur, puis revenez ici.':
+    'Notifications are blocked for this site. Allow them in your browser settings, then come back here.',
+  'Ce navigateur a refusé l’abonnement. En navigation privée, les notifications ne sont pas disponibles.':
+    'This browser refused the subscription. Notifications are not available in private browsing.',
+  Recevoir: 'Receive',
+  'Ces choix valent pour tous vos appareils.':
+    'These choices apply to all your devices.',
+  'Menus de la semaine': 'Weekly menus',
+  'Quand l’administration publie les menus.':
+    'When the administration publishes the menus.',
+  'Rappel avant la clôture': 'Reminder before closing',
+  'Dans l’heure qui précède la fin des réservations, si vous n’avez pas encore réservé.':
+    'In the hour before bookings close, if you have not booked yet.',
+  'Solde bas': 'Low balance',
+  'Quand votre solde passe sous {amount}.':
+    'When your balance drops below {amount}.',
+  Application: 'App',
+  'Ajoutez Vatel Restauration à l’écran d’accueil pour l’ouvrir comme une application. Une connexion internet reste nécessaire.':
+    'Add Vatel Dining to your home screen to open it like an app. An internet connection is still required.',
+  'Application installée sur cet appareil.': 'App installed on this device.',
+  'Dans Safari, touchez': 'In Safari, tap',
+  Partager: 'Share',
+  'Partager.': 'Share.',
+  'Choisissez « Sur l’écran d’accueil ».': 'Choose “Add to Home Screen”.',
+  'Touchez « Ajouter ».': 'Tap “Add”.',
+  'Votre navigateur ne propose pas l’installation pour le moment. Sur Android, ouvrez le menu de Chrome puis « Installer l’application ». Sur ordinateur, utilisez l’icône d’installation de Chrome ou Edge dans la barre d’adresse.':
+    'Your browser does not offer installation right now. On Android, open the Chrome menu then “Install app”. On a computer, use the install icon of Chrome or Edge in the address bar.',
+  'Thème actuel : {theme}. Réglage propre à cet appareil.':
+    'Current theme: {theme}. This setting is specific to this device.',
+  Langue: 'Language',
+  'Langue de l’interface, propre à cet appareil.':
+    'Interface language, specific to this device.',
+  'Mot de passe actuel': 'Current password',
+  'Nouveau mot de passe': 'New password',
+  'Confirmer le nouveau mot de passe': 'Confirm the new password',
+  'Modifiez le mot de passe de connexion de ce compte.':
+    'Change this account’s sign-in password.',
+  'Mot de passe modifié. Vos autres appareils seront déconnectés.':
+    'Password changed. Your other devices will be signed out.',
+  'Mot de passe actuel incorrect.': 'Incorrect current password.',
+  'Les deux nouveaux mots de passe sont différents.':
+    'The two new passwords are different.',
+  'Le nouveau mot de passe doit être différent de l’actuel.':
+    'The new password must be different from the current one.',
+  'À propos': 'About',
+  'Prototype étudiant, hackathon Vatel × Epitech.':
+    'Student prototype, Vatel × Epitech hackathon.',
+  'Données fictives et crédits de démonstration : aucun paiement réel.':
+    'Fictitious data and demo credits: no real payment.',
+  'Chaque réservation, annulation ou recharge n’est valable qu’une fois confirmée par le serveur.':
+    'Each booking, cancellation or top-up only counts once the server confirms it.',
+  'Une connexion internet est nécessaire : l’application ne fonctionne pas hors ligne.':
+    'An internet connection is required: the app does not work offline.',
+
+  // Messages du serveur (Convex) affichés tels quels
+  'Abonnement aux notifications invalide.':
+    'Invalid notification subscription.',
+  'Action réservée à l’administration.':
+    'Action reserved for the administration.',
+  'Aucun appareil abonné. Activez d’abord les notifications.':
+    'No subscribed device. Turn on notifications first.',
+  'Ce plat est déjà publié : créez une nouvelle version au lieu de le modifier.':
+    'This dish is already published: create a new version instead of editing it.',
+  'Ce repas n’est pas encore publié.': 'This meal is not published yet.',
+  'Cette réservation ne peut plus être annulée.':
+    'This booking can no longer be cancelled.',
+  'Clé de requête invalide.': 'Invalid request key.',
+  'Compte non rattaché à un établissement.': 'Account not linked to a school.',
+  'Connexion requise.': 'Sign-in required.',
+  'Date invalide.': 'Invalid date.',
+  'Demande déjà traitée avec un autre montant.':
+    'Request already processed with another amount.',
+  'Demande déjà traitée pour un autre repas.':
+    'Request already processed for another meal.',
+  'Délai d’annulation dépassé pour ce service.':
+    'Cancellation deadline passed for this service.',
+  'Horaires de service mal configurés pour cet établissement.':
+    'Service hours are misconfigured for this school.',
+  'Les réservations sont closes pour ce service.':
+    'Bookings are closed for this service.',
+  'Montant invalide.': 'Invalid amount.',
+  'Plat introuvable.': 'Dish not found.',
+  'Plus de portions disponibles pour ce plat.':
+    'No more portions available for this dish.',
+  'Portefeuille introuvable.': 'Wallet not found.',
+  'Portions de référence : entier supérieur ou égal à 1.':
+    'Reference portions: whole number of 1 or more.',
+  'Prix invalide : entier positif en FCFA attendu.':
+    'Invalid price: a positive whole number in FCFA is expected.',
+  'Quantité disponible invalide.': 'Invalid available quantity.',
+  'Repas déjà remis.': 'Meal already collected.',
+  'Réservation annulée : remise impossible.':
+    'Booking cancelled: cannot be collected.',
+  'Réservation introuvable.': 'Booking not found.',
+  'Solde insuffisant.': 'Insufficient balance.',
+  'Solde insuffisant. Rechargez votre compte.':
+    'Insufficient balance. Top up your account.',
+  'Un plat publié ne peut pas être retiré.':
+    'A published dish cannot be removed.',
+  'Vous avez déjà un repas réservé pour ce service.':
+    'You already have a meal booked for this service.',
+  'Élément introuvable.': 'Item not found.',
+  'Nom : 1 à 80 caractères.': 'Name: 1 to 80 characters.',
+}
