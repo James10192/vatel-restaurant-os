@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '#
 import { SERVICE_LABELS, formatDayLong, formatXof, todayIso } from '#/lib/format'
 import { useNow } from '#/lib/use-now'
 import { CancelBookingDialog } from '#/features/booking/cancel-booking-dialog'
+import { usePickupPass } from '#/features/booking/pickup-pass-dialog'
 import type { MyBooking } from '#/features/menus/meal-card'
 import { useT , useLocale, pageTitle } from '#/i18n/i18n'
 
@@ -33,6 +34,7 @@ function BookingsPage() {
   const upcoming = (bookings ?? []).filter((b) => b.status === 'confirmed')
   const done = (bookings ?? []).filter((b) => b.status !== 'confirmed')
   const engagedXof = upcoming.reduce((sum, b) => sum + b.priceXof, 0)
+  const pass = usePickupPass(bookings)
   const cancellable = (b: MyBooking) => b.status === 'confirmed' && now < b.cancellableUntil
 
   return (
@@ -92,9 +94,12 @@ function BookingsPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-primary tabular-nums">{formatXof(booking.priceXof)}</span>
-                        {cancellable(booking) && (
-                          <CancelBookingDialog bookingId={booking._id} dishName={booking.dishName} priceXof={booking.priceXof} />
-                        )}
+                        <div className="flex gap-2">
+                          {booking.status === 'confirmed' && pass.trigger(booking)}
+                          {cancellable(booking) && (
+                            <CancelBookingDialog bookingId={booking._id} dishName={booking.dishName} priceXof={booking.priceXof} />
+                          )}
+                        </div>
                       </div>
                     </article>
                   ))}
@@ -125,13 +130,14 @@ function BookingsPage() {
                       <Badge variant={STATUS[booking.status].variant}>{t(STATUS[booking.status].label)}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {cancellable(booking) ? (
-                        <CancelBookingDialog bookingId={booking._id} dishName={booking.dishName} priceXof={booking.priceXof} />
-                      ) : (
-                        <span className="text-xs text-muted-foreground">
-                          {booking.status === 'confirmed' ? 'Annulation close' : 'Aucune'}
-                        </span>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        {booking.status === 'confirmed' && pass.trigger(booking)}
+                        {cancellable(booking) ? (
+                          <CancelBookingDialog bookingId={booking._id} dishName={booking.dishName} priceXof={booking.priceXof} />
+                        ) : (
+                          booking.status !== 'confirmed' && <span className="text-xs text-muted-foreground">{t('Aucune')}</span>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -140,6 +146,7 @@ function BookingsPage() {
           </div>
         </>
       )}
+      {pass.dialog}
     </main>
   )
 }

@@ -5,9 +5,10 @@ import { Alert, AlertDescription } from '#/components/ui/alert'
 import { Badge } from '#/components/ui/badge'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '#/components/ui/empty'
 import { SERVICE_LABELS, formatDayLong, formatXof } from '#/lib/format'
-import { useNow } from '#/lib/use-now'
 import { BookMealDialog } from '#/features/booking/book-meal-dialog'
 import { AllergenBadges } from '#/features/menus/allergen-badges'
+import { BookPicksDialog } from './book-picks-dialog'
+import { useLivePicks } from './use-live-picks'
 import type { Suggestion } from './smart-menu-sheet'
 import { useLocale, useT } from '#/i18n/i18n'
 
@@ -18,8 +19,11 @@ const UNCOVERED_LABELS = {
   budget: 'hors budget',
 } as const
 
-/** Synthèse : total proposé face au budget, origine (IA vérifiée ou calcul), alerte de solde. */
-function Summary({ result, balanceXof }: { result: Suggestion; balanceXof: number }) {
+/**
+ * Synthèse : total proposé face au budget, origine (IA vérifiée ou calcul). L'alerte de solde porte sur ce qui
+ * reste à réserver (en direct), pas sur le total initial : elle disparaît une fois les repas réservés.
+ */
+function Summary({ result, balanceXof, toBookXof }: { result: Suggestion; balanceXof: number; toBookXof: number }) {
   const t = useT()
   const ratio = result.budgetXof > 0 ? Math.min(result.totalXof / result.budgetXof, 1) : 0
   return (
@@ -37,7 +41,7 @@ function Summary({ result, balanceXof }: { result: Suggestion; balanceXof: numbe
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15" role="img" aria-label={t('{pct} % du budget', { pct: Math.round(ratio * 100) })}>
         <span className="block h-full rounded-full bg-vatel-sky" style={{ width: `${ratio * 100}%` }} />
       </div>
-      {result.totalXof > balanceXof && (
+      {toBookXof > balanceXof && (
         <p className="mt-3 flex items-center gap-2 text-sm">
           <TriangleAlertIcon className="size-4 shrink-0 text-vatel-sky" />
           <span>
@@ -56,10 +60,11 @@ function Summary({ result, balanceXof }: { result: Suggestion; balanceXof: numbe
 export function SuggestionResults({ result, balanceXof }: { result: Suggestion; balanceXof: number }) {
   const t = useT()
   const { locale } = useLocale()
-  const now = useNow()
+  const picks = useLivePicks(result.picks)
+  const open = picks.filter((pick) => pick.bookable)
   return (
     <section aria-label={t('Propositions')} className="flex flex-col gap-4" aria-live="polite">
-      <Summary result={result} balanceXof={balanceXof} />
+      <Summary result={result} balanceXof={balanceXof} toBookXof={open.reduce((sum, pick) => sum + pick.priceXof, 0)} />
       {result.notice && (
         <Alert>
           <InfoIcon />
@@ -76,7 +81,7 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
         </Empty>
       ) : (
         <ul className="flex flex-col gap-3">
-          {result.picks.map((pick) => (
+          {picks.map((pick) => (
             <li key={pick.menuItemId} className="flex flex-col gap-3 rounded-3xl border bg-card p-4 shadow-card">
               <div className="flex items-start gap-3">
                 <DishVisual name={pick.dishName} className="size-14 shrink-0 rounded-2xl text-sm" />
@@ -99,16 +104,20 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
               )}
               <div className="flex items-center justify-between gap-3">
                 <AllergenBadges allergens={pick.allergens} />
-                {now < pick.bookableUntil && pick.remaining > 0 ? (
+                {pick.booked ? (
+                  <Badge variant="secondary">{t('Réservé')}</Badge>
+                ) : pick.bookable ? (
                   <BookMealDialog meal={{ ...pick, _id: pick.menuItemId }} balanceXof={balanceXof} />
                 ) : (
-                  <span className="text-xs text-muted-foreground">{t('Réservations closes')}</span>
+                  <span className="text-xs text-muted-foreground">{pick.remaining === 0 ? t('Complet') : t('Réservations closes')}</span>
                 )}
               </div>
             </li>
           ))}
         </ul>
       )}
+
+      {open.length >= 2 && <BookPicksDialog picks={open} balanceXof={balanceXof} />}
 
       {/* Motif par jour non couvert, affiché même sans aucune proposition (sinon l'écran vide ne s'explique pas). */}
       {result.uncovered.length > 0 && (

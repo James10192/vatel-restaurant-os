@@ -9,8 +9,9 @@ import { internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
 import { action, internalMutation, internalQuery } from './_generated/server'
 import { requireMember } from './lib/access'
+import { addAiTokens, takeAiCall } from './lib/aiQuota'
 import { activeBookingsCount } from './lib/capacity'
-import { addDays } from './lib/dates'
+import { addDays, todayUtc } from './lib/dates'
 import { cutoffAt, policyOf } from './lib/policy'
 import { sanitizeWish, selectWithAi } from './lib/smartMenu/llm'
 import { configuredModel } from './lib/smartMenu/providers'
@@ -27,7 +28,6 @@ const NOTICES = {
   invalid: 'La proposition de l’IA ne respectait pas vos critères : suggestion calculée sans IA.',
 } as const
 
-const todayUtc = (now: number) => new Date(now).toISOString().slice(0, 10)
 
 async function requireStudent(ctx: Parameters<typeof requireMember>[0]) {
   const membership = await requireMember(ctx)
@@ -88,41 +88,14 @@ export const context = internalQuery({
 /** Réserve un appel IA dans les quotas ; renvoie null si un plafond est atteint. */
 export const reserveAiCall = internalMutation({
   args: { now: v.number() },
-  handler: async (ctx, { now }): Promise<Id<'aiUsage'> | null> => {
-    const membership = await requireStudent(ctx)
-    const day = todayUtc(now)
-    const ofCanteen = await ctx.db
-      .query('aiUsage')
-      .withIndex('by_canteen_day', (q) => q.eq('canteenId', membership.canteenId).eq('day', day))
-      .collect()
-    if (ofCanteen.reduce((sum, row) => sum + row.calls, 0) >= QUOTAS.perCanteenPerDay) return null
-    const mine = ofCanteen.find((row) => row.profileId === membership._id)
-    if (mine && mine.calls >= QUOTAS.perStudentPerDay) return null
-    if (mine) {
-      await ctx.db.patch(mine._id, { calls: mine.calls + 1 })
-      return mine._id
-    }
-    return await ctx.db.insert('aiUsage', {
-      canteenId: membership.canteenId,
-      profileId: membership._id,
-      day,
-      calls: 1,
-      inputTokens: 0,
-      outputTokens: 0,
-    })
-  },
+  handler: async (ctx, { now }): Promise<Id<'aiUsage'> | null> =>
+    await takeAiCall(ctx, await requireStudent(ctx), now, QUOTAS.perStudentPerDay),
 })
 
 export const recordAiTokens = internalMutation({
   args: { usageId: v.id('aiUsage'), inputTokens: v.number(), outputTokens: v.number() },
-  handler: async (ctx, { usageId, inputTokens, outputTokens }) => {
-    const membership = await requireStudent(ctx)
-    const row = await ctx.db.get(usageId)
-    if (!row || row.profileId !== membership._id) return
-    await ctx.db.patch(usageId, {
-      inputTokens: row.inputTokens + inputTokens,
-      outputTokens: row.outputTokens + outputTokens,
-    })
+  handler: async (ctx, { usageId, ...tokens }) => {
+    await addAiTokens(ctx, await requireStudent(ctx), usageId, tokens)
   },
 })
 
