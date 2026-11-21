@@ -1,61 +1,116 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/roboto';
 
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Thème Vatel PROVISOIRE — valeurs observées sur vatel.ci le 21/11/2026, non officielles.
- * Source et statut : docs/DESIGN.md. Remplacer dès réception de la charte officielle.
+ * Style shadcn « maia » (contrôles 40 px+, grands arrondis, espacement éditorial) habillé aux couleurs Vatel.
+ * Palette relevée dans la feuille de style de vatel.ci (bleuvatel, bleuvatel2, bleuvatel3, corail) et le logo.
+ * Charte PDF non fournie : voir docs/DESIGN.md.
  */
 :root {
-  --vatel-navy: #072a5d;
-  --vatel-sky: #87c1eb;
-  --vatel-ink: #1d1d1b;
+  --vatel-bleu: #67b2e8;
+  --vatel-bleu-2: #2b85bb;
+  --vatel-bleu-3: #072a5d;
+  --vatel-bleu-logo: #87c1eb;
+  --vatel-noir: #1d1d1b;
+  --vatel-corail: #ff5959;
 
-  --background: #ffffff;
-  --foreground: var(--vatel-ink);
+  --background: #f5f8fc;
+  --foreground: #14203a;
   --card: #ffffff;
-  --card-foreground: var(--vatel-ink);
+  --card-foreground: #14203a;
   --popover: #ffffff;
-  --popover-foreground: var(--vatel-ink);
-  --primary: var(--vatel-navy);
+  --popover-foreground: #14203a;
+  --primary: var(--vatel-bleu-3);
   --primary-foreground: #ffffff;
-  --secondary: #eef5fc;
-  --secondary-foreground: var(--vatel-navy);
-  --muted: #f3f4f6;
-  --muted-foreground: #5b6270;
-  --accent: #e3f0fb;
-  --accent-foreground: var(--vatel-navy);
-  --destructive: #c62828;
-  --border: #dde3ea;
-  --input: #cfd7e0;
-  --ring: var(--vatel-sky);
-  --radius: 0.5rem;
+  --secondary: #e7f1fb;
+  --secondary-foreground: var(--vatel-bleu-3);
+  --muted: #eef3f9;
+  --muted-foreground: #556178;
+  --accent: #e7f1fb;
+  --accent-foreground: var(--vatel-bleu-3);
+  --destructive: #c42b2b;
+  --border: #dfe6ef;
+  --input: #d3dde9;
+  --ring: var(--vatel-bleu-2);
+  --radius: 0.875rem;
+  --chart-1: var(--vatel-bleu-3);
+  --chart-2: var(--vatel-bleu-2);
+  --chart-3: var(--vatel-bleu);
+  --chart-4: var(--vatel-bleu-logo);
+  --chart-5: var(--vatel-corail);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #14203a;
+  --sidebar-primary: var(--vatel-bleu-3);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e7f1fb;
+  --sidebar-accent-foreground: var(--vatel-bleu-3);
+  --sidebar-border: #dfe6ef;
+  --sidebar-ring: var(--vatel-bleu-2);
+
+  /* Profondeur : ombres froides teintées bleuvatel3, jamais noires. */
+  --shadow-card: 0 1px 2px rgb(7 42 93 / 4%), 0 4px 16px -6px rgb(7 42 93 / 8%);
+  --shadow-raised: 0 2px 4px rgb(7 42 93 / 5%), 0 16px 40px -12px rgb(7 42 93 / 18%);
+  /* Assiette de repli (aucune photo de plat autorisée) : fond doux, filet bleu. */
+  --plate: #eaf2fb;
+  --plate-rim: #cfe1f4;
+  /* États de disponibilité. */
+  --success: #1f7a4d;
+  --success-soft: #e3f3ea;
+  --warning: #8a5a00;
+  --warning-soft: #fdf1d8;
+  color-scheme: light;
 }
 
 .dark {
-  --background: #0b1424;
-  --foreground: #f5f7fa;
-  --card: #111d33;
-  --card-foreground: #f5f7fa;
-  --popover: #111d33;
-  --popover-foreground: #f5f7fa;
-  --primary: var(--vatel-sky);
-  --primary-foreground: var(--vatel-navy);
-  --secondary: #1a2a47;
-  --secondary-foreground: #f5f7fa;
-  --muted: #1a2a47;
-  --muted-foreground: #a7b1c2;
-  --accent: #1a2a47;
-  --accent-foreground: #f5f7fa;
-  --destructive: #ef5350;
-  --border: #24365a;
-  --input: #2c4068;
-  --ring: var(--vatel-sky);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 30%), 0 0 0 1px rgb(255 255 255 / 6%);
+  --shadow-raised: 0 16px 40px -12px rgb(0 0 0 / 55%), 0 0 0 1px rgb(255 255 255 / 8%);
+  --plate: #152847;
+  --plate-rim: #24406a;
+  --success: #6fd3a0;
+  --success-soft: rgb(111 211 160 / 12%);
+  --warning: #f2c46b;
+  --warning-soft: rgb(242 196 107 / 12%);
+  color-scheme: dark;
+  --background: #0a1426;
+  --foreground: #f2f5fa;
+  --card: #101d35;
+  --card-foreground: #f2f5fa;
+  --popover: #101d35;
+  --popover-foreground: #f2f5fa;
+  --primary: var(--vatel-bleu);
+  --primary-foreground: var(--vatel-bleu-3);
+  --secondary: #182a4a;
+  --secondary-foreground: #f2f5fa;
+  --muted: #182a4a;
+  --muted-foreground: #a6b2c6;
+  --accent: #182a4a;
+  --accent-foreground: #f2f5fa;
+  --destructive: #f26b6b;
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 15%);
+  --ring: var(--vatel-bleu);
+  --chart-1: var(--vatel-bleu);
+  --chart-2: var(--vatel-bleu-logo);
+  --chart-3: var(--vatel-bleu-2);
+  --chart-4: #c9e2f6;
+  --chart-5: var(--vatel-corail);
+  --sidebar: #101d35;
+  --sidebar-foreground: #f2f5fa;
+  --sidebar-primary: var(--vatel-bleu);
+  --sidebar-primary-foreground: var(--vatel-bleu-3);
+  --sidebar-accent: #182a4a;
+  --sidebar-accent-foreground: #f2f5fa;
+  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-ring: var(--vatel-bleu);
 }
 
 @theme inline {
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --font-sans: 'Roboto Variable', 'Roboto', system-ui, sans-serif;
+  --font-heading: var(--font-sans);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -74,17 +129,109 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-vatel-corail: var(--vatel-corail);
+  --color-plate: var(--plate);
+  --color-plate-rim: var(--plate-rim);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --color-vatel-navy: var(--vatel-bleu-3);
+  --color-vatel-sky: var(--vatel-bleu);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply font-sans;
+  }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
+
+/* Typographie : grands titres serrés (interlignage et approche négatifs), corps à 0, surtitres espacés. */
+@utility text-display {
+  font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+@utility text-eyebrow {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Retour tactile immédiat à l'appui ; neutralisé si l'usager réduit les animations. */
+@utility press {
+  transition: transform 120ms ease-out;
+  &:active {
+    transform: scale(0.98);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+/*
+ * Zone de travail adaptative : pleine largeur utile jusqu'à 1600 px, puis marges (ultrawide).
+ * Les grilles s'étendent en colonnes ; les cartes, elles, gardent des dimensions maîtrisées.
+ */
+@utility workspace {
+  width: 100%;
+  max-width: 100rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= 48rem) {
+    padding-inline: 2rem;
+  }
+  @media (width >= 80rem) {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* Catalogue de repas : cartes de 17 à 22 rem, autant de colonnes que la zone en accepte (jamais de carte géante). */
+@utility meal-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  @media (width >= 80rem) {
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 22rem));
   }
 }

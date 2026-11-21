@@ -1,0 +1,54 @@
+import { Link } from '@tanstack/react-router'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { addDays, isIsoDate } from '../../../convex/lib/dates'
+import { Button } from '#/components/ui/button'
+import { formatDayLong, todayIso } from '#/lib/format'
+
+/** Paramètre d'URL `date` optionnel et validé ; absent = aujourd'hui. */
+export function parseDateSearch(search: Record<string, unknown>): {
+  date?: string
+} {
+  return isIsoDate(search.date) ? { date: search.date } : {}
+}
+
+export const resolveDate = (date: string | undefined) => date ?? todayIso()
+
+/** Complément après « Service » : « du jour », « de demain », « d'hier » ou « du lundi 23 novembre ». */
+export function serviceDayLabel(date: string): string {
+  const today = todayIso()
+  if (date === today) return 'du jour'
+  if (date === addDays(today, 1)) return 'de demain'
+  if (date === addDays(today, -1)) return 'd’hier'
+  return `du ${formatDayLong(date)}`
+}
+
+type DayRoute = '/admin' | '/admin/services'
+
+/** Jour précédent / suivant / aujourd'hui ; les autres filtres de la page sont conservés. */
+export function DayNav({ date, to }: { date: string; to: DayRoute }) {
+  const today = todayIso()
+  return (
+    <div className="flex w-full items-center gap-1 md:w-auto">
+      <Button variant="outline" size="icon" asChild>
+        <Link to={to} search={(prev) => ({ ...prev, date: addDays(date, -1) })} aria-label="Jour précédent">
+          <ChevronLeftIcon />
+        </Link>
+      </Button>
+      <span className="min-w-0 flex-1 truncate text-center text-sm font-semibold first-letter:uppercase md:min-w-44 md:flex-none">
+        {formatDayLong(date)}
+      </span>
+      <Button variant="outline" size="icon" asChild>
+        <Link to={to} search={(prev) => ({ ...prev, date: addDays(date, 1) })} aria-label="Jour suivant">
+          <ChevronRightIcon />
+        </Link>
+      </Button>
+      {date !== today && (
+        <Button variant="ghost" size="sm" asChild>
+          <Link to={to} search={(prev) => ({ ...prev, date: undefined })}>
+            Aujourd’hui
+          </Link>
+        </Button>
+      )}
+    </div>
+  )
+}

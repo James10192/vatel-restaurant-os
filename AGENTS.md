@@ -23,7 +23,9 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
 - Création contextuelle des références (unités, ingrédients) dans le formulaire, sans perte de saisie.
 - Recherche/tri/pagination côté serveur avec index Convex ; temps réel Convex natif, pas de polling.
 - Français simple, prix XOF entiers, mobile 360px, réseau lent, états loading/empty/error.
-- Branding : Vatel uniquement, via tokens de `docs/DESIGN.md` et uniquement des ressources officielles autorisées. Aucune ancienne ressource de marque.
+- Branding : Vatel uniquement (logo officiel, Roboto, palette bleuvatel), via les tokens de `docs/DESIGN.md` et uniquement des ressources officielles autorisées. Aucune ancienne ressource de marque.
+- Aucun tiret long (—) ni demi-tiret (–) dans les textes visibles. Mot de passe toujours avec afficher/masquer.
+- Inscription publique sans aucun privilège (compte non rattaché) ; premier admin via `setup:bootstrap` interne, unique (SEC-02 #16).
 
 ## Règles serveur (non négociables)
 - Auth + rôle + tenant + ownership vérifiés dans CHAQUE fonction publique Convex ; tenant jamais fourni par le client.
@@ -36,18 +38,26 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
   de mock caché ou de succès non confirmé par le serveur. Aucun code KLASSCI/Joliba/projet préexistant.
 - Après tâche : typecheck + lint + test ciblé + vérif navigateur si UI. Ne jamais déclarer testé ce qui ne l'est pas.
 
+## Revue qualité
+- Après toute modification de `src/` ou `convex/`, invoquer soi-même la skill `thermo-nuclear-code-quality-review`
+  (`.agents/skills/`, `.claude/skills/`) et appliquer les corrections structurelles. Le hook Stop de Claude l'impose.
+
 ## Travail parallèle isolé
 - Le lead reste seul propriétaire de `convex/**`, `src/lib/auth*`, `src/router.tsx`, `src/routes/__root.tsx`, manifests/lockfile et déploiement ; pas de modifications simultanées de ces fichiers.
 - Toute autre session IA de code utilise une branche + un Git worktree indépendant, des fichiers exclusivement attribués, une PR vers `main` et un HANDOFF propre à sa tâche ; jamais de cherry-pick/merge/push sur `main` sans validation.
 - Une seule session utilise `convex dev` sur un déploiement donné ; worktrees UI secondaires n'écrivent pas dans les données/variables/schéma Convex du lead, et ne lisent jamais les secrets.
 
 ## Git et secrets
-- Hooks : `git config core.hooksPath .githooks` (gitleaks staged, .env bloqué, conventional commits).
+- Hooks : `git config core.hooksPath .githooks` (gitleaks staged, .env bloqué, conventional commits,
+  aucun `Co-authored-by` ni mention « Generated with » / attribution IA).
 - Jamais de secret commité/affiché ; `.env.example` sans valeur. Pas de force-push ni réécriture d'historique.
 - Un seul agent écrit schema/auth/lockfile ; reviewers en lecture seule.
 
 ## Commandes
 - `pnpm exec convex dev` (backend dev, terminal 1) · `pnpm dev` (web :3000, terminal 2)
-- `pnpm typecheck` · `pnpm lint` · `pnpm build`
+- `pnpm typecheck` · `pnpm lint` · `pnpm test` (Vitest + convex-test) · `pnpm build`
+- Rattacher un inscrit (démo, CLI) : `pnpm exec convex run setup:attachAccount '{"email":"…","role":"student"}'`
+- Accès serveur : `requireMember` / `requireAdmin` / `getOwned` (`convex/lib/access.ts`) dans CHAQUE fonction publique.
+- Formulaires : `useServerAction` (`src/lib/server-action.ts`) + `FormError`.
 - Variables Convex : `pnpm exec convex env list` (BETTER_AUTH_SECRET, SITE_URL). Jamais lire .env.local.
-- Routes protégées : enfants de `src/routes/_authed/`. Auth serveur : `authComponent.safeGetAuthUser(ctx)`.
+- Routes protégées : enfants de `src/routes/_authed/` ; admin : `src/routes/_authed/admin/` (confort seulement, le serveur revérifie).

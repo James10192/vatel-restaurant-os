@@ -1,7 +1,8 @@
 const MESSAGES: Record<string, string> = {
   INVALID_EMAIL_OR_PASSWORD: 'E-mail ou mot de passe incorrect.',
   INVALID_EMAIL: 'Adresse e-mail invalide.',
-  PASSWORD_TOO_SHORT: 'Le mot de passe doit contenir au moins 8 caractères.',
+  INVALID_PASSWORD: 'Mot de passe actuel incorrect.',
+  PASSWORD_TOO_SHORT:'Le mot de passe doit contenir au moins 8 caractères.',
   USER_ALREADY_EXISTS: 'Un compte existe déjà avec cet e-mail.',
   USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: 'Un compte existe déjà avec cet e-mail.',
 }

@@ -1,0 +1,19 @@
+{
+  "id": "/app",
+  "name": "Vatel Restauration",
+  "short_name": "Vatel",
+  "description": "Menus, réservations de repas et solde de la restauration Vatel.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#072a5d",
+  "background_color": "#ffffff",
+  "icons": [
+    { "src": "/icons/vatel-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/vatel-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/vatel-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/vatel-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
