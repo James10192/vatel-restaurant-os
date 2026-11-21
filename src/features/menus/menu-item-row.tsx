@@ -72,7 +72,7 @@ function EditItemPopover({ item }: { item: AdminItem }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label={`Modifier ${item.dishName}`}>
+        <Button variant="ghost" size="icon-sm" aria-label={t('Modifier {dish}', { dish: item.dishName })}>
           <PencilIcon />
         </Button>
       </PopoverTrigger>

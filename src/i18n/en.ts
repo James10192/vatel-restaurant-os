@@ -317,6 +317,7 @@ export const EN: Record<string, string> = {
     'Each recipe line needs an ingredient, a positive quantity and a unit.',
   'Enregistrer le plat': 'Save the dish',
   'Retirer {dish}': 'Remove {dish}',
+  'Modifier {dish}': 'Edit {dish}',
   'Échec du retrait : {error}': 'Could not remove it: {error}',
   'Attiéké poisson braisé': 'Attiéké with grilled fish',
   'Poisson, Arachide': 'Fish, Peanut',

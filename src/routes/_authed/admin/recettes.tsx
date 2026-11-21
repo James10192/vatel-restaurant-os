@@ -61,7 +61,7 @@ function RecipesPage() {
         </TabsList>
 
         <TabsContent value="plats" className="mt-4">
-          <div className="grid gap-6 md:grid-cols-[17rem_minmax(0,1fr)] md:items-start xl:grid-cols-[20rem_minmax(0,1fr)]">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-[17rem_minmax(0,1fr)] md:items-start xl:grid-cols-[20rem_minmax(0,1fr)]">
             <nav aria-label={t('Plats')} className={cn('flex flex-col gap-2 md:sticky md:top-6', detailShown && 'max-md:hidden')}>
               <Button variant="outline" className="justify-start" onClick={() => open('nouveau')}>
                 <PlusIcon data-icon="inline-start" />
