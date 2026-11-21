@@ -75,7 +75,7 @@ export const save = mutation({
   },
 })
 
-const cleanList = (list: Array<string>, label: string) => [...new Set(assertListLength(list, label).map((a) => a.trim()).filter(Boolean))]
+const cleanList = (items: Array<string>, label: string) => [...new Set(assertListLength(items, label).map((a) => a.trim()).filter(Boolean))]
 
 /**
  * Allergènes du plat (#13) : déduits des ingrédients de la fiche, jamais d'une seule saisie libre.

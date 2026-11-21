@@ -57,7 +57,7 @@ export function RecipeLines({
   return (
     <FieldSet className="@container">
       <FieldLegend>Fiche recette</FieldLegend>
-      <Field orientation="horizontal">
+      <Field orientation="horizontal" className="w-fit">
         <FieldLabel htmlFor="portions">Pour</FieldLabel>
         <Input id="portions" inputMode="numeric" className="w-20" value={portions} onChange={(e) => onPortionsChange(e.target.value)} />
         <span className="text-sm text-muted-foreground">portions</span>

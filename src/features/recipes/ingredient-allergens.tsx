@@ -38,11 +38,16 @@ function EditAllergens({ ingredient }: { ingredient: Ingredient }) {
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState<Array<AllergenCode>>(ingredient.allergens ?? [])
   const { run, pending, error } = useServerAction(useMutation(api.catalog.setIngredientAllergens))
+  // À chaque ouverture, repartir de la déclaration enregistrée (pas d'un brouillon abandonné).
+  const onOpenChange = (next: boolean) => {
+    if (next) setValue(ingredient.allergens ?? [])
+    setOpen(next)
+  }
   const save = async (allergens: Array<AllergenCode>) => {
     if ((await run({ ingredientId: ingredient._id as Id<'ingredients'>, allergens })) === null) setOpen(false)
   }
   return (
-    <Sheet open={open} onOpenChange={(next) => (setOpen(next), next && setValue(ingredient.allergens ?? []))}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon-sm" aria-label={`Allergènes de ${ingredient.name}`}>
           <PencilIcon />
