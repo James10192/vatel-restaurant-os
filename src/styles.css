@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@import '@fontsource-variable/open-sans';
+@import '@fontsource-variable/roboto';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -50,9 +50,31 @@
   --sidebar-accent-foreground: var(--vatel-bleu-3);
   --sidebar-border: #dfe6ef;
   --sidebar-ring: var(--vatel-bleu-2);
+
+  /* Profondeur : ombres froides teintées bleuvatel3, jamais noires. */
+  --shadow-card: 0 1px 2px rgb(7 42 93 / 4%), 0 4px 16px -6px rgb(7 42 93 / 8%);
+  --shadow-raised: 0 2px 4px rgb(7 42 93 / 5%), 0 16px 40px -12px rgb(7 42 93 / 18%);
+  /* Assiette de repli (aucune photo de plat autorisée) : fond doux, filet bleu. */
+  --plate: #eaf2fb;
+  --plate-rim: #cfe1f4;
+  /* États de disponibilité. */
+  --success: #1f7a4d;
+  --success-soft: #e3f3ea;
+  --warning: #8a5a00;
+  --warning-soft: #fdf1d8;
+  color-scheme: light;
 }
 
 .dark {
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 30%), 0 0 0 1px rgb(255 255 255 / 6%);
+  --shadow-raised: 0 16px 40px -12px rgb(0 0 0 / 55%), 0 0 0 1px rgb(255 255 255 / 8%);
+  --plate: #152847;
+  --plate-rim: #24406a;
+  --success: #6fd3a0;
+  --success-soft: rgb(111 211 160 / 12%);
+  --warning: #f2c46b;
+  --warning-soft: rgb(242 196 107 / 12%);
+  color-scheme: dark;
   --background: #0a1426;
   --foreground: #f2f5fa;
   --card: #101d35;
@@ -87,7 +109,7 @@
 }
 
 @theme inline {
-  --font-sans: 'Open Sans Variable', 'Open Sans', system-ui, sans-serif;
+  --font-sans: 'Roboto Variable', 'Roboto', system-ui, sans-serif;
   --font-heading: var(--font-sans);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -121,6 +143,14 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-vatel-corail: var(--vatel-corail);
+  --color-plate: var(--plate);
+  --color-plate-rim: var(--plate-rim);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
   --color-vatel-navy: var(--vatel-bleu-3);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -140,5 +170,40 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
+
+/* Typographie : grands titres serrés (interlignage et approche négatifs), corps à 0, surtitres espacés. */
+@utility text-display {
+  font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+@utility text-eyebrow {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Retour tactile immédiat à l'appui ; neutralisé si l'usager réduit les animations. */
+@utility press {
+  transition: transform 120ms ease-out;
+  &:active {
+    transform: scale(0.98);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:active {
+      transform: none;
+    }
   }
 }

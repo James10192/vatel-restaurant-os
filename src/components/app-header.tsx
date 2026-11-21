@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useMatchRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { CalendarCheckIcon, ClipboardListIcon, HouseIcon, LogOutIcon, UserIcon, WalletIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
+import { ThemeSubmenu } from '#/components/theme-submenu'
 import { ROLE_LABELS, currentUserQuery, signOut } from '#/lib/session'
 import { cn } from '#/lib/utils'
 
@@ -53,6 +54,8 @@ function AccountMenu({ trigger }: { trigger: React.ReactNode }) {
             {user?.membership ? `${ROLE_LABELS[user.membership.role]}, ${user.membership.canteenName}` : 'Compte non rattaché'}
           </span>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <ThemeSubmenu />
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={signOut}>
@@ -136,6 +139,9 @@ export function MobileTabBar() {
 
 /** Logo intégré au contenu sur mobile, sans bandeau : il défile avec la page. */
 export function MobileBrand() {
+  // L'accueil porte déjà le logo dans son en-tête de salutation.
+  const onHome = useMatchRoute()({ to: '/app' })
+  if (onHome) return null
   return (
     <Link to="/app" aria-label="Accueil" className="mx-auto flex w-full max-w-2xl px-4 pt-5 md:hidden">
       <BrandLogo className="h-12" />

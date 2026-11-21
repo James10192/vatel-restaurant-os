@@ -52,3 +52,15 @@ et #19 (cibles tactiles). Icônes **Lucide** conservées (#11) malgré le défau
 ## Photo
 `public/images/accueil-chef-*.webp` : Unsplash, photo `6jVutqtcgQs` (« A chef presents a beautifully plated dish »), licence Unsplash.
 Cadrage : photo sur les 58 % supérieurs, `object-bottom`, voile `from-primary` pour la lisibilité du texte.
+
+## Refonte « Hospitality Premium » (branche feat/refonte-premium)
+- **Police : Roboto** (demande du porteur, 21/11), auto-hébergée via `@fontsource-variable/roboto` 5.3.0, licence OFL-1.1, aucun appel Google Fonts. Remplace Open Sans.
+- Tokens ajoutés dans `src/styles.css` (palette Vatel inchangée) :
+  - Ombres `shadow-card` (repos) et `shadow-raised` (barre flottante), teintées bleuvatel3, variantes sombres.
+  - Assiette de repli `plate` / `plate-rim` ; états `success`, `warning` (+ `-soft`).
+  - Typo : `text-display` (clamp, interlignage 1.08, approche -0.025em), `text-eyebrow` (surtitre 11 px, +0.08em), titres `text-wrap: balance`.
+  - `press` : retour à l'appui (scale 0.98), désactivé sous `prefers-reduced-motion`.
+- Visuel de plat : `DishVisual` (assiette stylisée + initiales). Aucune photo de plat autorisée : jamais d'image trompeuse.
+- Thème Clair / Sombre / Système dans le menu Profil (`src/lib/theme.ts`, script anti-flash dans `__root`).
+- Accueil : icône du moment + salutation à gauche, logo à droite (mobile). Salutation selon l'heure et la dernière visite sur l'appareil (`src/lib/greeting.ts`, testée).
+- Inspirations consultées seulement (aucun code copié) : shadcn blocks dashboard, ReUI product-card-4 / dashboard-1. Aucun composant tiers ajouté : uniquement shadcn/ui déjà installé (MIT) et Lucide (ISC). Principes : skill `apple-design` (emilkowalski/skills).
