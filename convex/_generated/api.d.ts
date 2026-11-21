@@ -18,6 +18,7 @@ import type * as copilot from "../copilot.js";
 import type * as counter from "../counter.js";
 import type * as crons from "../crons.js";
 import type * as dishes from "../dishes.js";
+import type * as habits from "../habits.js";
 import type * as http from "../http.js";
 import type * as lib_access from "../lib/access.js";
 import type * as lib_aiQuota from "../lib/aiQuota.js";
@@ -85,6 +86,7 @@ declare const fullApi: ApiFromModules<{
   counter: typeof counter;
   crons: typeof crons;
   dishes: typeof dishes;
+  habits: typeof habits;
   http: typeof http;
   "lib/access": typeof lib_access;
   "lib/aiQuota": typeof lib_aiQuota;

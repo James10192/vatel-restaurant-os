@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { FormEvent, ReactNode } from 'react'
-import { SparklesIcon } from 'lucide-react'
+import { BookmarkIcon, SparklesIcon } from 'lucide-react'
 import { FormError } from '#/components/form-error'
 import { Button } from '#/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '#/components/ui/input-group'
@@ -62,6 +62,7 @@ export function SmartMenuForm({
   onSubmit,
   pending,
   error,
+  habit,
 }: {
   days: Array<string>
   daysWithMenu: Set<string>
@@ -71,6 +72,8 @@ export function SmartMenuForm({
   onSubmit: () => void
   pending: boolean
   error: string | null
+  /** Habitudes : la demande courante peut devenir la demande par défaut des semaines suivantes. */
+  habit: { saved: boolean; saving: boolean; error: string | null; onSave: () => void }
 }) {
   const t = useT()
   const { locale } = useLocale()
@@ -200,6 +203,11 @@ export function SmartMenuForm({
           {pending ? <Spinner data-icon="inline-start" /> : <SparklesIcon data-icon="inline-start" />}
           {pending ? t('Recherche en cours…') : t('Proposer des repas')}
         </Button>
+        <Button type="button" variant="link" size="sm" className="h-auto self-center p-0" disabled={Boolean(missing) || habit.saving} onClick={habit.onSave}>
+          {habit.saving ? <Spinner data-icon="inline-start" /> : <BookmarkIcon data-icon="inline-start" />}
+          {habit.saved ? t('Mettre à jour mes habitudes') : t('Enregistrer comme habitude')}
+        </Button>
+        <FormError message={habit.error} />
         <p className="text-center text-xs text-muted-foreground tabular-nums" aria-live="polite">
           {missing ??
             t('{days}, {amount}. Rien n’est réservé sans votre confirmation.', {

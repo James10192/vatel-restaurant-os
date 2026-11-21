@@ -70,6 +70,20 @@ export const suggestionValidator = v.object({
       bookableUntil: v.number(),
       allergens: allergenInfoValidator,
       reason: v.optional(v.string()),
+      /** Autres plats éligibles le même jour (même filtrage serveur), pour changer avant de réserver. */
+      alternatives: v.array(
+        v.object({
+          menuItemId: v.id('menuItems'),
+          date: v.string(),
+          service: serviceValidator,
+          dishName: v.string(),
+          priceXof: v.number(),
+          capacity: v.number(),
+          remaining: v.number(),
+          bookableUntil: v.number(),
+          allergens: allergenInfoValidator,
+        }),
+      ),
     }),
   ),
   metrics: v.object({

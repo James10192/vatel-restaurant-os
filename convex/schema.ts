@@ -302,6 +302,18 @@ export default defineSchema({
     .index('by_booking', ['bookingId'])
     .index('by_canteen_date', ['canteenId', 'date']),
 
+  /**
+   * Habitudes de l'usager pour l'aide au choix (#3) : jours de la semaine (1 = lundi), budget hebdomadaire,
+   * service, allergènes à éviter. Elles pré-remplissent la demande ; elles ne réservent jamais rien.
+   */
+  mealHabits: defineTable({
+    profileId: v.id('profiles'),
+    weekdays: v.array(v.number()),
+    budgetXof: v.number(),
+    service: v.union(v.literal('any'), v.literal('lunch'), v.literal('dinner')),
+    avoid: v.array(v.string()),
+  }).index('by_profile', ['profileId']),
+
   /** Smart Menu (B1) : quotas et coût IA par usager et par jour. Aucun texte de requête conservé. */
   aiUsage: defineTable({
     canteenId: v.id('canteens'),

@@ -1013,6 +1013,12 @@ export const EN: Record<string, string> = {
   '{name} : {qty} {unit} à utiliser avant le {day}': '{name}: {qty} {unit} to use before {day}',
   'Demain, {dish} : {booked} réservés ; objectif proposé {target} ({walkIns} passages, {margin} de marge), à valider.': 'Tomorrow, {dish}: {booked} booked; suggested target {target} ({walkIns} walk-ins, {margin} margin), to confirm.',
   '{dish} : note {rating} sur 5 et {waste} % de pertes sur 30 jours, à revoir.': '{dish}: rated {rating} out of 5 and {waste}% waste over 30 days, to review.',
+  // Habitudes et alternatives (#3)
+  'Changer le plat de ce jour': 'Change this day’s dish',
+  'Vos changements dépassent le budget de {amount}.': 'Your changes go {amount} over budget.',
+  'Mettre à jour mes habitudes': 'Update my habits',
+  'Enregistrer comme habitude': 'Save as a habit',
+  'Jours : de 1 (lundi) à 7 (dimanche).': 'Days: from 1 (Monday) to 7 (Sunday).',
 }
 
 /**
@@ -1021,6 +1027,7 @@ export const EN: Record<string, string> = {
  * `src/i18n/catalog.test.ts` vérifie que chaque message variable de `convex/` correspond à un modèle.
  */
 export const EN_PATTERNS: Record<string, string> = {
+  'Budget : entier entre 1 et {max} FCFA.': 'Budget: whole number between 1 and {max} FCFA.',
   '{label} : entier entre {min} et {max}.': '{label}: whole number between {min} and {max}.',
   '{label} : entier entre 0 et {max}.': '{label}: whole number between 0 and {max}.',
   'Entre 1 et {max} repas par réservation groupée.': 'Between 1 and {max} meals per group booking.',

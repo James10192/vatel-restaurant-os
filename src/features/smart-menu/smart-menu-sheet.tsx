@@ -11,6 +11,7 @@ import type { PublishedItem } from '#/features/menus/meal-card'
 import { SmartMenuForm, budgetValue } from './smart-menu-form'
 import type { SmartRequest } from './smart-menu-form'
 import { SuggestionResults } from './suggestion-results'
+import { useHabits } from './use-habits'
 
 export type Suggestion = FunctionReturnType<typeof api.smartMenu.suggest>
 
@@ -29,12 +30,15 @@ export function SmartMenuSheet({ days, menu, balanceXof }: { days: Array<string>
   const t = useT()
   const { locale } = useLocale()
   const [open, setOpen] = useState(false)
-  const [request, setRequest] = useState<SmartRequest>(EMPTY)
+  // Null tant que l'usager n'a rien touché : la demande vient alors de ses habitudes (sinon vide).
+  const [request, setRequest] = useState<SmartRequest | null>(null)
   const [result, setResult] = useState<Suggestion | null>(null)
   const { run, pending, error } = useServerAction(useAction(api.smartMenu.suggest))
   const daysWithMenu = new Set(menu.map((item) => item.date))
+  const habits = useHabits(days, daysWithMenu)
+  const current = request ?? habits.prefill ?? EMPTY
   // Une semaine changée entre-temps : on ne garde que les jours encore affichés.
-  const value = { ...request, days: request.days.filter((d) => days.includes(d)) }
+  const value = { ...current, days: current.days.filter((d) => days.includes(d)) }
 
   async function onSubmit() {
     const suggestion = await run({
@@ -91,7 +95,8 @@ export function SmartMenuSheet({ days, menu, balanceXof }: { days: Array<string>
               daysWithMenu={daysWithMenu}
               allergens={declaredAllergens(menu)}
               value={value}
-              onChange={(patch) => setRequest((prev) => ({ ...prev, ...patch }))}
+              onChange={(patch) => setRequest({ ...value, ...patch })}
+              habit={{ saved: habits.saved, saving: habits.saving, error: habits.error, onSave: () => void habits.remember(value) }}
               onSubmit={onSubmit}
               pending={pending}
               error={error}
