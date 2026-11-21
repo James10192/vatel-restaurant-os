@@ -1,6 +1,6 @@
 import type { Doc, Id } from '../../_generated/dataModel'
 import type { QueryCtx } from '../../_generated/server'
-import { addDays } from '../dates'
+import { addDays, todayUtc } from '../dates'
 import type { Recipe } from './plan'
 import { WASTE_REASONS, emptyWaste } from './waste'
 import type { WasteByReason } from './waste'
@@ -54,13 +54,20 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
     ctx.db.query('bookings').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
     ctx.db.query('productionEvents').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
   ])
+  const plans = await ctx.db.query('productionPlans').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect()
+  const names = await authorNames(ctx, [...events.map((e) => e.profileId), ...plans.map((p) => p.profileId)])
+  // Jour passé : une réservation encore « confirmée » n'a pas été retirée (absence).
+  const past = isoDate < todayUtc()
   const offers = await Promise.all(
     items
       .filter((item) => item.status === 'published')
       .map(async (item) => {
         const dish = await ctx.db.get(item.dishId)
         const count = (status: BookingStatus) => bookings.filter((b) => b.menuItemId === item._id && b.status === status).length
-        const { prepared, preparedAt, waste } = tally(events.filter((e) => e.menuItemId === item._id))
+        const ofItem = events.filter((e) => e.menuItemId === item._id)
+        const { prepared, preparedAt, waste } = tally(ofItem)
+        // Dernière validation du plan (les précédentes restent en base : corrections tracées).
+        const plan = plans.filter((p) => p.menuItemId === item._id).sort((a, b) => b._creationTime - a._creationTime).at(0)
         return {
           menuItemId: item._id,
           service: item.service,
@@ -69,14 +76,35 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
           confirmed: count('confirmed'),
           pickedUp: count('picked_up'),
           cancelled: count('cancelled'),
+          noShow: past ? count('confirmed') : 0,
           prepared,
           preparedAt,
           waste,
+          lots: ofItem
+            .filter((e) => e.kind === 'prepared')
+            .map((e) => ({ at: e._creationTime, portions: e.portions, by: names.get(e.profileId) ?? 'Membre' })),
+          plan: plan
+            ? {
+                walkIns: plan.walkIns,
+                margin: plan.margin,
+                bookedAtValidation: plan.bookedAtValidation,
+                at: plan._creationTime,
+                by: names.get(plan.profileId) ?? 'Membre',
+                revisions: plans.filter((p) => p.menuItemId === item._id).length,
+              }
+            : null,
           recipe: await resolveRecipe(ctx, dish),
         }
       }),
   )
   return offers.sort((a, b) => SERVICE_ORDER[a.service] - SERVICE_ORDER[b.service] || a.dishName.localeCompare(b.dishName, 'fr'))
+}
+
+/** Noms affichés des auteurs de saisies (jamais d'e-mail), lus une fois par personne. */
+async function authorNames(ctx: QueryCtx, ids: Array<Id<'profiles'>>) {
+  const unique = [...new Set(ids)]
+  const profiles = await Promise.all(unique.map((id) => ctx.db.get(id)))
+  return new Map(unique.map((id, i) => [id, profiles[i]?.displayName ?? 'Membre']))
 }
 
 export type ProductionDayOffer = Awaited<ReturnType<typeof loadProductionDay>>[number]

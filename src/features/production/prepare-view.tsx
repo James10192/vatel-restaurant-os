@@ -10,10 +10,10 @@ import { useT } from '#/i18n/i18n'
  * Vue « Préparer » : en tête, ce qu'il reste à envoyer pour tout le service et la matière à sortir
  * (d'après les fiches techniques) ; puis un bloc par plat. Chiffres réels, aucune hypothèse ici.
  */
-export function PrepareView({ offers, canRecord }: { offers: Array<ProductionOffer>; canRecord: boolean }) {
+export function PrepareView({ offers, canRecord, canPlan }: { offers: Array<ProductionOffer>; canRecord: boolean; canPlan: boolean }) {
   const t = useT()
   const known = offers.flatMap((offer) => {
-    const situation = situationOf(baselineOf(offer))
+    const situation = situationOf(baselineOf(offer), offer.plan)
     return situation ? [{ offer, missing: situation.missing }] : []
   })
   const totalMissing = known.reduce((n, k) => n + k.missing, 0)
@@ -45,7 +45,7 @@ export function PrepareView({ offers, canRecord }: { offers: Array<ProductionOff
 
       <div className="grid gap-4 md:grid-cols-2 xl:col-start-1 xl:row-start-1">
         {offers.map((offer) => (
-          <DishProduction key={offer.menuItemId} offer={offer} canRecord={canRecord} />
+          <DishProduction key={offer.menuItemId} offer={offer} canRecord={canRecord} canPlan={canPlan} />
         ))}
       </div>
     </div>

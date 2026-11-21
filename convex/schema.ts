@@ -208,6 +208,24 @@ export default defineSchema({
     .index('by_canteen_date', ['canteenId', 'date']),
 
   /**
+   * Plan de production validé par la cuisine (#5) : hypothèses du chef pour une offre. Chaque validation est une
+   * nouvelle ligne (corrections tracées, jamais réécrites) ; la plus récente fait foi.
+   */
+  productionPlans: defineTable({
+    canteenId: v.id('canteens'),
+    menuItemId: v.id('menuItems'),
+    date: v.string(),
+    walkIns: v.number(),
+    margin: v.number(),
+    /** Réservations actives au moment de la validation : sert à mesurer l'écart depuis. */
+    bookedAtValidation: v.number(),
+    profileId: v.id('profiles'),
+    idempotencyKey: v.string(),
+  })
+    .index('by_menu_item', ['menuItemId'])
+    .index('by_canteen_date', ['canteenId', 'date']),
+
+  /**
    * Pass de retrait (QR) d'une réservation : empreinte du code seulement, jamais le code en clair.
    * Un seul pass actif par réservation (une réémission remplace l'ancien) ; `usedAt` garde la trace du retrait.
    */

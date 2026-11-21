@@ -58,7 +58,8 @@ export function SimulateSheet({ offer, trigger }: { offer: ProductionOffer; trig
       onOpenChange={(next) => {
         if (next) {
           setFrozen(live)
-          setInputs(EMPTY)
+          // Hypothèses du plan validé, s'il existe : la simulation part de la décision du chef.
+          setInputs({ ...EMPTY, walkIns: String(offer.plan?.walkIns ?? 0), margin: String(offer.plan?.margin ?? 0) })
         }
         setOpen(next)
       }}

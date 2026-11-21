@@ -58,9 +58,15 @@ const snapshot = (demand: number, prepared: number): Snapshot => ({
 export const demandOf = (baseline: Baseline, assumptions: Pick<Assumptions, 'walkIns' | 'margin'>) =>
   baseline.confirmed + baseline.pickedUp + assumptions.walkIns + assumptions.margin
 
-/** Situation réelle (réservations seules, sans hypothèse) ; null si le préparé n'a jamais été saisi. */
-export const situationOf = (baseline: Baseline): Snapshot | null =>
-  baseline.prepared === null ? null : snapshot(demandOf(baseline, { walkIns: 0, margin: 0 }), baseline.prepared)
+type PlanAssumptions = Pick<Assumptions, 'walkIns' | 'margin'>
+const NO_PLAN: PlanAssumptions = { walkIns: 0, margin: 0 }
+
+/**
+ * Situation réelle : réservations, plus les hypothèses du plan validé par le chef s'il existe.
+ * Null si le préparé n'a jamais été saisi (inconnu, jamais zéro).
+ */
+export const situationOf = (baseline: Baseline, plan: PlanAssumptions | null = null): Snapshot | null =>
+  baseline.prepared === null ? null : snapshot(demandOf(baseline, plan ?? NO_PLAN), baseline.prepared)
 
 /** Avant / après un imprévu. Lève une erreur si la saisie n'a pas été validée (jamais d'écrêtage silencieux). */
 export function simulate(baseline: Baseline, assumptions: Assumptions, scenario: Scenario): Simulation {

@@ -10,12 +10,13 @@ import { DayNav, parseDateSearch, resolveDate } from '#/features/admin/day'
 import { CopilotSheet } from '#/features/production/copilot-sheet'
 import { PrepareView } from '#/features/production/prepare-view'
 import { WasteView, wasteWeekQuery } from '#/features/production/waste-view'
+import { WeekView } from '#/features/production/week-view'
 import { SERVICE_LABELS, todayIso } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { pageTitle, useT } from '#/i18n/i18n'
 
 const dayQuery = (date: string) => convexQuery(api.production.day, { date })
-const VIEWS = ['preparer', 'pertes'] as const
+const VIEWS = ['preparer', 'semaine', 'pertes'] as const
 type View = (typeof VIEWS)[number]
 type Search = { date?: string; service?: Service; vue?: View }
 
@@ -68,6 +69,7 @@ function Production() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <TabsList>
             <TabsTrigger value="preparer">{t('Préparer')}</TabsTrigger>
+            <TabsTrigger value="semaine">{t('Semaine')}</TabsTrigger>
             <TabsTrigger value="pertes">{t('Pertes réelles')}</TabsTrigger>
           </TabsList>
           <ToggleGroup
@@ -89,27 +91,31 @@ function Production() {
           </ToggleGroup>
         </div>
 
-        {offers.length === 0 ? (
-          <Empty className="mt-4 rounded-3xl border">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <ChefHatIcon />
-              </EmptyMedia>
-              <EmptyTitle>{t('Aucun plat publié ce jour')}</EmptyTitle>
-              <EmptyDescription>{t('Publiez un menu pour suivre sa production.')}</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <>
-            <TabsContent value="preparer" className="mt-4">
-              <PrepareView offers={offers} canRecord={canRecord} />
-            </TabsContent>
-            <TabsContent value="pertes" className="mt-4">
-              <WasteView date={date} offers={offers} canRecord={canRecord} />
-            </TabsContent>
-          </>
-        )}
+        <TabsContent value="preparer" className="mt-4">
+          {offers.length === 0 ? <NoMenu /> : <PrepareView offers={offers} canRecord={canRecord} canPlan={date >= todayIso()} />}
+        </TabsContent>
+        <TabsContent value="semaine" className="mt-4">
+          <WeekView date={date} service={search.service} />
+        </TabsContent>
+        <TabsContent value="pertes" className="mt-4">
+          {offers.length === 0 ? <NoMenu /> : <WasteView date={date} offers={offers} canRecord={canRecord} />}
+        </TabsContent>
       </Tabs>
     </main>
+  )
+}
+
+function NoMenu() {
+  const t = useT()
+  return (
+    <Empty className="rounded-3xl border">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <ChefHatIcon />
+        </EmptyMedia>
+        <EmptyTitle>{t('Aucun plat publié ce jour')}</EmptyTitle>
+        <EmptyDescription>{t('Publiez un menu pour suivre sa production.')}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   )
 }

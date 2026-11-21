@@ -791,6 +791,35 @@ export const EN: Record<string, string> = {
   'Solde insuffisant pour tout réserver.': 'Balance too low to book everything.',
   'Le même repas apparaît deux fois.': 'The same meal appears twice.',
   'Demande déjà traitée pour d’autres repas.': 'Request already processed for other meals.',
+  // Plan de production (#5)
+  '{time} : {portions} portions, {by}': '{time}: {portions} portions, {by}',
+  '{n} saisies de cuisine': '{n} kitchen entries',
+  '{n} saisie de cuisine': '{n} kitchen entry',
+  'Corriger l’objectif': 'Correct the target',
+  'Valider l’objectif': 'Confirm the target',
+  'Aucun objectif validé : seules les réservations sont comptées.': 'No confirmed target: only bookings are counted.',
+  'Objectif {target} validé à {time} par {by}': 'Target {target} confirmed at {time} by {by}',
+  '{n} réservations de plus depuis': '{n} more bookings since',
+  '{n} réservations de moins depuis': '{n} fewer bookings since',
+  'Objectif de préparation': 'Preparation target',
+  'Historique de ce plat': 'This dish’s history',
+  'Premier service de ce plat : aucun historique.': 'First service of this dish: no history.',
+  '{n} services passés : {avg} réservations en moyenne, {pickup} % retirées, {noShow} % d’absents, {waste} % de pertes.': '{n} past services: {avg} bookings on average, {pickup}% collected, {noShow}% no-shows, {waste}% waste.',
+  'Démarrage à froid : marge par défaut de 5 % des réservations.': 'Cold start: default margin of 5% of bookings.',
+  'Marge proposée : 5 % des réservations ; environ {n} absents attendus.': 'Suggested margin: 5% of bookings; about {n} no-shows expected.',
+  'Utiliser {n}': 'Use {n}',
+  'Complétez les deux valeurs.': 'Fill in both values.',
+  'Objectif : {target} portions ({booked} réservées, {walkIns} sans réservation, {margin} de marge).': 'Target: {target} portions ({booked} booked, {walkIns} without booking, {margin} margin).',
+  'Au-delà de la capacité ({n}) : rien n’est promis au-delà.': 'Beyond capacity ({n}): nothing is promised beyond it.',
+  'Réservées': 'Booked',
+  'Objectif': 'Target',
+  'Absents': 'No-shows',
+  'Aucun plat publié cette semaine.': 'No dish published this week.',
+  'Matière à prévoir d’ici dimanche': 'Ingredients to plan until Sunday',
+  'Demande restante (réservations et objectifs validés) multipliée par les fiches techniques.': 'Remaining demand (bookings and confirmed targets) multiplied by recipe cards.',
+  'Rien à produire d’ici dimanche.': 'Nothing to produce until Sunday.',
+  'Semaine': 'Week',
+  'Ce service est passé : le plan ne se modifie plus.': 'This service is over: the plan can no longer change.',
 }
 
 /**
@@ -799,6 +828,7 @@ export const EN: Record<string, string> = {
  * `src/i18n/catalog.test.ts` vérifie que chaque message variable de `convex/` correspond à un modèle.
  */
 export const EN_PATTERNS: Record<string, string> = {
+  '{label} : entier entre 0 et {max}.': '{label}: whole number between 0 and {max}.',
   'Entre 1 et {max} repas par réservation groupée.': 'Between 1 and {max} meals per group booking.',
   'Repas du {date} : {reason}': 'Meal on {date}: {reason}',
   'Correction refusée : {n} portions déjà déclarées perdues.':

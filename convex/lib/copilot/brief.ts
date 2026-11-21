@@ -57,7 +57,7 @@ export function buildPoints(offers: Array<ProductionDayOffer>, week: Array<Waste
   const points = offers.flatMap((offer) => {
     const dish = offer.dishName
     const key = offer.menuItemId
-    const situation = situationOf(offer)
+    const situation = situationOf(offer, offer.plan)
     const booked = offer.confirmed + offer.pickedUp
     const { wasteRate } = wasteBalance(offer.prepared, offer.pickedUp, offer.confirmed, offer.waste)
     return [
