@@ -10,7 +10,7 @@ avec un mot de passe choisi au moment de la démo et transmis hors dépôt, puis
 
 Les e-mails en `.test` sont réservés (RFC 2606) : aucune boîte réelle. Données fictives uniquement.
 
-## Rotation obligatoire avant publication du dépôt
+## Rotation avant publication du dépôt (faite le 21/11)
 Un mot de passe de démonstration a été versionné dans des commits antérieurs (`ef1b2f5`, `3f74952`) et n'est plus
-utilisable comme secret. Il ne concerne que le déploiement Convex **dev**. Avant de rendre le dépôt public :
-voir la procédure « Rotation des comptes de démonstration » dans `docs/DEPLOYMENT.md`.
+utilisable comme secret. Il ne concerne que le déploiement Convex **dev**. Ces trois comptes ont été supprimés du déploiement dev le 21/11 (voir `docs/DEPLOYMENT.md`, étape 1) : le mot de passe
+de l'historique ne donne plus accès à rien. Les comptes de démo jury seront créés en prod avec de nouveaux mots de passe.

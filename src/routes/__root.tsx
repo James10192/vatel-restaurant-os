@@ -9,6 +9,8 @@ import { THEME_BOOT_SCRIPT } from '#/lib/theme'
 // Écoute `beforeinstallprompt` dès le premier chargement (l'événement n'est émis qu'une fois).
 import '#/lib/install'
 import appCss from '../styles.css?url'
+// Même fichier (même empreinte) que celui référencé par le CSS : le précharger évite d'attendre l'analyse du CSS.
+import robotoLatin from '@fontsource-variable/roboto/files/roboto-latin-wght-normal.woff2?url'
 
 const getAuth = createServerFn({ method: 'GET' }).handler(async () => (await getToken()) ?? null)
 
@@ -26,6 +28,8 @@ export const Route = createRootRouteWithContext<{
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      // Police du titre (élément LCP) : en réseau lent elle arrivait ~3 s après le premier affichage (décalages, LCP retardé).
+      { rel: 'preload', href: robotoLatin, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
       { rel: 'icon', type: 'image/svg+xml', href: '/logo-vatel.svg' },
       { rel: 'manifest', href: '/manifest.webmanifest' },
       { rel: 'apple-touch-icon', sizes: '180x180', href: '/icons/vatel-apple-touch-180.png' },
