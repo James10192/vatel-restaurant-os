@@ -1,6 +1,7 @@
 import { Link, useMatchRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { BrandLogo } from '#/components/brand-logo'
+import { InstallIconButton } from '#/components/install-icon-button'
 import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV, PROFILE_NAV } from '#/components/shell/nav-model'
 import { currentUserQuery } from '#/lib/session'
 import { useT } from '#/i18n/i18n'
@@ -65,9 +66,12 @@ export function MobileBrand() {
           <span className="truncate text-xs text-muted-foreground">{user?.membership?.canteenName ?? 'Restauration'}</span>
         </div>
       </div>
-      <Link to="/app" aria-label={t('Accueil')} className="shrink-0">
-        <BrandLogo className="h-12" />
-      </Link>
+      <div className="flex shrink-0 items-center gap-2">
+        <InstallIconButton />
+        <Link to="/app" aria-label={t('Accueil')} className="shrink-0">
+          <BrandLogo className="h-12" />
+        </Link>
+      </div>
     </header>
   )
 }

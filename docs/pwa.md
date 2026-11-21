@@ -113,6 +113,12 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
 - Le bouton n'existe que si l'événement a réellement été reçu. iOS : marche à suivre Partager puis « Sur l'écran
   d'accueil ». Sinon : explication, aucun bouton.
 
+- **En-tête mobile** (ajout du 21/11, ~17h45) : icône ronde « Installer l'application » à gauche du logo Vatel, sur
+  toutes les pages mobiles (accueil compris), seulement quand `beforeinstallprompt` a été reçu ; absente sur iPhone (la
+  marche à suivre reste dans le Profil), une fois installée, et dès la tablette (le menu compte la propose).
+  `src/components/install-icon-button.tsx`. Vérifié avec un événement simulé : absente avant, visible sur Accueil et
+  Mes repas à 360 px, `prompt()` appelé, retirée après le choix, invisible à 1440 px, pas de défilement horizontal.
+
 ### Notifications push
 - Serveur : table `pushSubscriptions` (index endpoint, profil, établissement), `convex/push.ts`
   (`publicKey`, `subscribe`, `unsubscribe`, `sendTest` : `requireMember` partout ; `recipients`, `removeGone` internes),

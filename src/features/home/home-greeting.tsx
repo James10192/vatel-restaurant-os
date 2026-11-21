@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { CoffeeIcon, MoonStarIcon, SunIcon, SunsetIcon } from 'lucide-react'
 import { BrandLogo } from '#/components/brand-logo'
+import { InstallIconButton } from '#/components/install-icon-button'
 import { formatDayLong, todayIso } from '#/lib/format'
 import { useGreeting } from '#/lib/greeting'
 import type { GreetingMoment } from '#/lib/greeting'
@@ -34,9 +35,12 @@ export function HomeGreeting({ firstName, canteenName }: { firstName: string; ca
           <p className="text-sm text-muted-foreground">{subtitle ? t(subtitle) : canteenName}</p>
         </div>
       </div>
-      <Link to="/app" aria-label={t('Accueil')} className="shrink-0 md:hidden">
-        <BrandLogo className="h-12" />
-      </Link>
+      <div className="flex shrink-0 items-center gap-2 md:hidden">
+        <InstallIconButton />
+        <Link to="/app" aria-label={t('Accueil')} className="shrink-0">
+          <BrandLogo className="h-12" />
+        </Link>
+      </div>
     </header>
   )
 }

@@ -334,6 +334,36 @@ export const EN: Record<string, string> = {
   'Envoi accepté par le serveur pour {n} appareil. La notification arrive en général en quelques secondes.':
     'Sending accepted by the server for {n} device. The notification usually arrives within seconds.',
 
+  // Aide au choix (menu intelligent)
+  'Aide au choix': 'Meal helper',
+  'Indiquez vos jours et votre budget. Les prix, portions et allergènes viennent du menu publié. Rien n’est réservé sans votre confirmation.':
+    'Enter your days and budget. Prices, portions and allergens come from the published menu. Nothing is booked without your confirmation.',
+  Jours: 'Days',
+  'Budget total (FCFA)': 'Total budget (FCFA)',
+  Indifférent: 'No preference',
+  'Allergènes à éviter (facultatif)': 'Allergens to avoid (optional)',
+  'Filtre appliqué par le serveur, jamais transmis à l’IA.': 'Filter applied by the server, never sent to the AI.',
+  'Vos envies (facultatif)': 'Your preferences (optional)',
+  'Par exemple : plutôt du poisson, un plat copieux': 'For example: fish rather, a hearty dish',
+  'N’indiquez aucune information personnelle ou médicale.': 'Do not enter any personal or medical information.',
+  'Proposer des repas': 'Suggest meals',
+  Suggestions: 'Suggestions',
+  'Choix IA vérifié': 'AI pick, checked',
+  Total: 'Total',
+  'pour un budget de': 'for a budget of',
+  '· solde actuel insuffisant pour tout réserver': '· current balance not enough to book everything',
+  'Aucun repas ne correspond': 'No meal matches',
+  'Essayez d’autres jours ou un budget plus élevé, ou parcourez le menu.': 'Try other days or a higher budget, or browse the menu.',
+  'Pourquoi :': 'Why:',
+  'Les allergènes affichés viennent de la fiche du plat. Un allergène non renseigné n’est pas vérifié : en cas de doute, demandez au service restauration.':
+    'Allergens shown come from the dish sheet. An allergen not provided is not checked: if in doubt, ask the dining service.',
+  'aucun menu publié': 'no menu published',
+  'complet, réservations closes ou repas déjà réservé': 'full, bookings closed or meal already booked',
+  'aucun plat compatible avec les allergènes à éviter': 'no dish compatible with the allergens to avoid',
+  'hors budget': 'over budget',
+  '{n} plats écartés : allergènes non renseignés, donc non vérifiés.': '{n} dishes left out: allergens not provided, so not checked.',
+  '{n} plat écarté : allergènes non renseignés, donc non vérifiés.': '{n} dish left out: allergens not provided, so not checked.',
+
   // Profil et réglages
   'Modifier le nom': 'Edit name',
   'Nom affiché': 'Display name',
