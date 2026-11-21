@@ -19,9 +19,13 @@ import type * as lib_capacity from "../lib/capacity.js";
 import type * as lib_dates from "../lib/dates.js";
 import type * as lib_ledger from "../lib/ledger.js";
 import type * as lib_policy from "../lib/policy.js";
+import type * as lib_smartMenu_contract from "../lib/smartMenu/contract.js";
+import type * as lib_smartMenu_llm from "../lib/smartMenu/llm.js";
+import type * as lib_smartMenu_rules from "../lib/smartMenu/rules.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as menus from "../menus.js";
 import type * as setup from "../setup.js";
+import type * as smartMenu from "../smartMenu.js";
 import type * as wallet from "../wallet.js";
 
 import type {
@@ -42,9 +46,13 @@ declare const fullApi: ApiFromModules<{
   "lib/dates": typeof lib_dates;
   "lib/ledger": typeof lib_ledger;
   "lib/policy": typeof lib_policy;
+  "lib/smartMenu/contract": typeof lib_smartMenu_contract;
+  "lib/smartMenu/llm": typeof lib_smartMenu_llm;
+  "lib/smartMenu/rules": typeof lib_smartMenu_rules;
   "lib/validation": typeof lib_validation;
   menus: typeof menus;
   setup: typeof setup;
+  smartMenu: typeof smartMenu;
   wallet: typeof wallet;
 }>;
 

@@ -141,4 +141,16 @@ export default defineSchema({
     .index('by_canteen_date', ['canteenId', 'date'])
     .index('by_canteen_status_date', ['canteenId', 'status', 'date'])
     .index('by_dish_status', ['dishId', 'status']),
+
+  /** Smart Menu (B1) : quotas et coût IA par usager et par jour. Aucun texte de requête conservé. */
+  aiUsage: defineTable({
+    canteenId: v.id('canteens'),
+    profileId: v.id('profiles'),
+    day: v.string(),
+    calls: v.number(),
+    inputTokens: v.number(),
+    outputTokens: v.number(),
+  })
+    .index('by_profile_day', ['profileId', 'day'])
+    .index('by_canteen_day', ['canteenId', 'day']),
 })
