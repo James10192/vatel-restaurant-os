@@ -89,6 +89,16 @@ _Mis à jour : 21/11/2026 ~11h30 (Abidjan)_
 - Phase 2 en attente : Mes repas et Solde (fichiers de `feat/refonte-pages`), Connexion tablette/ultrawide, zoom 200/400 %, clavier.
 - Développement local : connexion via :3000 uniquement (origine Better Auth), les cookies localhost valent pour :3001.
 
+## B1 Smart Menu (worktree `vatel-b1`, branche `feat/b1-smart-menu`, PR non fusionnée, 21/11 ~14h05)
+- Constat de départ (13h35) : main c67182a vert (typecheck, lint, 68 tests, build) ; **aucun projet Vercel ni Convex prod** ; rotation démo non faite ; travail non commité du lead sur `test/lot-c-preuves` (non touché). Porteur : go B1 isolé, arrêt dur 15h30.
+- Isolation : backend Convex **local** (port 3210, `--dev-deployment local`), web :3002 ; le déploiement dev partagé `vivid-labrador-591` n'a pas reçu ce code.
+- Livré : action `smartMenu.suggest` (rôle student, établissement du profil, menus publiés seulement), règles pures `convex/lib/smartMenu/rules.ts` (budget, un repas par jour, allergènes évités dont traces, inconnu = écarté si filtre), IA facultative `llm.ts` (AI SDK 7.0.173, AI Gateway, 2 outils lecture seule, `Output.object`, 4 étapes, 700 jetons, 15 s), revalidation totale, quotas `aiUsage` (8/usager/jour, 150/établissement/jour), panneau « Aide au choix » sur l'accueil usager, réservation via `BookMealDialog` existant.
+- Modèle : `inception/mercury-3` configuré, **non validé** : AI Gateway refuse tout appel sans carte bancaire enregistrée sur le compte Vercel (crédits gratuits bloqués). Clé `vatel-b1-local` (plafond 1 $, 7 jours) uniquement sur le backend local. 0 $ dépensé. Repli sans IA vérifié contre ce vrai refus.
+- Tests : 94 (26 B1 : règles, modèle simulé, serveur). Typecheck, lint, build OK. Navigateur 375/768/1440 : captures `docs/ai/b1/captures/`.
+- Fichiers du lead touchés dans la branche : `convex/schema.ts` (table `aiUsage`, ajout seul), `package.json`/`pnpm-lock.yaml` (`ai`, `zod`), `src/routes/_authed/app/index.tsx` (montage du bouton). Fusion à arbitrer par le lead.
+- Détails, coût/latence, limites : `docs/ai/b1/SMART-MENU.md`. Contrat B2 (sans code) : `docs/ai/b2/CONTRACT.md`.
+- **Gate humain** : décider (1) carte AI Gateway puis évaluation #18 réelle, ou B1 sans IA ; (2) fusion après la livraison P0 ; (3) révoquer la clé `vatel-b1-local` si B1 est abandonné.
+
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
 - Révocation : accès serveur basé sur le JWT, effectif à son expiration.
