@@ -216,6 +216,15 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
   `ConvexError` avec `${…}` n'a pas de modèle. Vérifié en navigateur : plafond de recharge atteint en anglais →
   « Demo balance capped at 100000 FCFA. ». Recherche dans le dictionnaire par `Object.hasOwn` (pas de clé héritée).
 
+### Explication « Pourquoi » de l'IA en FR/EN (ajout du 21/11, ~18h)
+- Le client envoie la langue de l'interface à `smartMenu.suggest` (`locale` facultatif, français par défaut : appels
+  existants inchangés). `convex/lib/smartMenu/llm.ts` : `systemPrompt(locale)`, règles de sécurité identiques dans les
+  deux langues, seule la consigne de langue des « reason » change. Validateur partagé `convex/lib/locale.ts`
+  (aussi utilisé par les abonnements push).
+- Avis du serveur (« Aide IA non configurée… ») et erreurs de la demande traduits côté client.
+- Test (modèle simulé) : prompt en anglais si demandé, en français par défaut, règles présentes. **Non vérifié avec un
+  vrai modèle** (aucune clé IA sur le backend local) : la langue réelle des réponses dépend du modèle configuré.
+
 ### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
 Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :
 ```bash

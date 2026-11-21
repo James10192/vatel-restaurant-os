@@ -64,6 +64,7 @@ export function SmartMenuSheet({
       avoid,
       wish: String(form.get('wish') ?? ''),
       useAi: true,
+      locale,
     })
     if (suggestion) setResult(suggestion)
   }

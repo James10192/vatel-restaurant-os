@@ -36,7 +36,7 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
       {result.notice && (
         <Alert>
           <InfoIcon />
-          <AlertDescription>{result.notice}</AlertDescription>
+          <AlertDescription>{t(result.notice)}</AlertDescription>
         </Alert>
       )}
       <p className="text-sm">

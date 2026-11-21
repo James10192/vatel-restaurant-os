@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
-import { notificationCategoryValidator, pushLocaleValidator } from './lib/notifications'
+import { notificationCategoryValidator } from './lib/notifications'
+import { localeValidator } from './lib/locale'
 
 export const roleValidator = v.union(
   v.literal('admin'),
@@ -117,7 +118,7 @@ export default defineSchema({
     p256dh: v.string(),
     auth: v.string(),
     /** Langue des textes envoyés à cet appareil (langue de l'application à l'abonnement). Absent = français. */
-    locale: v.optional(pushLocaleValidator),
+    locale: v.optional(localeValidator),
   })
     .index('by_endpoint', ['endpoint'])
     .index('by_profile', ['profileId'])

@@ -15,10 +15,10 @@ import {
   isAllowedPushEndpoint,
   isPushKey,
   notificationKindValidator,
-  pushLocaleValidator,
-  pushTargetValidator,
+    pushTargetValidator,
 } from './lib/notifications'
 import { withoutMuted } from './notificationPreferences'
+import { localeValidator } from './lib/locale'
 
 /**
  * Notifications push : un appareil s'abonne pour le membre connecté. L'envoi réel se fait dans
@@ -54,7 +54,7 @@ export const subscribe = mutation({
     endpoint: v.string(),
     p256dh: v.string(),
     auth: v.string(),
-    locale: v.optional(pushLocaleValidator),
+    locale: v.optional(localeValidator),
   },
   returns: v.null(),
   handler: async (ctx, subscription) => {
@@ -129,7 +129,7 @@ export const recipients = internalQuery({
       endpoint: v.string(),
       p256dh: v.string(),
       auth: v.string(),
-      locale: v.optional(pushLocaleValidator),
+      locale: v.optional(localeValidator),
     }),
   ),
   handler: async (ctx, { target, kind }) => {

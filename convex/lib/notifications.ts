@@ -65,7 +65,6 @@ export const NOTIFICATIONS_EN: Record<
   },
 }
 
-export const pushLocaleValidator = v.union(v.literal('fr'), v.literal('en'))
 
 export const notificationKindValidator = v.union(
   v.literal('test'),
