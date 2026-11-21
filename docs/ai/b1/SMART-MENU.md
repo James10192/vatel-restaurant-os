@@ -59,12 +59,12 @@ plats écartés pour allergènes inconnus listés. Rappel : un allergène non re
 
 ## 4. Tests
 
-`pnpm test` : 30 tests B1 (98 au total).
+`pnpm test` : 31 tests B1 (99 au total).
 
 | Fichier | Cas |
 |---|---|
 | `convex/lib/smartMenu/rules.test.ts` (10) | nominal ; budget serré ; complet/clos/déjà réservé ; allergène présent ou en traces, accents ; allergène inconnu exclu et compté ; inconnu affiché sans filtre ; offre inconnue ou d'un autre établissement ; deux repas le même jour ; dépassement de budget ; explications rassurantes supprimées |
-| `convex/lib/smartMenu/llm.test.ts` (8) | un seul appel sans outil, plats dans le prompt ; injection indirecte par description ; sortie non conforme ; panne fournisseur ; prix falsifié ignoré ; injection (souhait borné, sans balises, aucun allergène évité ni solde transmis) ; explication trop longue tronquée (régression observée avec Haiku) ; identifiant halluciné |
+| `convex/lib/smartMenu/llm.test.ts` (9) | un seul appel sans outil, plats dans le prompt ; repère budgétaire serveur transmis ; injection indirecte par description ; sortie non conforme ; panne fournisseur ; prix falsifié ignoré ; injection (souhait borné, sans balises, aucun allergène évité ni solde transmis) ; explication trop longue tronquée (régression observée avec Haiku) ; identifiant halluciné |
 | `convex/lib/smartMenu/providers.test.ts` (3) | OpenRouter configuré ; clé absente, modèle hors liste, `:free`, fournisseur inconnu désactivent l'IA ; AI Gateway par défaut |
 | `convex/smartMenu.test.ts` (9) | nominal serveur ; brouillon invisible ; menus d'un autre établissement invisibles ; budget jamais dépassé ; gérant, non rattaché et anonyme refusés ; entrées invalides ; IA non configurée ; modèle hors liste ; quotas usager/jour |
 
@@ -123,7 +123,25 @@ Compromis observé : sur le budget serré (2 000 FCFA, 4 jours), le modèle sans
 proposé deux fois une sélection hors budget. La validation serveur l'a rejetée et l'usager a reçu le
 calcul sans IA avec le message « ne respectait pas vos critères » : aucune proposition invalide affichée.
 Le souhait « poulet » est moins bien suivi, et une explication a interprété le souhait de façon libre
-(« sans viande rouge »). Piste : donner au modèle le total minimal calculé par le serveur pour l'ancrer.
+(« sans viande rouge »).
+
+### Repère budgétaire (version retenue)
+
+Le prompt contient un repère `<repere>` calculé par `planByRules` : la sélection valide la moins chère
+(identifiants), son total et la marge disponible, avec la consigne d'en partir. Le modèle ne calcule
+toujours rien qui fasse foi : le serveur revalide. Premier essai (« Au mieux N jours… il reste X FCFA
+pour choisir des plats plus chers ») : pire, 4/8 acceptées, budget serré 0/2 (incitation à dépenser).
+
+| Mesure | Un seul appel sans repère | **Avec repère** |
+|---|---|---|
+| Propositions acceptées par le serveur | 6 / 8 | **7 / 8** |
+| Budget serré (2 000 FCFA, 4 jours) | 0 / 2 | **2 / 2** |
+| Jetons par demande (entrée / sortie) | ~1 250 / 180 | ~1 450 / 165 |
+| Coût par demande | ≈ 0,0002 $ | ≈ 0,0002 $ |
+| Latence médiane / moyenne / max | ~2,3 s / 2,3 s / 3,0 s | **~2,8 s** / 4,9 s / 15,2 s |
+
+La moyenne est tirée par deux appels lents du cas nominal (15,2 s et 8,1 s, variabilité fournisseur) ;
+les 6 autres répondent en 1,9 à 3,0 s. Le seul rejet restant est sur le cas nominal (souhait « poulet »).
 
 Premier essai : 7 échecs `AI_NoObjectGeneratedError` sur 8. Le JSON de Haiku était correct mais ses
 explications dépassaient les `maxLength` du schéma, que le fournisseur n'applique pas. Correctif : schéma
@@ -137,8 +155,8 @@ de forme seulement, bornes appliquées par le serveur (troncature à 160 caract�
 
 ## 7. Limites connues
 
-- Un seul appel : 2,3 s en moyenne, mais budgets serrés parfois mal respectés par le modèle (rattrapés par
-  le serveur, repli sans IA) et souhaits suivis moins finement.
+- Un seul appel avec repère : ~2,8 s en médiane mais pics à 8 à 15 s côté fournisseur ; 1 proposition sur 8
+  encore rejetée (repli sans IA) ; souhaits suivis moins finement qu'avec raisonnement.
 - Évaluation #18 partielle : 10 demandes, pas la revue humaine de 20 sorties par candidat ; Mercury 3 non testé.
 - La clé OpenRouter a transité en clair dans la conversation de développement : fixer une limite de
   dépense sur OpenRouter et la renouveler après le hackathon. Clé AI Gateway `vatel-b1-local` inutile : à révoquer.
