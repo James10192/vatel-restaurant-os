@@ -829,6 +829,11 @@ export const EN: Record<string, string> = {
   'Solde insuffisant pour tout réserver.': 'Balance too low to book everything.',
   'Le même repas apparaît deux fois.': 'The same meal appears twice.',
   'Demande déjà traitée pour d’autres repas.': 'Request already processed for other meals.',
+  // Complétion d’une fiche publiée vide
+  "Fiche à compléter : ce plat est publié sans composition": "Sheet to complete: this dish is published without its composition",
+  "Ajoutez ses ingrédients : ses allergènes seront renseignés pour les usagers. Son nom et son prix restent ceux déjà publiés.": "Add its ingredients: its allergens will be filled in for diners. Its name and price stay as published.",
+  "Compléter la fiche": "Complete the sheet",
+  "Plat publié : complétez sa composition, mais gardez son nom, sa description et son prix.": "Published dish: complete its composition but keep its name, description and price.",
   // Plan de production (#5)
   '{time} : {portions} portions, {by}': '{time}: {portions} portions, {by}',
   '{n} saisies de cuisine': '{n} kitchen entries',

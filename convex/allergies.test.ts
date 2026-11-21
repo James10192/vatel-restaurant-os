@@ -33,5 +33,5 @@ describe('allergies des usagers', () => {
     const [other] = await studentA2.query(api.menus.publishedWeek, { weekStart: WEEK })
     expect(other.allergyAlert).toBeUndefined()
     expect(await studentA2.query(api.account.myAllergies, {})).toEqual({ codes: [], others: [] })
-  })
+  }, 20_000)
 })

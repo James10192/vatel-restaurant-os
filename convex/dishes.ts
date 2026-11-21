@@ -7,6 +7,7 @@ import { assertListLength, assertPositive, assertPriceXof, assertText, cleanName
 import { allergenInfoValidator, recipeLineValidator } from './schema'
 import { dishListReturns } from './lib/returns'
 import { ALLERGEN_CODES, ALLERGEN_LABELS } from './lib/allergens'
+import { isEmptyUnknownSheet, keepsPublishedIdentity } from './lib/dishSheet'
 
 const dishInput = v.object({
   name: v.string(),
@@ -70,8 +71,11 @@ export const save = mutation({
       .query('menuItems')
       .withIndex('by_dish_status', (q) => q.eq('dishId', dishId).eq('status', 'published'))
       .first()
-    if (published) {
+    if (published && !isEmptyUnknownSheet(existing)) {
       throw new ConvexError('Ce plat est déjà publié : créez une nouvelle version au lieu de le modifier.')
+    }
+    if (published && !keepsPublishedIdentity(existing, doc)) {
+      throw new ConvexError('Plat publié : complétez sa composition, mais gardez son nom, sa description et son prix.')
     }
     // La photo se gère à part (setPhoto) : modifier la fiche ne doit pas l'effacer.
     await ctx.db.replace(dishId, { ...doc, photoId: existing.photoId })
