@@ -1,4 +1,5 @@
-import { MonitorIcon, MoonIcon, PaletteIcon, SunIcon } from 'lucide-react'
+import { PaletteIcon } from 'lucide-react'
+import { THEME_ICONS } from '#/components/theme-toggle'
 import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -7,8 +8,6 @@ import {
   DropdownMenuSubTrigger,
 } from '#/components/ui/dropdown-menu'
 import { THEMES, THEME_LABELS, useTheme } from '#/lib/theme'
-
-const ICONS = { light: SunIcon, dark: MoonIcon, system: MonitorIcon } as const
 
 /** Apparence dans le menu Profil (#11) : réglage rangé, la navigation principale reste dégagée. */
 export function ThemeSubmenu() {
@@ -22,7 +21,7 @@ export function ThemeSubmenu() {
       <DropdownMenuSubContent>
         <DropdownMenuRadioGroup value={preference} onValueChange={choose}>
           {THEMES.map((theme) => {
-            const Icon = ICONS[theme]
+            const Icon = THEME_ICONS[theme]
             return (
               <DropdownMenuRadioItem key={theme} value={theme}>
                 <Icon />

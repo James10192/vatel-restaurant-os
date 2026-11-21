@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { BrandLogo } from '#/components/brand-logo'
+import { ThemeToggle } from '#/components/theme-toggle'
 import { AuthForm } from '#/features/auth/auth-form'
 import { AuthIntro } from '#/features/auth/auth-intro'
 import { safeRedirectPath } from '#/lib/safe-redirect'
@@ -27,7 +28,7 @@ function AuthPage() {
   const redirectTo = redirectParam ?? '/app'
   const [started, setStarted] = useState(mode === 'signup')
   return (
-    <div className={cn('flex min-h-svh overflow-hidden bg-background text-foreground', started && 'dark')}>
+    <div className="flex min-h-svh overflow-hidden bg-background text-foreground">
       <AuthIntro
         started={started}
         onStart={() => setStarted(true)}
@@ -38,7 +39,8 @@ function AuthPage() {
         )}
       />
       {started && (
-        <main className="flex min-h-svh flex-1 flex-col items-center justify-center px-6 py-10 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:delay-300 motion-safe:duration-700 motion-safe:fill-mode-both">
+        <main className="relative flex min-h-svh flex-1 flex-col items-center justify-center px-6 py-16 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:delay-300 motion-safe:duration-700 motion-safe:fill-mode-both">
+          <ThemeToggle className="absolute top-4 right-4" />
           <div className="flex w-full max-w-md flex-col gap-8">
             <div className="flex justify-center md:hidden">
               <span className="rounded-xl bg-white p-1.5">
