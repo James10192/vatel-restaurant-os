@@ -54,13 +54,13 @@ export function SlideToStart({ label, onComplete, className }: { label: string; 
     <div
       ref={trackRef}
       className={cn(
-        'relative flex h-16 w-full items-center overflow-hidden rounded-full border border-primary-foreground/20 bg-primary-foreground/10 p-1 backdrop-blur-md',
+        'relative flex h-16 w-full items-center overflow-hidden rounded-full border border-white/20 bg-white/10 p-1 backdrop-blur-md',
         className,
       )}
     >
       <div
         aria-hidden
-        className="absolute inset-y-0 left-0 rounded-full bg-primary-foreground/15"
+        className="absolute inset-y-0 left-0 rounded-full bg-white/15"
         style={{ width: offset + 64, transition: dragging ? 'none' : 'width 300ms ease-out' }}
       />
       <span
@@ -84,7 +84,7 @@ export function SlideToStart({ label, onComplete, className }: { label: string; 
             complete(trackRef.current ? trackRef.current.clientWidth - 64 : 0)
           }
         }}
-        className="relative z-10 flex size-14 shrink-0 cursor-pointer touch-none active:cursor-grabbing items-center justify-center rounded-full bg-background text-primary shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-ring/60"
+        className="relative z-10 flex size-14 shrink-0 cursor-pointer touch-none active:cursor-grabbing items-center justify-center rounded-full bg-white text-vatel-navy shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-ring/60"
         style={{ transform: `translateX(${offset}px)`, transition: dragging ? 'none' : 'transform 300ms ease-out' }}
       >
         <ArrowRightIcon />

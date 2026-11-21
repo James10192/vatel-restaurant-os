@@ -27,20 +27,23 @@ function AuthPage() {
   const redirectTo = redirectParam ?? '/app'
   const [started, setStarted] = useState(mode === 'signup')
   return (
-    <div className="flex min-h-svh overflow-hidden bg-background">
+    <div className={cn('flex min-h-svh overflow-hidden bg-background text-foreground', started && 'dark')}>
       <AuthIntro
         started={started}
         onStart={() => setStarted(true)}
         className={cn(
-          'w-full shrink-0 motion-safe:transition-[width] motion-safe:duration-700 motion-safe:ease-in-out',
-          started && 'max-md:hidden md:w-1/2',
+          'w-full shrink-0 motion-safe:transition-all motion-safe:duration-700 motion-safe:ease-in-out',
+          // Après le glissement : la photo devient une carte encadrée et arrondie à gauche.
+          started && 'max-md:hidden md:m-3 md:min-h-[calc(100svh-1.5rem)] md:w-[calc(50%-1.5rem)] md:rounded-[2rem]',
         )}
       />
       {started && (
-        <main className="flex min-h-svh flex-1 flex-col items-center justify-center bg-muted px-6 py-10 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:delay-300 motion-safe:duration-700 motion-safe:fill-mode-both">
+        <main className="flex min-h-svh flex-1 flex-col items-center justify-center px-6 py-10 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:delay-300 motion-safe:duration-700 motion-safe:fill-mode-both">
           <div className="flex w-full max-w-md flex-col gap-8">
             <div className="flex justify-center md:hidden">
-              <BrandLogo className="h-16" />
+              <span className="rounded-xl bg-white p-1.5">
+                <BrandLogo className="h-14" />
+              </span>
             </div>
             <AuthForm mode={mode ?? 'login'} redirectTo={redirectTo} />
             <p className="text-center text-xs text-muted-foreground">

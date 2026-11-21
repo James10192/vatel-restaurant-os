@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ComponentProps } from 'react'
-import { EyeIcon, EyeOffIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon, LockIcon } from 'lucide-react'
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '#/components/ui/input-group'
 
 /** Champ mot de passe avec bouton afficher/masquer (InputGroup shadcn). */
@@ -9,6 +9,9 @@ export function PasswordInput({ className, ...props }: Omit<ComponentProps<typeo
   const Icon = visible ? EyeOffIcon : EyeIcon
   return (
     <InputGroup className={className}>
+      <InputGroupAddon>
+        <LockIcon />
+      </InputGroupAddon>
       <InputGroupInput {...props} type={visible ? 'text' : 'password'} />
       <InputGroupAddon align="inline-end">
         <InputGroupButton

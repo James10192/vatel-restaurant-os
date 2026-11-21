@@ -21,12 +21,17 @@ export function useEmailAuth(action: keyof typeof ACTIONS, redirectTo: string) {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
     const field = (key: string) => String(data.get(key) ?? '')
+    if (data.has('confirmPassword') && field('confirmPassword') !== field('password')) {
+      setError('Les deux mots de passe ne correspondent pas.')
+      return
+    }
+    const fullName = [field('firstName'), field('lastName')].map((part) => part.trim()).filter(Boolean).join(' ')
     setPending(true)
     setError(null)
     const result = await ACTIONS[action]({
       email: field('email').trim(),
       password: field('password'),
-      name: field('name').trim(),
+      name: fullName,
     }).catch((): AuthResult => ({ error: {} }))
     if (result.error) {
       setPending(false)
