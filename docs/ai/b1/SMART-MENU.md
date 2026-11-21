@@ -31,8 +31,8 @@ suggest (action publique Convex)
  ├─ reserveAiCall (internalMutation) quotas : 8 appels / usager / jour, 150 / établissement / jour
  ├─ selectWithAi            plats éligibles dans le prompt (<plats>, JSON, « données non fiables » :
  │                          offerId, date, service, plat ≤ 80 car., description ≤ 160 car., prixXof ;
- │                          chevrons et caractères de contrôle retirés) + 1 outil en LECTURE SEULE :
- │    checkPlan({ offerIds[] })    -> { valid, totalXof, budgetXof, problem } (calcul serveur)
+ │                          chevrons et caractères de contrôle retirés) ; UN SEUL appel, AUCUN outil,
+ │                          raisonnement désactivé (OpenRouter reasoning.effort = none)
  │    sortie : Output.object { picks: [{ offerId, reason }] (≤ 7) }
  ├─ recordAiTokens          jetons consommés (aucun texte de requête conservé)
  └─ validateAiPicks         rejet total si offre inconnue, jour en double, budget dépassé ;
@@ -40,7 +40,7 @@ suggest (action publique Convex)
                             explication supprimée si elle parle de santé ou d'allergènes
 ```
 
-Bornes par appel : 3 étapes, 700 jetons de sortie par étape, 15 s au total, 1 nouvelle tentative.
+Bornes par appel : 1 appel, 1 000 jetons de sortie, 15 s au total, 1 nouvelle tentative.
 Le modèle ne reçoit ni identité, ni solde, ni allergènes évités (filtre serveur), ni e-mail. Le souhait
 est nettoyé (contrôles, balises, 200 caractères) et présenté comme « donnée non fiable ».
 
@@ -59,12 +59,12 @@ plats écartés pour allergènes inconnus listés. Rappel : un allergène non re
 
 ## 4. Tests
 
-`pnpm test` : 31 tests B1 (99 au total).
+`pnpm test` : 30 tests B1 (98 au total).
 
 | Fichier | Cas |
 |---|---|
-| `convex/lib/smartMenu/rules.test.ts` (11) | nominal ; budget serré ; complet/clos/déjà réservé ; allergène présent ou en traces, accents ; allergène inconnu exclu et compté ; inconnu affiché sans filtre ; offre inconnue ou d'un autre établissement ; deux repas le même jour ; dépassement de budget ; `checkPlan` ; explications rassurantes supprimées |
-| `convex/lib/smartMenu/llm.test.ts` (8) | plats dans le prompt, checkPlan puis sortie structurée en 2 étapes ; injection indirecte par description ; sortie non conforme ; panne fournisseur ; prix falsifié ignoré ; injection (souhait borné, sans balises, aucun allergène évité ni solde transmis) ; explication trop longue tronquée (régression observée avec Haiku) ; identifiant halluciné |
+| `convex/lib/smartMenu/rules.test.ts` (10) | nominal ; budget serré ; complet/clos/déjà réservé ; allergène présent ou en traces, accents ; allergène inconnu exclu et compté ; inconnu affiché sans filtre ; offre inconnue ou d'un autre établissement ; deux repas le même jour ; dépassement de budget ; explications rassurantes supprimées |
+| `convex/lib/smartMenu/llm.test.ts` (8) | un seul appel sans outil, plats dans le prompt ; injection indirecte par description ; sortie non conforme ; panne fournisseur ; prix falsifié ignoré ; injection (souhait borné, sans balises, aucun allergène évité ni solde transmis) ; explication trop longue tronquée (régression observée avec Haiku) ; identifiant halluciné |
 | `convex/lib/smartMenu/providers.test.ts` (3) | OpenRouter configuré ; clé absente, modèle hors liste, `:free`, fournisseur inconnu désactivent l'IA ; AI Gateway par défaut |
 | `convex/smartMenu.test.ts` (9) | nominal serveur ; brouillon invisible ; menus d'un autre établissement invisibles ; budget jamais dépassé ; gérant, non rattaché et anonyme refusés ; entrées invalides ; IA non configurée ; modèle hors liste ; quotas usager/jour |
 
@@ -104,7 +104,26 @@ Conclusion : une étape et ~25 % de jetons en moins, mais **pas de gain de laten
 OpenRouter vers Haiku coûte 3 à 6 s quel que soit le nombre de plats. Contraintes toujours à 100 %
 (budget, allergène évité, injection directe et description piégée sans effet). Les 2 échecs sont
 intermittents (type non capturé ; même requête réussie ensuite) et retombent sur le calcul sans IA.
-Piste suivante : supprimer aussi checkPlan (1 seule étape), la validation serveur restant la seule autorité.
+
+### Version retenue : un seul appel, sans outil ni raisonnement
+
+`checkPlan` supprimé (fonction et outil) ; au premier essai, 2 échecs `finishReason: length` (le
+raisonnement interne de Haiku consommait les 700 jetons avant le JSON) : raisonnement désactivé et
+plafond porté à 1 000 jetons. Même protocole, deux nouveaux usagers fictifs :
+
+| Mesure | Plats dans le prompt + checkPlan | **Un seul appel** |
+|---|---|---|
+| Réponses du modèle | 6 / 8 | **8 / 8** |
+| Propositions acceptées par le serveur | 6 / 8 | 6 / 8 (2 hors budget rejetées) |
+| Jetons par demande (entrée / sortie) | ~4 400 / 680 | **~1 250 / 180** |
+| Coût par demande | ≈ 0,0008 $ | **≈ 0,0002 $** |
+| Latence moyenne / max | 8,2 s / 12,9 s | **2,3 s / 3,0 s** |
+
+Compromis observé : sur le budget serré (2 000 FCFA, 4 jours), le modèle sans outil ni raisonnement a
+proposé deux fois une sélection hors budget. La validation serveur l'a rejetée et l'usager a reçu le
+calcul sans IA avec le message « ne respectait pas vos critères » : aucune proposition invalide affichée.
+Le souhait « poulet » est moins bien suivi, et une explication a interprété le souhait de façon libre
+(« sans viande rouge »). Piste : donner au modèle le total minimal calculé par le serveur pour l'ancrer.
 
 Premier essai : 7 échecs `AI_NoObjectGeneratedError` sur 8. Le JSON de Haiku était correct mais ses
 explications dépassaient les `maxLength` du schéma, que le fournisseur n'applique pas. Correctif : schéma
@@ -118,8 +137,8 @@ de forme seulement, bornes appliquées par le serveur (troncature à 160 caract�
 
 ## 7. Limites connues
 
-- Latence IA élevée (8 s en moyenne, 12,9 s au max) malgré les plats dans le prompt : dominée par chaque
-  aller-retour fournisseur. Piste : une seule étape sans checkPlan.
+- Un seul appel : 2,3 s en moyenne, mais budgets serrés parfois mal respectés par le modèle (rattrapés par
+  le serveur, repli sans IA) et souhaits suivis moins finement.
 - Évaluation #18 partielle : 10 demandes, pas la revue humaine de 20 sorties par candidat ; Mercury 3 non testé.
 - La clé OpenRouter a transité en clair dans la conversation de développement : fixer une limite de
   dépense sur OpenRouter et la renouveler après le hackathon. Clé AI Gateway `vatel-b1-local` inutile : à révoquer.
