@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
 import { allergenCodeValidator } from './lib/allergens'
+import { notificationCategoryValidator } from './lib/notifications'
 
 export const roleValidator = v.union(
   v.literal('admin'),
@@ -109,6 +110,34 @@ export default defineSchema({
     .index('by_auth_user', ['authUserId'])
     .index('by_canteen_role', ['canteenId', 'role']),
 
+  /**
+   * Abonnement Web Push d'un appareil (un navigateur = un `endpoint`). Rattaché au membre qui l'a activé :
+   * le même appareil réactivé par un autre compte change de propriétaire. Aucune donnée personnelle ici.
+   */
+  pushSubscriptions: defineTable({
+    canteenId: v.id('canteens'),
+    profileId: v.id('profiles'),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+  })
+    .index('by_endpoint', ['endpoint'])
+    .index('by_profile', ['profileId'])
+    .index('by_canteen', ['canteenId']),
+
+  /** Familles de notifications coupées par un membre (absent = tout reçu). Vaut pour tous ses appareils. */
+  notificationPreferences: defineTable({
+    profileId: v.id('profiles'),
+    muted: v.array(notificationCategoryValidator),
+  }).index('by_profile', ['profileId']),
+
+  /** Rappels « clôture des réservations » déjà envoyés : un seul par établissement, jour et service. */
+  pushReminders: defineTable({
+    canteenId: v.id('canteens'),
+    date: v.string(),
+    service: serviceValidator,
+  }).index('by_canteen_date_service', ['canteenId', 'date', 'service']),
+
   /** Unités de mesure propres à l'établissement, créables au point d'usage. */
   units: defineTable({
     canteenId: v.id('canteens'),
@@ -147,4 +176,16 @@ export default defineSchema({
     .index('by_canteen_date', ['canteenId', 'date'])
     .index('by_canteen_status_date', ['canteenId', 'status', 'date'])
     .index('by_dish_status', ['dishId', 'status']),
+
+  /** Smart Menu (B1) : quotas et coût IA par usager et par jour. Aucun texte de requête conservé. */
+  aiUsage: defineTable({
+    canteenId: v.id('canteens'),
+    profileId: v.id('profiles'),
+    day: v.string(),
+    calls: v.number(),
+    inputTokens: v.number(),
+    outputTokens: v.number(),
+  })
+    .index('by_profile_day', ['profileId', 'day'])
+    .index('by_canteen_day', ['canteenId', 'day']),
 })

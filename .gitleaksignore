@@ -1,0 +1,8 @@
+# Faux positifs vérifiés le 21/11/2026 : vecteurs d'exemple PUBLICS de la spécification Web Push (bibliothèque web-push),
+# utilisés comme abonnement factice dans les tests (adresses FCM fictives). Aucune valeur réelle. Ne rien ajouter sans vérification.
+convex/notificationPreferences.test.ts:generic-api-key:9
+convex/reminders.test.ts:generic-api-key:13
+convex/push.test.ts:generic-api-key:13
+04bb9de6acb29cc587cc438274064540ee899b9f:convex/notificationPreferences.test.ts:generic-api-key:9
+39f03b7e1aad3aebaa3841f554db4a2e70ee5439:convex/reminders.test.ts:generic-api-key:13
+65d3167f27b8a31f248b9e55402fee9c7ea75e60:convex/push.test.ts:generic-api-key:13

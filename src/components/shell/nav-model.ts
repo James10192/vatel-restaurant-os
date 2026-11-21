@@ -1,7 +1,15 @@
-import { BookOpenTextIcon, CalendarCheckIcon, ClipboardListIcon, HouseIcon, LayoutDashboardIcon, ListChecksIcon, WalletIcon } from 'lucide-react'
+import { BookOpenTextIcon, CalendarCheckIcon, ClipboardListIcon, HouseIcon, LayoutDashboardIcon, ListChecksIcon, UserIcon, WalletIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-export type NavTo = '/app' | '/app/bookings' | '/app/wallet' | '/admin' | '/admin/menus' | '/admin/services' | '/admin/recettes'
+export type NavTo =
+  | '/app'
+  | '/app/bookings'
+  | '/app/wallet'
+  | '/app/profile'
+  | '/admin'
+  | '/admin/menus'
+  | '/admin/services'
+  | '/admin/recettes'
 export type NavItem = { to: NavTo; label: string; short: string; icon: LucideIcon }
 
 /** Espace repas (#11) : Accueil / Repas / Solde. `short` sert au rail tablette et à la barre du bas. */
@@ -10,6 +18,9 @@ export const MEAL_NAV: Array<NavItem> = [
   { to: '/app/bookings', label: 'Mes repas', short: 'Repas', icon: CalendarCheckIcon },
   { to: '/app/wallet', label: 'Solde', short: 'Solde', icon: WalletIcon },
 ]
+
+/** Profil et réglages : onglet de la barre du bas (mobile), lien du menu compte (tablette, bureau). */
+export const PROFILE_NAV: NavItem = { to: '/app/profile', label: 'Mon profil', short: 'Profil', icon: UserIcon }
 
 /** Gestion, administration seulement : le serveur revérifie le rôle à chaque fonction. */
 export const ADMIN_NAV: Array<NavItem> = [

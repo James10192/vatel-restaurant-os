@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { LogOutIcon } from 'lucide-react'
+import { DownloadIcon, LogOutIcon } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +12,26 @@ import {
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
 import { ThemeSubmenu } from '#/components/theme-submenu'
-import { ROLE_LABELS, currentUserQuery, signOut } from '#/lib/session'
+import { PROFILE_NAV } from '#/components/shell/nav-model'
+import { useInstall } from '#/lib/install'
+import { ROLE_LABELS, currentUserQuery, useSignOut } from '#/lib/session'
 
-/** Menu du compte (« Profil ») : identité, rôle, apparence, déconnexion. `side` suit la position du déclencheur. */
-export function AccountMenu({ trigger, side = 'top' }: { trigger: ReactNode; side?: 'top' | 'right' }) {
+const ProfileIcon = PROFILE_NAV.icon
+
+/**
+ * Menu du compte (tablette, bureau) : identité, raccourcis, déconnexion. Les réglages complets sont sur
+ * la page Profil. `side` suit la position du déclencheur.
+ */
+export function AccountMenu({
+  trigger,
+  side = 'top',
+}: {
+  trigger: ReactNode
+  side?: 'top' | 'right'
+}) {
   const { data: user } = useSuspenseQuery(currentUserQuery)
+  const { state: install, promptInstall } = useInstall()
+  const signOut = useSignOut()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
@@ -23,14 +39,31 @@ export function AccountMenu({ trigger, side = 'top' }: { trigger: ReactNode; sid
         <DropdownMenuLabel className="flex flex-col">
           <span className="truncate">{user?.name}</span>
           <span className="truncate text-xs font-normal text-muted-foreground">
-            {user?.membership ? `${ROLE_LABELS[user.membership.role]}, ${user.membership.canteenName}` : 'Compte non rattaché'}
+            {user?.membership
+              ? `${ROLE_LABELS[user.membership.role]}, ${user.membership.canteenName}`
+              : 'Compte non rattaché'}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <ThemeSubmenu />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link to={PROFILE_NAV.to}>
+              <ProfileIcon />
+              {PROFILE_NAV.label}
+            </Link>
+          </DropdownMenuItem>
+          {/* Seulement quand le navigateur propose réellement l'installation (jamais de faux bouton). */}
+          {install === 'available' && (
+            <DropdownMenuItem onSelect={() => void promptInstall()}>
+              <DownloadIcon />
+              Installer l’application
+            </DropdownMenuItem>
+          )}
+          <ThemeSubmenu />
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={signOut}>
+          <DropdownMenuItem onSelect={() => void signOut()}>
             <LogOutIcon />
             Se déconnecter
           </DropdownMenuItem>
