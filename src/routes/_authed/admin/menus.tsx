@@ -33,10 +33,8 @@ function AdminMenus() {
     { label: 'Brouillons', value: drafts },
     { label: 'Portions offertes', value: items.reduce((sum, item) => sum + item.capacity, 0) },
   ]
-  // Lundi à vendredi par défaut ; samedi et dimanche dès qu'un plat y est programmé.
-  const days = Array.from({ length: 7 }, (_, i) => addDays(week, i)).filter(
-    (date, i) => i < 5 || items.some((item) => item.date === date),
-  )
+  // Les 7 jours, comme côté usager : le week-end doit pouvoir être programmé.
+  const days = Array.from({ length: 7 }, (_, i) => addDays(week, i))
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pt-6 pb-10 md:px-8 md:pt-8">
