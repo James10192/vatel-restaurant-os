@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
+import { allergenCodeValidator } from './lib/allergens'
 
 export const roleValidator = v.union(
   v.literal('admin'),
@@ -24,8 +25,11 @@ export const allergenInfoValidator = v.union(
 
 export const recipeLineValidator = v.object({
   ingredientId: v.id('ingredients'),
+  /** Quantité brute achetée ou sortie du stock, pour le nombre de portions de la fiche. */
   quantity: v.number(),
   unitId: v.id('units'),
+  /** Perte à la préparation en % (épluchage, parage, cuisson) : quantité nette = brute x (1 - perte). Absente = 0. */
+  lossPct: v.optional(v.number()),
 })
 
 /** Politique de réservation propre à l'établissement (voir convex/lib/policy.ts pour les valeurs par défaut). */
@@ -116,6 +120,8 @@ export default defineSchema({
     canteenId: v.id('canteens'),
     name: v.string(),
     key: v.string(),
+    /** Allergènes de l'ingrédient. Absent = non renseigné (le plat sera « non renseigné ») ; [] = aucun allergène. */
+    allergens: v.optional(v.array(allergenCodeValidator)),
   }).index('by_canteen_key', ['canteenId', 'key']),
 
   /** Plat du catalogue, avec fiche recette légère (#13 A1). */

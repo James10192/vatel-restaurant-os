@@ -15,6 +15,7 @@ import type * as catalog from "../catalog.js";
 import type * as dishes from "../dishes.js";
 import type * as http from "../http.js";
 import type * as lib_access from "../lib/access.js";
+import type * as lib_allergens from "../lib/allergens.js";
 import type * as lib_capacity from "../lib/capacity.js";
 import type * as lib_dates from "../lib/dates.js";
 import type * as lib_ledger from "../lib/ledger.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   dishes: typeof dishes;
   http: typeof http;
   "lib/access": typeof lib_access;
+  "lib/allergens": typeof lib_allergens;
   "lib/capacity": typeof lib_capacity;
   "lib/dates": typeof lib_dates;
   "lib/ledger": typeof lib_ledger;
