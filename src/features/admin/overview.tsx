@@ -1,11 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import type { FunctionReturnType } from 'convex/server'
-import { ArrowRightIcon, ChevronRightIcon, CircleSlashIcon, ClockIcon, HandPlatterIcon, SoupIcon } from 'lucide-react'
+import { ChevronRightIcon, CircleSlashIcon, ClockIcon, HandPlatterIcon, SoupIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { api } from '../../../convex/_generated/api'
 import { DishVisual } from '#/components/dish-visual'
 import { Badge } from '#/components/ui/badge'
-import { Button } from '#/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card'
 import { SERVICE_LABELS, formatXof } from '#/lib/format'
 import type { Service } from '#/lib/format'
@@ -16,7 +15,7 @@ type Summary = FunctionReturnType<typeof api.admin.daySummary>
 type Offer = Summary['offers'][number]
 type OrderStatus = 'confirmed' | 'picked_up' | 'cancelled'
 
-const percent = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0)
+export const percent = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0)
 /**
  * Jauge segmentée d'une capacité : remis, à servir, libres. Une seule lecture, de gauche à droite,
  * au lieu de trois chiffres à additionner. `onBrand` : posée sur la surface bleu Vatel.
@@ -59,64 +58,6 @@ function Legend({ className, label, value }: { className: string; label: string;
       <span className="tabular-nums">{value}</span>
       <span className="opacity-70">{t(label)}</span>
     </span>
-  )
-}
-
-/** Carte maîtresse : où en est le service, en un coup d'œil, et l'action suivante. */
-export function ServiceHero({ date, dayLabel, totals }: { date: string; dayLabel: string; totals: Summary['totals'] }) {
-  const t = useT()
-  const booked = totals.confirmed + totals.pickedUp
-  return (
-    // Surface de marque : bleu Vatel foncé dans les deux thèmes (en sombre, --primary devient bleu clair).
-    <section className="relative isolate overflow-hidden rounded-3xl bg-vatel-navy p-6 text-white shadow-lg shadow-vatel-navy/25 ring-1 ring-white/10 md:p-8">
-      <div aria-hidden className="absolute -top-20 -right-20 -z-10 size-72 rounded-full border-[28px] border-white/10" />
-      <div aria-hidden className="absolute right-24 -bottom-24 -z-10 size-48 rounded-full bg-white/5" />
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div className="flex flex-col gap-2">
-          <p className="text-eyebrow text-white/70">{t('Service')} {dayLabel}</p>
-          <p className="flex items-baseline gap-3">
-            <span className="text-6xl font-bold tracking-[-0.04em] tabular-nums md:text-7xl">
-              {percent(booked, totals.capacity)}
-              <span className="text-3xl md:text-4xl">%</span>
-            </span>
-            <span className="max-w-40 text-sm leading-snug text-white/80">{t('des portions réservées')}</span>
-          </p>
-          <p className="text-sm text-white/80">
-            <span className="tabular-nums">
-              {t(totals.capacity > 1 ? '{booked} sur {n} portions proposées' : '{booked} sur {n} portion proposée', {
-                booked,
-                n: totals.capacity,
-              })}
-            </span>
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-3 md:items-end">
-          <Badge variant="secondary" className="tabular-nums">
-            {formatXof(totals.demoAmountXof)} {t('en crédits démo')}
-          </Badge>
-          <Button variant="secondary" size="lg" asChild>
-            <Link
-              to="/admin/services"
-              search={{
-                date,
-                status: totals.confirmed > 0 ? 'confirmed' : undefined,
-              }}
-            >
-              {totals.confirmed > 0 ? `Servir ${totals.confirmed} repas` : t('Voir les commandes')}
-              <ArrowRightIcon data-icon="inline-end" />
-            </Link>
-          </Button>
-        </div>
-      </div>
-      <div className="mt-6 flex flex-col gap-3">
-        <CapacityBar offer={totals} onBrand />
-        <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
-          <Legend className="bg-white" label={t('remis')} value={totals.pickedUp} />
-          <Legend className="bg-vatel-sky" label={t('à servir')} value={totals.confirmed} />
-          <Legend className="border border-white/60" label="libres" value={totals.remaining} />
-        </div>
-      </div>
-    </section>
   )
 }
 

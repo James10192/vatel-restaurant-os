@@ -230,6 +230,13 @@ export const EN: Record<string, string> = {
     'Amounts in demo credits: no real payment is collected.',
   'Par plat': 'By dish',
   'Voir les commandes': 'View orders',
+  'En direct': 'Live',
+  'portions réservées': 'portions booked',
+  '{rate} % des portions réservées': '{rate}% of portions booked',
+  '{n} encore libres': '{n} still available',
+  '{n} encore libre': '{n} still available',
+  '{amount} engagés, crédits de démonstration': '{amount} committed, demo credits',
+  'Servir {n} repas': 'Serve {n} meals',
   'remis sur': 'collected out of',
   'des portions réservées': 'of booked portions',
   '{pickedUp} remis, {confirmed} à servir, sur {capacity} portions':
