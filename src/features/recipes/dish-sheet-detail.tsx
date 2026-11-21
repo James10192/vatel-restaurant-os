@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FunctionReturnType } from 'convex/server'
-import { CopyPlusIcon, LockIcon } from 'lucide-react'
+import { ClipboardPenIcon, CopyPlusIcon, LockIcon } from 'lucide-react'
 import type { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Alert, AlertDescription, AlertTitle } from '#/components/ui/alert'
@@ -8,6 +8,7 @@ import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { formatXof } from '#/lib/format'
 import { DishForm } from '#/features/menus/dish-form'
+import { isEmptyUnknownSheet } from '../../../convex/lib/dishSheet'
 import { DishPhoto } from './dish-photo'
 import { useT } from '#/i18n/i18n'
 
@@ -21,6 +22,8 @@ export function DishDetail({ dish, onSaved }: { dish: CatalogDish; onSaved: (id:
   const t = useT()
   const [mode, setMode] = useState<'edit' | 'version'>('edit')
   const versionOf = { ...dish, name: `${dish.name} (nouvelle version)` }
+  // Publié mais jamais rempli : on complète la fiche sur place ; sinon un plat publié est verrouillé.
+  const locked = dish.published && !isEmptyUnknownSheet(dish)
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-3 @lg:flex-row @lg:items-start @lg:justify-between">
@@ -45,7 +48,17 @@ export function DishDetail({ dish, onSaved }: { dish: CatalogDish; onSaved: (id:
 
       <DishPhoto dishId={dish._id} name={dish.name} photoUrl={dish.photoUrl} />
 
-      {dish.published && (
+      {dish.published && !locked && (
+        <Alert>
+          <ClipboardPenIcon />
+          <AlertTitle>{t('Fiche à compléter : ce plat est publié sans composition')}</AlertTitle>
+          <AlertDescription>
+            {t('Ajoutez ses ingrédients : ses allergènes seront renseignés pour les usagers. Son nom et son prix restent ceux déjà publiés.')}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {locked && (
         <Alert>
           <LockIcon />
           <AlertTitle>{t('Fiche verrouillée : ce plat est publié')}</AlertTitle>
@@ -55,10 +68,10 @@ export function DishDetail({ dish, onSaved }: { dish: CatalogDish; onSaved: (id:
         </Alert>
       )}
 
-      {dish.published || mode === 'version' ? (
+      {locked || mode === 'version' ? (
         <DishForm key={`version-${dish._id}`} initial={versionOf} onSaved={onSaved} submitLabel={t('Créer la nouvelle version')} />
       ) : (
-        <DishForm key={`edit-${dish._id}`} initial={dish} dishId={dish._id} onSaved={onSaved} submitLabel={t('Enregistrer la fiche')} />
+        <DishForm key={`edit-${dish._id}`} initial={dish} dishId={dish._id} onSaved={onSaved} submitLabel={dish.published ? t('Compléter la fiche') : t('Enregistrer la fiche')} />
       )}
     </div>
   )
