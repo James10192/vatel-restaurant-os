@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import { addDays } from '../../../convex/lib/dates'
 import { useAction } from 'convex/react'
 import { CircleAlertIcon, EyeIcon, InfoIcon, RefreshCwIcon, SparklesIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -10,11 +12,20 @@ import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '#/components/ui/sheet'
 import { Skeleton } from '#/components/ui/skeleton'
-import { dateFormat } from '#/lib/format'
+import { dateFormat, formatDayShort } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
 import { useMinWidth } from '#/lib/use-min-width'
 import { cn } from '#/lib/utils'
 import { useLocale, useT } from '#/i18n/i18n'
+import type { Locale } from '#/i18n/i18n'
+
+/** Valeurs d'un point mises en forme pour la langue : décimales à la virgule en français, dates lisibles. */
+function displayValues(values: Record<string, string | number>, locale: Locale) {
+  const number = new Intl.NumberFormat(locale === 'en' ? 'en-GB' : 'fr-FR', { maximumFractionDigits: 2 })
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [key, key === 'day' && typeof value === 'string' ? formatDayShort(value, locale) : typeof value === 'number' ? number.format(value) : value]),
+  )
+}
 
 const SEVERITY: Record<Severity, { icon: LucideIcon; tone: string; label: string }> = {
   action: { icon: CircleAlertIcon, tone: 'text-destructive', label: 'À faire' },
@@ -92,7 +103,16 @@ export function CopilotSheet({ date }: { date: string }) {
                           <span className="text-xs text-muted-foreground">
                             {priority !== undefined ? t('Priorité {n}', { n: priority + 1 }) : t(label)}
                           </span>
-                          <span className="text-sm">{t(point.message, point.values)}</span>
+                          <span className="text-sm">{t(point.message, displayValues(point.values, locale))}</span>
+                          {point.kind === 'tomorrow_target' && (
+                            <Link
+                              to="/admin/production"
+                              search={{ date: addDays(date, 1) }}
+                              className="text-sm font-semibold text-primary underline underline-offset-2"
+                            >
+                              {t('Ouvrir le plan de demain pour valider')}
+                            </Link>
+                          )}
                         </div>
                       </li>
                     )

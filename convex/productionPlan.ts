@@ -8,13 +8,10 @@ import { getOwned, requireKitchen } from './lib/access'
 import { activeBookingsCount } from './lib/capacity'
 import { addDays, todayUtc, weekStartOf } from './lib/dates'
 import { suggest, summarizeHistory } from './lib/production/history'
-import { loadProductionDay, tally } from './lib/production/load'
+import { loadDishHistory, loadProductionDay } from './lib/production/load'
 import { dishHistoryReturns, productionWeekReturns } from './lib/production/returns'
 import { MAX_EVENT_PORTIONS } from './lib/production/waste'
 import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
-
-/** Services passés du même plat pris en compte (les plus récents). */
-const HISTORY_DEPTH = 8
 
 const assertCount = (value: number, label: string) => {
   if (!Number.isInteger(value) || value < 0 || value > MAX_EVENT_PORTIONS) throw new ConvexError(`${label} : entier entre 0 et ${MAX_EVENT_PORTIONS}.`)
@@ -57,23 +54,7 @@ export const dishHistory = query({
   handler: async (ctx, { menuItemId }) => {
     const membership = await requireKitchen(ctx)
     const item = await getOwned(ctx, membership, menuItemId)
-    const past = (await ctx.db.query('menuItems').withIndex('by_dish_status', (q) => q.eq('dishId', item.dishId).eq('status', 'published')).collect())
-      .filter((other) => other.date < item.date && other.date < todayUtc())
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, HISTORY_DEPTH)
-    const services = await Promise.all(
-      past.map(async (other) => {
-        const [bookings, events] = await Promise.all([
-          ctx.db.query('bookings').withIndex('by_menu_item_status', (q) => q.eq('menuItemId', other._id)).collect(),
-          ctx.db.query('productionEvents').withIndex('by_menu_item', (q) => q.eq('menuItemId', other._id)).collect(),
-        ])
-        const count = (status: (typeof bookings)[number]['status']) => bookings.filter((b) => b.status === status).length
-        const { prepared, wasted, walkIns } = tally(events)
-        // Jour passé : « confirmée » restante = repas jamais retiré.
-        const noShow = count('confirmed')
-        return { date: other.date, booked: noShow + count('picked_up'), pickedUp: count('picked_up'), noShow, cancelled: count('cancelled'), prepared, wasted, walkIns }
-      }),
-    )
+    const services = await loadDishHistory(ctx, item)
     const history = summarizeHistory(services)
     return { history, suggestion: suggest(history, await activeBookingsCount(ctx, menuItemId)), services }
   },

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { MockLanguageModelV4 } from 'ai/test'
-import { buildPoints } from './brief'
+import { buildPoints, managerPoints } from './brief'
 import { checkDraft, draftWithAi } from './llm'
 import type { ProductionDayOffer, WasteDay } from '../production/load'
 
@@ -92,5 +92,33 @@ describe('résumé IA revalidé', () => {
       },
     })
     await expect(draftWithAi(broken, points, 'fr')).rejects.toThrow()
+  })
+})
+
+describe('points de gestion', () => {
+  test('rupture, lot à utiliser, objectif de demain sans plan, menu à revoir (avec seuils de données)', () => {
+    const manager = managerPoints({
+      stock: [{ name: 'Riz', unit: 'kg', shortage: 1.724, expiring: [{ qty: 5, day: '2026-11-22' }] }],
+      tomorrow: [
+        { menuItemId: 'm1', dish: 'Garba', booked: 40, hasPlan: false, walkIns: 4, margin: 2 },
+        { menuItemId: 'm2', dish: 'Alloco', booked: 10, hasPlan: true, walkIns: 0, margin: 1 },
+      ],
+      menus: [
+        { dish: 'Foutou', ratingAvg: 2.8, ratingCount: 5, wasteRate: 4, prepared: 100 },
+        { dish: 'Placali', ratingAvg: 2, ratingCount: 1, wasteRate: 30, prepared: 10 },
+      ],
+    })
+    expect(manager.map((p) => [p.kind, p.values])).toEqual([
+      ['stock_shortage', { name: 'Riz', qty: 1.72, unit: 'kg' }],
+      ['lot_expiring', { name: 'Riz', qty: 5, unit: 'kg', day: '2026-11-22' }],
+      ['tomorrow_target', { dish: 'Garba', booked: 40, walkIns: 4, margin: 2, target: 46, menuItemId: 'm1' }],
+      ['menu_improve', { dish: 'Foutou', rating: 2.8, waste: 4 }],
+    ])
+  })
+
+  test('le résumé IA peut citer les chiffres décimaux d’un point, pas d’autres', () => {
+    const shortage = managerPoints({ stock: [{ name: 'Riz', unit: 'kg', shortage: 1.724, expiring: [] }], tomorrow: [], menus: [] })
+    expect(checkDraft({ summary: 'Il manque 1,72 kg de riz.', priorities: [] }, shortage).ok).toBe(true)
+    expect(checkDraft({ summary: 'Il manque 1,8 kg de riz.', priorities: [] }, shortage).ok).toBe(false)
   })
 })

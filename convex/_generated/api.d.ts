@@ -10,6 +10,7 @@
 
 import type * as account from "../account.js";
 import type * as admin from "../admin.js";
+import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
 import type * as bookings from "../bookings.js";
 import type * as catalog from "../catalog.js";
@@ -22,9 +23,11 @@ import type * as lib_access from "../lib/access.js";
 import type * as lib_aiQuota from "../lib/aiQuota.js";
 import type * as lib_allergens from "../lib/allergens.js";
 import type * as lib_allergies from "../lib/allergies.js";
+import type * as lib_analytics from "../lib/analytics.js";
 import type * as lib_booking from "../lib/booking.js";
 import type * as lib_capacity from "../lib/capacity.js";
 import type * as lib_copilot_brief from "../lib/copilot/brief.js";
+import type * as lib_copilot_facts from "../lib/copilot/facts.js";
 import type * as lib_copilot_llm from "../lib/copilot/llm.js";
 import type * as lib_dates from "../lib/dates.js";
 import type * as lib_ledger from "../lib/ledger.js";
@@ -56,6 +59,7 @@ import type * as production from "../production.js";
 import type * as productionPlan from "../productionPlan.js";
 import type * as push from "../push.js";
 import type * as pushSend from "../pushSend.js";
+import type * as ratings from "../ratings.js";
 import type * as reminders from "../reminders.js";
 import type * as settings from "../settings.js";
 import type * as setup from "../setup.js";
@@ -73,6 +77,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   account: typeof account;
   admin: typeof admin;
+  analytics: typeof analytics;
   auth: typeof auth;
   bookings: typeof bookings;
   catalog: typeof catalog;
@@ -85,9 +90,11 @@ declare const fullApi: ApiFromModules<{
   "lib/aiQuota": typeof lib_aiQuota;
   "lib/allergens": typeof lib_allergens;
   "lib/allergies": typeof lib_allergies;
+  "lib/analytics": typeof lib_analytics;
   "lib/booking": typeof lib_booking;
   "lib/capacity": typeof lib_capacity;
   "lib/copilot/brief": typeof lib_copilot_brief;
+  "lib/copilot/facts": typeof lib_copilot_facts;
   "lib/copilot/llm": typeof lib_copilot_llm;
   "lib/dates": typeof lib_dates;
   "lib/ledger": typeof lib_ledger;
@@ -119,6 +126,7 @@ declare const fullApi: ApiFromModules<{
   productionPlan: typeof productionPlan;
   push: typeof push;
   pushSend: typeof pushSend;
+  ratings: typeof ratings;
   reminders: typeof reminders;
   settings: typeof settings;
   setup: typeof setup;

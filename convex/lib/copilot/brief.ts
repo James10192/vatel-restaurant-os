@@ -7,7 +7,19 @@ import { situationOf } from '../production/plan'
 import { wasteBalance } from '../production/waste'
 import type { ProductionDayOffer, WasteDay } from '../production/load'
 
-export const POINT_KINDS = ['prepared_unknown', 'surplus', 'missing', 'capacity_tight', 'waste_high', 'no_recipe', 'week_waste'] as const
+export const POINT_KINDS = [
+  'prepared_unknown',
+  'surplus',
+  'missing',
+  'capacity_tight',
+  'waste_high',
+  'no_recipe',
+  'week_waste',
+  'stock_shortage',
+  'lot_expiring',
+  'tomorrow_target',
+  'menu_improve',
+] as const
 export type PointKind = (typeof POINT_KINDS)[number]
 export type Severity = 'action' | 'watch' | 'info'
 
@@ -21,7 +33,7 @@ export type Point = {
 }
 
 /** Seuils lisibles et modifiables en un seul endroit (pas de règle cachée dans le code d'affichage). */
-export const THRESHOLDS = { capacityTightPct: 90, wasteHighPct: 10 } as const
+export const THRESHOLDS = { capacityTightPct: 90, wasteHighPct: 10, menuRatingLow: 3.5, menuWasteHighPct: 15, minRatings: 3, minPrepared: 30 } as const
 
 const MESSAGES: Record<PointKind, string> = {
   prepared_unknown: '{dish} : aucune portion préparée saisie, le reste à préparer est inconnu.',
@@ -31,6 +43,10 @@ const MESSAGES: Record<PointKind, string> = {
   waste_high: '{dish} : {rate} % du préparé déclaré perdu.',
   no_recipe: '{dish} : sans fiche technique, la matière à sortir est inconnue.',
   week_waste: '7 derniers jours : {wasted} portions perdues sur {prepared} préparées ({rate} %).',
+  stock_shortage: '{name} : il manque {qty} {unit} pour la production prévue d’ici dimanche.',
+  lot_expiring: '{name} : {qty} {unit} à utiliser avant le {day}',
+  tomorrow_target: 'Demain, {dish} : {booked} réservés ; objectif proposé {target} ({walkIns} passages, {margin} de marge), à valider.',
+  menu_improve: '{dish} : note {rating} sur 5 et {waste} % de pertes sur 30 jours, à revoir.',
 }
 const SEVERITY: Record<PointKind, Severity> = {
   prepared_unknown: 'action',
@@ -40,6 +56,10 @@ const SEVERITY: Record<PointKind, Severity> = {
   waste_high: 'watch',
   no_recipe: 'info',
   week_waste: 'info',
+  stock_shortage: 'action',
+  lot_expiring: 'watch',
+  tomorrow_target: 'action',
+  menu_improve: 'info',
 }
 
 const point = (kind: PointKind, key: string, values: Point['values']): Point => ({
@@ -51,6 +71,7 @@ const point = (kind: PointKind, key: string, values: Point['values']): Point => 
 })
 
 const pct = (part: number, whole: number) => Math.round((part / whole) * 100)
+const round2 = (n: number) => Math.round(n * 100) / 100
 
 /** Points d'attention d'un jour, triés : à faire d'abord, puis à surveiller, puis informations. */
 export function buildPoints(offers: Array<ProductionDayOffer>, week: Array<WasteDay>): Array<Point> {
@@ -72,6 +93,40 @@ export function buildPoints(offers: Array<ProductionDayOffer>, week: Array<Waste
   const prepared = week.reduce((n, d) => n + d.prepared, 0)
   const wasted = week.reduce((n, d) => n + d.wasted, 0)
   if (prepared > 0) points.push(point('week_waste', 'week', { wasted, prepared, rate: pct(wasted, prepared) }))
-  const order: Record<Severity, number> = { action: 0, watch: 1, info: 2 }
-  return points.sort((a, b) => order[a.severity] - order[b.severity])
+  return sortPoints(points)
 }
+
+/** Faits « gestion » déjà calculés par le serveur (stock, demain, 30 jours) : rien n'est estimé ici. */
+export type ManagerFacts = {
+  stock: Array<{ name: string; unit: string; shortage: number; expiring: Array<{ qty: number; day: string }> }>
+  tomorrow: Array<{ menuItemId: string; dish: string; booked: number; hasPlan: boolean; walkIns: number; margin: number }>
+  menus: Array<{ dish: string; ratingAvg: number | null; ratingCount: number; wasteRate: number | null; prepared: number }>
+}
+
+/**
+ * Points de gestion : ruptures et dates limites (stock), objectifs proposés pour demain (offres sans plan validé),
+ * menus à revoir (note basse ou pertes élevées, avec un minimum de données pour ne rien conclure sur un cas isolé).
+ */
+export function managerPoints({ stock, tomorrow, menus }: ManagerFacts): Array<Point> {
+  const points: Array<Point> = [
+    ...stock.filter((s) => s.shortage > 0).map((s) => point('stock_shortage', s.name, { name: s.name, qty: round2(s.shortage), unit: s.unit })),
+    ...stock.flatMap((s) => s.expiring.map((lot) => point('lot_expiring', `${s.name}:${lot.day}`, { name: s.name, qty: round2(lot.qty), unit: s.unit, day: lot.day }))),
+    ...tomorrow
+      .filter((o) => !o.hasPlan)
+      .map((o) =>
+        point('tomorrow_target', o.menuItemId, { dish: o.dish, booked: o.booked, walkIns: o.walkIns, margin: o.margin, target: o.booked + o.walkIns + o.margin, menuItemId: o.menuItemId }),
+      ),
+    ...menus
+      .filter(
+        (m) =>
+          (m.ratingCount >= THRESHOLDS.minRatings && (m.ratingAvg ?? 5) < THRESHOLDS.menuRatingLow) ||
+          (m.prepared >= THRESHOLDS.minPrepared && (m.wasteRate ?? 0) >= THRESHOLDS.menuWasteHighPct),
+      )
+      .map((m) => point('menu_improve', m.dish, { dish: m.dish, rating: m.ratingAvg ?? '?', waste: m.wasteRate ?? '?' })),
+  ]
+  return points
+}
+
+const ORDER: Record<Severity, number> = { action: 0, watch: 1, info: 2 }
+/** Tous les points, triés : à faire, à surveiller, information. */
+export const sortPoints = (points: Array<Point>) => [...points].sort((a, b) => ORDER[a.severity] - ORDER[b.severity])

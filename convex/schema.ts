@@ -289,6 +289,19 @@ export default defineSchema({
     .index('by_menu_item', ['menuItemId'])
     .index('by_profile', ['profileId']),
 
+  /** Note d'un repas remis (1 à 5), une par réservation ; aucun commentaire libre (pas de donnée à modérer). */
+  ratings: defineTable({
+    canteenId: v.id('canteens'),
+    bookingId: v.id('bookings'),
+    profileId: v.id('profiles'),
+    menuItemId: v.id('menuItems'),
+    dishId: v.id('dishes'),
+    date: v.string(),
+    score: v.number(),
+  })
+    .index('by_booking', ['bookingId'])
+    .index('by_canteen_date', ['canteenId', 'date']),
+
   /** Smart Menu (B1) : quotas et coût IA par usager et par jour. Aucun texte de requête conservé. */
   aiUsage: defineTable({
     canteenId: v.id('canteens'),

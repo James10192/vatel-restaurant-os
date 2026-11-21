@@ -138,3 +138,27 @@ export async function loadWasteWeek(ctx: QueryCtx, canteenId: Id<'canteens'>, en
 }
 
 export type WasteDay = Awaited<ReturnType<typeof loadWasteWeek>>[number]
+
+/** Services passés du même plat pris en compte (les plus récents). */
+const HISTORY_DEPTH = 8
+
+/** Services passés du plat d'une offre (avant elle et avant aujourd'hui) : réservations, absents, préparé, pertes, passages. */
+export async function loadDishHistory(ctx: QueryCtx, item: Doc<'menuItems'>) {
+  const past = (await ctx.db.query('menuItems').withIndex('by_dish_status', (q) => q.eq('dishId', item.dishId).eq('status', 'published')).collect())
+    .filter((other) => other.date < item.date && other.date < todayUtc())
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, HISTORY_DEPTH)
+  return await Promise.all(
+    past.map(async (other) => {
+      const [bookings, events] = await Promise.all([
+        ctx.db.query('bookings').withIndex('by_menu_item_status', (q) => q.eq('menuItemId', other._id)).collect(),
+        ctx.db.query('productionEvents').withIndex('by_menu_item', (q) => q.eq('menuItemId', other._id)).collect(),
+      ])
+      const count = (status: BookingStatus) => bookings.filter((b) => b.status === status).length
+      const { prepared, wasted, walkIns } = tally(events)
+      // Jour passé : « confirmée » restante = repas jamais retiré.
+      const noShow = count('confirmed')
+      return { date: other.date, booked: noShow + count('picked_up'), pickedUp: count('picked_up'), noShow, cancelled: count('cancelled'), prepared, wasted, walkIns }
+    }),
+  )
+}
