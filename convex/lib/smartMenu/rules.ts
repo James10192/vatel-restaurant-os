@@ -110,10 +110,6 @@ export function sanitizeReason(reason: string): string | undefined {
 
 export type AiValidation<TRow extends OfferRow = OfferRow> = { ok: true; plan: Plan<TRow> } | { ok: false; problem: string }
 
-/** Index des offres éligibles par identifiant : seule source des prix et disponibilités. */
-const eligibleIndex = <TRow extends OfferRow>(evaluation: Evaluation<TRow>) =>
-  new Map([...evaluation.eligibleByDay.values()].flat().map((offer) => [offer.id, offer]))
-
 /**
  * Valide la proposition du modèle contre les données serveur. Le moindre écart (offre inconnue,
  * jour en double, budget dépassé) rejette toute la proposition : on repasse alors au plan sans IA.
@@ -123,7 +119,8 @@ export function validateAiPicks<TRow extends OfferRow>(
   evaluation: Evaluation<TRow>,
   request: SmartRequest,
 ): AiValidation<TRow> {
-  const eligible = eligibleIndex(evaluation)
+  // Seule source des prix et disponibilités : les offres éligibles lues en base.
+  const eligible = new Map([...evaluation.eligibleByDay.values()].flat().map((offer) => [offer.id, offer]))
   const days = new Set<string>()
   const picks: Plan<TRow>['picks'] = []
   let totalXof = 0
@@ -139,18 +136,6 @@ export function validateAiPicks<TRow extends OfferRow>(
   if (picks.length === 0 && evaluation.eligibleByDay.size > 0) return { ok: false, problem: 'aucun repas proposé' }
   const notPicked = [...evaluation.eligibleByDay.keys()].filter((date) => !days.has(date))
   return { ok: true, plan: finalize(picks, [...evaluation.uncovered, ...notPicked.map((date) => ({ date, reason: 'budget' as const }))]) }
-}
-
-/** Contrôle déterministe exposé au modèle comme outil : il ne calcule jamais lui-même le total. */
-export function checkPlan(offerIds: Array<string>, evaluation: Evaluation, request: SmartRequest) {
-  const result = validateAiPicks(
-    offerIds.map((offerId) => ({ offerId, reason: '' })),
-    evaluation,
-    request,
-  )
-  const eligible = eligibleIndex(evaluation)
-  const totalXof = offerIds.reduce((sum, id) => sum + (eligible.get(id)?.priceXof ?? 0), 0)
-  return { valid: result.ok, totalXof, budgetXof: request.budgetXof, problem: result.ok ? null : result.problem }
 }
 
 function finalize<TRow extends OfferRow>(picks: Plan<TRow>['picks'], uncovered: Plan['uncovered']): Plan<TRow> {

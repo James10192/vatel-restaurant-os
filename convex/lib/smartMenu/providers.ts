@@ -28,9 +28,11 @@ export function configuredModel(env: Env): { modelId: string; model: LanguageMod
   if (provider === 'openrouter') {
     const apiKey = env.OPENROUTER_API_KEY
     if (!apiKey) return null
-    // Refuse les fournisseurs qui conservent ou réutilisent les requêtes ; exige le support des outils.
+    // Refuse les fournisseurs qui conservent ou réutilisent les requêtes. Sans raisonnement interne :
+    // choix simple, revalidé par le serveur ; le raisonnement coupait le JSON (finishReason « length »).
     const model = createOpenRouter({ apiKey })(modelId, {
       provider: { data_collection: 'deny', require_parameters: true },
+      reasoning: { effort: 'none' },
     })
     return { modelId: `openrouter/${modelId}`, model }
   }

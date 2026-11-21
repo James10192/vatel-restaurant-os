@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { checkPlan, evaluate, planByRules, sanitizeReason, validateAiPicks } from './rules'
+import { evaluate, planByRules, sanitizeReason, validateAiPicks } from './rules'
 import type { OfferRow, SmartRequest } from './rules'
 
 const NOW = Date.parse('2026-11-23T08:00:00Z')
@@ -105,10 +105,6 @@ describe('validation de la proposition IA', () => {
       ok: false,
       problem: 'budget dépassé',
     })
-  })
-
-  test('outil checkPlan : total calculé par le serveur', () => {
-    expect(checkPlan(['a', 'b'], evaluation, req)).toEqual({ valid: true, totalXof: 2500, budgetXof: 5000, problem: null })
   })
 
   test('explication rassurante sur allergènes ou santé supprimée ; caractères de contrôle retirés', () => {

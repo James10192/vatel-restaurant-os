@@ -25,12 +25,6 @@ const request: SmartRequest = { days: ['2026-11-23', '2026-11-24'], budgetXof: 3
 const evaluation = evaluate([row('a', '2026-11-23', 1500), row('b', '2026-11-24', 1000)], { ...request, avoid: [] }, NOW)
 
 type Step = ConstructorParameters<typeof MockLanguageModelV4>[0]
-const toolCall = (toolName: string, input: unknown) => ({
-  content: [{ type: 'tool-call' as const, toolCallId: `c-${toolName}`, toolName, input: JSON.stringify(input) }],
-  finishReason: { unified: 'tool-calls' as const, raw: undefined },
-  usage,
-  warnings: [],
-})
 const finalText = (text: string) => ({
   content: [{ type: 'text' as const, text }],
   finishReason: { unified: 'stop' as const, raw: undefined },
@@ -40,14 +34,14 @@ const finalText = (text: string) => ({
 const mock = (steps: NonNullable<Step>['doGenerate']) => new MockLanguageModelV4({ doGenerate: steps })
 
 describe('couche IA (modèle simulé)', () => {
-  test('nominal : plats dans le prompt, checkPlan puis sortie structurée en 2 étapes ; usage cumulé', async () => {
+  test('nominal : un seul appel sans outil, plats dans le prompt, sortie structurée validée', async () => {
     const model = mock([
-      toolCall('checkPlan', { offerIds: ['a', 'b'] }),
       finalText(JSON.stringify({ picks: [{ offerId: 'a', reason: 'Copieux' }, { offerId: 'b', reason: 'Léger' }] })),
     ])
     const outcome = await selectWithAi(model, evaluation, request, '')
-    expect(outcome.steps).toBe(2)
-    expect(outcome.usage).toEqual({ inputTokens: 200, outputTokens: 40 })
+    expect(outcome.steps).toBe(1)
+    expect(outcome.usage).toEqual({ inputTokens: 100, outputTokens: 20 })
+    expect(model.doGenerateCalls[0].tools ?? []).toHaveLength(0)
     expect(JSON.stringify(model.doGenerateCalls[0].prompt)).toContain('Plat a')
     const checked = validateAiPicks(outcome.picks, evaluation, request)
     expect(checked.ok && checked.plan.totalXof).toBe(2500)
