@@ -1,4 +1,4 @@
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
+import { HeadContent, Outlet, ScriptOnce, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import type { QueryClient } from '@tanstack/react-query'
 import type { ConvexQueryClient } from '@convex-dev/react-query'
@@ -44,7 +44,7 @@ function RootComponent() {
       <html lang="fr" suppressHydrationWarning>
         <head>
           {/* Applique le thème choisi avant le premier rendu : pas de flash clair/sombre. */}
-          <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+          <ScriptOnce>{THEME_BOOT_SCRIPT}</ScriptOnce>
           <HeadContent />
         </head>
         <body className="min-h-dvh bg-background text-foreground antialiased">
