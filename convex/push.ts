@@ -6,6 +6,7 @@ import {
   mutation,
   query,
 } from './_generated/server'
+import type { Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { requireMember } from './lib/access'
 import {
@@ -25,6 +26,13 @@ const byEndpoint = (ctx: QueryCtx, endpoint: string) =>
     .query('pushSubscriptions')
     .withIndex('by_endpoint', (q) => q.eq('endpoint', endpoint))
     .unique()
+
+/** Appareils abonnés d'un membre (au plus MAX_DEVICES_PER_MEMBER). */
+export const devicesOf = (ctx: QueryCtx, profileId: Id<'profiles'>) =>
+  ctx.db
+    .query('pushSubscriptions')
+    .withIndex('by_profile', (q) => q.eq('profileId', profileId))
+    .take(MAX_DEVICES_PER_MEMBER)
 
 /** Clé publique VAPID (non secrète) ; null tant que l'environnement Convex n'est pas configuré. */
 export const publicKey = query({
@@ -58,10 +66,7 @@ export const subscribe = mutation({
       })
       return null
     }
-    const devices = await ctx.db
-      .query('pushSubscriptions')
-      .withIndex('by_profile', (q) => q.eq('profileId', profileId))
-      .take(MAX_DEVICES_PER_MEMBER)
+    const devices = await devicesOf(ctx, profileId)
     if (devices.length >= MAX_DEVICES_PER_MEMBER) {
       throw new ConvexError(
         `Notifications déjà actives sur ${MAX_DEVICES_PER_MEMBER} appareils. Désactivez-en un d’abord.`,
@@ -94,10 +99,7 @@ export const sendTest = mutation({
   returns: v.number(),
   handler: async (ctx) => {
     const { _id: profileId } = await requireMember(ctx)
-    const devices = await ctx.db
-      .query('pushSubscriptions')
-      .withIndex('by_profile', (q) => q.eq('profileId', profileId))
-      .take(MAX_DEVICES_PER_MEMBER)
+    const devices = await devicesOf(ctx, profileId)
     if (devices.length === 0)
       throw new ConvexError(
         'Aucun appareil abonné. Activez d’abord les notifications.',
@@ -118,15 +120,19 @@ export const recipients = internalQuery({
   ),
   handler: async (ctx, { target }) => {
     const rows =
-      'profileId' in target
+      'canteenId' in target
         ? await ctx.db
-            .query('pushSubscriptions')
-            .withIndex('by_profile', (q) => q.eq('profileId', target.profileId))
-            .take(MAX_DEVICES_PER_MEMBER)
-        : await ctx.db
             .query('pushSubscriptions')
             .withIndex('by_canteen', (q) => q.eq('canteenId', target.canteenId))
             .take(2000)
+        : (
+            await Promise.all(
+              ('profileId' in target
+                ? [target.profileId]
+                : target.profileIds
+              ).map((profileId) => devicesOf(ctx, profileId)),
+            )
+          ).flat()
     return rows.map(({ endpoint, p256dh, auth }) => ({
       endpoint,
       p256dh,

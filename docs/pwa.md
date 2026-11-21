@@ -133,6 +133,20 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
 - Dépendances : `web-push@3.6.7`, `@types/web-push@3.6.4`. Le lockfile change aussi des clés de pairs
   (`supports-color`) sans changer de version. `eslint.config.js` ignore `public/**` (fichiers statiques hors projet TS).
 
+### Rappel avant la clôture des réservations (ajout du 21/11, ~15h)
+- `convex/crons.ts` : tâche toutes les 15 min ; `convex/reminders.ts` (`sendDue`, interne).
+- Envoyé dans l'heure qui précède la clôture d'un service (clôture = début du service moins `cutoffMinutes`,
+  politique de l'établissement ; défaut : déjeuner 10:00, dîner 17:00, heure d'Abidjan = UTC).
+- **Un seul rappel** par établissement, jour et service (table `pushReminders`, posée dans la même transaction).
+- Seulement s'il existe une offre publiée avec des portions restantes (service complet : rien).
+- Seulement aux membres abonnés de l'établissement **sans réservation active** pour ce service ; texte générique
+  (« Réservations du déjeuner : elles ferment bientôt »), aucun nom de plat ni prix.
+- Horaires mal configurés : aucun rappel (jamais une heure fausse).
+- Tests (3, horloge simulée) : rappel unique et ciblé (abonné sans réservation reçoit, abonné ayant réservé et
+  établissement B exclus, second passage sans doublon) ; avant 09:00 et à 10:00 : rien ; service complet ou sans offre : rien.
+- Exécuté sur le backend Convex local : `reminders:sendDue` renvoie `{ reminders: 0 }` à 15h (aucune clôture dans l'heure).
+  **Non vérifié** : un passage réel du cron dans la fenêtre et la notification reçue sur un téléphone.
+
 ### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
 Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :
 ```bash
@@ -152,7 +166,7 @@ Ne jamais commiter la clé privée. Changer de paire invalide tous les abonnemen
 ### Vérifications de la tranche 2 (exécutées)
 Backend Convex **local anonyme** (`convex deployment select local`), propre à ce conteneur, jamais relié au dev du lead ;
 comptes fictifs `qa.admin@demo.test`, `qa.awa@demo.test`, mot de passe aléatoire non conservé.
-- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**89 tests**, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**92 tests** avec le rappel ; 89 à cette étape, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
   invalides, idempotence et réattribution, retrait d'un appareil d'autrui refusé, test sans appareil refusé,
   isolation A/B, planification à la publication), `pnpm build` : OK. Déploiement local des fonctions (dont l'action
   Node `web-push`) : OK.

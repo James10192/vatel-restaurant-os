@@ -16,16 +16,32 @@ export const NOTIFICATIONS = {
     body: 'Les menus de la semaine sont disponibles. Réservez vos repas.',
     url: '/app',
   },
+  lunchReminder: {
+    title: 'Réservations du déjeuner',
+    body: 'Elles ferment bientôt. Réservez votre repas avant la clôture.',
+    url: '/app',
+  },
+  dinnerReminder: {
+    title: 'Réservations du dîner',
+    body: 'Elles ferment bientôt. Réservez votre repas avant la clôture.',
+    url: '/app',
+  },
 } as const
 
 export const notificationKindValidator = v.union(
   v.literal('test'),
   v.literal('menuPublished'),
+  v.literal('lunchReminder'),
+  v.literal('dinnerReminder'),
 )
 
-/** Destinataires : les appareils d'un membre, ou ceux de tout l'établissement. */
+/** Le rappel part dans l'heure qui précède la clôture des réservations d'un service. */
+export const REMINDER_LEAD_MINUTES = 60
+
+/** Destinataires : les appareils d'un membre, d'une liste de membres, ou de tout l'établissement. */
 export const pushTargetValidator = v.union(
   v.object({ profileId: v.id('profiles') }),
+  v.object({ profileIds: v.array(v.id('profiles')) }),
   v.object({ canteenId: v.id('canteens') }),
 )
 export type PushTarget = Infer<typeof pushTargetValidator>

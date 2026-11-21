@@ -120,6 +120,13 @@ export default defineSchema({
     .index('by_profile', ['profileId'])
     .index('by_canteen', ['canteenId']),
 
+  /** Rappels « clôture des réservations » déjà envoyés : un seul par établissement, jour et service. */
+  pushReminders: defineTable({
+    canteenId: v.id('canteens'),
+    date: v.string(),
+    service: serviceValidator,
+  }).index('by_canteen_date_service', ['canteenId', 'date', 'service']),
+
   /** Unités de mesure propres à l'établissement, créables au point d'usage. */
   units: defineTable({
     canteenId: v.id('canteens'),

@@ -12,6 +12,7 @@ import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
 import type * as bookings from "../bookings.js";
 import type * as catalog from "../catalog.js";
+import type * as crons from "../crons.js";
 import type * as dishes from "../dishes.js";
 import type * as http from "../http.js";
 import type * as lib_access from "../lib/access.js";
@@ -25,6 +26,7 @@ import type * as lib_validation from "../lib/validation.js";
 import type * as menus from "../menus.js";
 import type * as push from "../push.js";
 import type * as pushSend from "../pushSend.js";
+import type * as reminders from "../reminders.js";
 import type * as setup from "../setup.js";
 import type * as wallet from "../wallet.js";
 
@@ -39,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   bookings: typeof bookings;
   catalog: typeof catalog;
+  crons: typeof crons;
   dishes: typeof dishes;
   http: typeof http;
   "lib/access": typeof lib_access;
@@ -52,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   menus: typeof menus;
   push: typeof push;
   pushSend: typeof pushSend;
+  reminders: typeof reminders;
   setup: typeof setup;
   wallet: typeof wallet;
 }>;
