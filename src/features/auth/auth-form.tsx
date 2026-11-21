@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { CircleAlertIcon } from 'lucide-react'
 import { Alert, AlertDescription } from '#/components/ui/alert'
+import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '#/components/ui/field'
@@ -14,6 +15,7 @@ export type AuthMode = 'login' | 'signup'
 const MODES = {
   login: {
     action: 'signIn',
+    eyebrow: 'Espace restauration',
     title: 'Bon retour',
     description: 'Connectez-vous pour réserver vos repas',
     submit: 'Se connecter',
@@ -24,6 +26,7 @@ const MODES = {
   },
   signup: {
     action: 'signUp',
+    eyebrow: 'Nouveau compte',
     title: 'Créer votre compte',
     description: 'Quelques informations suffisent',
     submit: 'Créer mon compte',
@@ -39,29 +42,33 @@ export function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirectTo: str
   const copy = MODES[mode]
   const { pending, error, onSubmit } = useEmailAuth(copy.action, redirectTo)
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl">{copy.title}</CardTitle>
-        <CardDescription>{copy.description}</CardDescription>
+    <Card className="gap-8 rounded-3xl border-0 py-10 shadow-2xl ring-1 shadow-primary/10 ring-border/70">
+      <CardHeader className="gap-3 px-8">
+        <Badge variant="secondary" className="w-fit">
+          {copy.eyebrow}
+        </Badge>
+        <CardTitle className="text-3xl font-bold tracking-tight">{copy.title}</CardTitle>
+        <CardDescription className="text-base">{copy.description}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-8">
         <form onSubmit={onSubmit}>
           <FieldGroup>
             {mode === 'signup' && (
               <Field>
                 <FieldLabel htmlFor="name">Nom complet</FieldLabel>
-                <Input id="name" name="name" autoComplete="name" required minLength={2} />
+                <Input id="name" name="name" autoComplete="name" className="h-12" required minLength={2} />
               </Field>
             )}
             <Field>
               <FieldLabel htmlFor="email">Adresse e-mail</FieldLabel>
-              <Input id="email" name="email" type="email" autoComplete="email" required />
+              <Input id="email" name="email" type="email" autoComplete="email" className="h-12" required />
             </Field>
             <Field>
               <FieldLabel htmlFor="password">Mot de passe</FieldLabel>
               <PasswordInput
                 id="password"
                 name="password"
+                className="h-12"
                 autoComplete={copy.passwordAutoComplete}
                 required
                 minLength={mode === 'signup' ? 8 : undefined}
@@ -75,7 +82,7 @@ export function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirectTo: str
               </Alert>
             )}
             <Field>
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" size="lg" className="h-12 rounded-full text-base" disabled={pending}>
                 {pending && <Spinner data-icon="inline-start" />}
                 {copy.submit}
               </Button>

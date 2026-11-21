@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { BrandLogo } from '#/components/brand-logo'
-import { AuthIntro } from '#/features/auth/auth-intro'
 import { AuthForm } from '#/features/auth/auth-form'
+import { AuthIntro } from '#/features/auth/auth-intro'
 import { cn } from '#/lib/utils'
 
 const isInternalPath = (value: unknown): value is string =>
@@ -20,22 +20,36 @@ export const Route = createFileRoute('/auth')({
   component: AuthPage,
 })
 
-// Deux colonnes sur ordinateur (bloc officiel @shadcn/login-02) ; sur mobile, l'accueil précède le formulaire.
+/**
+ * Accueil plein écran, puis « Glisser pour commencer » :
+ * ordinateur, l'accueil se replie à 50 % et le formulaire entre à droite ; mobile, le formulaire remplace l'accueil.
+ */
 function AuthPage() {
   const { redirect: redirectTo, mode } = Route.useSearch()
   const [started, setStarted] = useState(mode === 'signup')
   return (
-    <div className="grid min-h-svh md:grid-cols-2">
-      <AuthIntro onStart={() => setStarted(true)} className={cn(started && 'max-md:hidden')} />
-      <div className={cn('flex flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10', !started && 'max-md:hidden')}>
-        <div className="flex w-full max-w-sm flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-500">
-          <div className="flex flex-col items-center gap-1 md:hidden">
-            <BrandLogo className="h-16" />
-            <span className="text-sm font-semibold text-primary">Restauration</span>
+    <div className="flex min-h-svh overflow-hidden bg-background">
+      <AuthIntro
+        started={started}
+        onStart={() => setStarted(true)}
+        className={cn(
+          'w-full shrink-0 motion-safe:transition-[width] motion-safe:duration-700 motion-safe:ease-in-out',
+          started && 'max-md:hidden md:w-1/2',
+        )}
+      />
+      {started && (
+        <main className="flex min-h-svh flex-1 flex-col items-center justify-center bg-muted px-6 py-10 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-8 motion-safe:delay-300 motion-safe:duration-700 motion-safe:fill-mode-both">
+          <div className="flex w-full max-w-md flex-col gap-8">
+            <div className="flex justify-center md:hidden">
+              <BrandLogo className="h-16" />
+            </div>
+            <AuthForm mode={mode ?? 'login'} redirectTo={redirectTo} />
+            <p className="text-center text-xs text-muted-foreground">
+              Prototype étudiant du hackathon Vatel × Epitech. Données fictives.
+            </p>
           </div>
-          <AuthForm mode={mode ?? 'login'} redirectTo={redirectTo} />
-        </div>
-      </div>
+        </main>
+      )}
     </div>
   )
 }
