@@ -51,6 +51,7 @@ export const publishedWeek = query({
       date: item.date,
       service: item.service,
       priceXof: item.priceXof,
+      capacity: item.capacity,
       remaining: Math.max(item.capacity - booked[i], 0),
       bookableUntil: cutoffAt(policy, item.date, item.service),
       dishName: dish.name,

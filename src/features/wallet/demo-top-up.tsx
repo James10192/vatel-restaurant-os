@@ -22,7 +22,7 @@ export function DemoTopUp() {
   const { run, pending, error } = useServerAction(useMutation(api.wallet.topUpDemo))
 
   return (
-    <Card>
+    <Card className="rounded-3xl">
       <CardHeader>
         <CardTitle>Recharger</CardTitle>
         <CardDescription>Choisissez un montant.</CardDescription>
@@ -38,7 +38,7 @@ export function DemoTopUp() {
           variant="outline"
           value={amount}
           onValueChange={(value) => value && setAmount(value)}
-          className="grid w-full grid-cols-2 sm:grid-cols-4"
+          className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4"
         >
           {AMOUNTS.map((value) => (
             <ToggleGroupItem key={value} value={String(value)}>

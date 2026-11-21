@@ -16,7 +16,7 @@ const dateTime = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeSty
 export function WalletHistory() {
   const { results, status, loadMore } = usePaginatedQuery(api.wallet.history, {}, { initialNumItems: PAGE_SIZE })
   return (
-    <Card>
+    <Card id="historique" className="scroll-mt-6 rounded-3xl">
       <CardHeader>
         <CardTitle>Historique</CardTitle>
       </CardHeader>

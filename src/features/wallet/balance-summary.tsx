@@ -1,27 +1,50 @@
+import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
-import { WalletIcon } from 'lucide-react'
+import { PlusIcon, ReceiptTextIcon } from 'lucide-react'
 import { Button } from '#/components/ui/button'
-import { Card, CardContent } from '#/components/ui/card'
 import { formatXof } from '#/lib/format'
 
-/** Résumé du solde, avec accès direct à l'historique et à la recharge. */
+/** Carte de solde : montant non affiché tant que le serveur ne l'a pas confirmé. */
+export function BalanceCard({ balanceXof, children }: { balanceXof: number | undefined; children?: ReactNode }) {
+  return (
+    <section className="relative isolate overflow-hidden rounded-3xl bg-primary p-5 text-primary-foreground shadow-lg shadow-primary/20 sm:p-6">
+      <div
+        aria-hidden
+        className="absolute -top-16 -right-16 -z-10 size-56 rounded-full border-[24px] border-primary-foreground/10"
+      />
+      <div aria-hidden className="absolute -right-2 -bottom-20 -z-10 size-40 rounded-full bg-primary-foreground/5" />
+      <p className="text-sm text-primary-foreground/70">Solde disponible</p>
+      <p className="mt-1 text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">
+        {balanceXof === undefined ? '…' : formatXof(balanceXof)}
+      </p>
+      {children}
+    </section>
+  )
+}
+
+/** Version accueil : recharge et historique à portée de pouce. */
 export function BalanceSummary({ balanceXof }: { balanceXof: number | undefined }) {
   return (
-    <Card className="bg-primary py-4 text-primary-foreground">
-      <CardContent className="flex items-center justify-between gap-4 px-4">
-        <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-full bg-primary-foreground/15">
-            <WalletIcon />
-          </span>
-          <div className="flex flex-col">
-            <span className="text-xs text-primary-foreground/70">Mon solde</span>
-            <span className="text-xl font-bold">{balanceXof === undefined ? '…' : formatXof(balanceXof)}</span>
-          </div>
-        </div>
-        <Button variant="secondary" size="sm" asChild>
-          <Link to="/app/wallet">Gérer</Link>
+    <BalanceCard balanceXof={balanceXof}>
+      <div className="mt-5 flex gap-2">
+        <Button variant="secondary" size="lg" className="flex-1" asChild>
+          <Link to="/app/wallet">
+            <PlusIcon data-icon="inline-start" />
+            Recharger
+          </Link>
         </Button>
-      </CardContent>
-    </Card>
+        <Button
+          variant="ghost"
+          size="lg"
+          className="flex-1 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+          asChild
+        >
+          <Link to="/app/wallet" hash="historique">
+            <ReceiptTextIcon data-icon="inline-start" />
+            Historique
+          </Link>
+        </Button>
+      </div>
+    </BalanceCard>
   )
 }

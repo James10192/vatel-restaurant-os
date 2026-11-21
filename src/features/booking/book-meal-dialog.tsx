@@ -42,7 +42,9 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
       }}
     >
       <AlertDialogTrigger asChild>
-        <Button className="w-full sm:w-auto">Réserver</Button>
+        <Button size="lg" className="px-6">
+          Réserver
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

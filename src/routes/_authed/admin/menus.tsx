@@ -6,7 +6,7 @@ import { useMutation } from 'convex/react'
 import { SendIcon } from 'lucide-react'
 import { api } from '../../../../convex/_generated/api'
 import { Button } from '#/components/ui/button'
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { Spinner } from '#/components/ui/spinner'
 import { SERVICE_LABELS, formatDayLong } from '#/lib/format'
 import type { Service } from '#/lib/format'
@@ -32,16 +32,21 @@ function AdminMenus() {
   const publishWeek = useMutation(api.menus.publishWeek)
   const [publishing, setPublishing] = useState(false)
   const drafts = items.filter((item) => item.status === 'draft').length
+  const stats = [
+    { label: 'Plats programmés', value: items.length },
+    { label: 'Brouillons à publier', value: drafts },
+    { label: 'Portions offertes', value: items.reduce((sum, item) => sum + item.capacity, 0) },
+  ]
   // Lundi à vendredi par défaut ; samedi et dimanche dès qu'un plat y est programmé.
   const days = Array.from({ length: 7 }, (_, i) => addDays(week, i)).filter(
     (date, i) => i < 5 || items.some((item) => item.date === date),
   )
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Menus de la semaine</h1>
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 md:px-8 md:py-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight">Menus de la semaine</h1>
           <p className="text-sm text-muted-foreground">Les brouillons restent invisibles des usagers jusqu'à publication.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -58,9 +63,17 @@ function AdminMenus() {
           </Button>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <dl className="grid grid-cols-3 gap-3">
+        {stats.map(({ label, value }) => (
+          <div key={label} className="rounded-2xl border bg-card p-4">
+            <dt className="text-xs text-muted-foreground sm:text-sm">{label}</dt>
+            <dd className="mt-1 text-2xl font-bold tracking-tight tabular-nums">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <div className="grid gap-4 lg:grid-cols-2">
         {days.map((date) => (
-          <Card key={date}>
+          <Card key={date} className="rounded-3xl">
             <CardHeader>
               <CardTitle className="first-letter:uppercase">{formatDayLong(date)}</CardTitle>
             </CardHeader>
@@ -70,10 +83,10 @@ function AdminMenus() {
                 return (
                   <section key={service} className="flex flex-col">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-sm font-semibold text-muted-foreground">{SERVICE_LABELS[service]}</h2>
-                      <CardAction>
-                        <AddItemSheet date={date} service={service} />
-                      </CardAction>
+                      <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                        {SERVICE_LABELS[service]}
+                      </h2>
+                      <AddItemSheet date={date} service={service} />
                     </div>
                     {rows.length > 0 ? (
                       <ul className="divide-y">
@@ -82,7 +95,9 @@ function AdminMenus() {
                         ))}
                       </ul>
                     ) : (
-                      <p className="py-2 text-sm text-muted-foreground">Aucun plat programmé.</p>
+                      <p className="rounded-xl border border-dashed px-3 py-3 text-sm text-muted-foreground">
+                        Aucun plat programmé.
+                      </p>
                     )}
                   </section>
                 )

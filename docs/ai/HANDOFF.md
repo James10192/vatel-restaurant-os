@@ -1,6 +1,6 @@
 # HANDOFF : état du développement
 
-_Mis à jour : 21/11/2026 ~10h35 (Abidjan)_
+_Mis à jour : 21/11/2026 ~11h00 (Abidjan)_
 
 ## Lot actuel
 **A2 terminé + audit externe corrigé, en attente de validation humaine avant A3.**
@@ -60,12 +60,17 @@ _Mis à jour : 21/11/2026 ~10h35 (Abidjan)_
 - README et `docs/DEPLOYMENT.md` écrits (aucun secret). Options CLI vérifiées dans la version installée.
 - Résultats : typecheck OK, lint OK, 60 tests OK, build OK.
 
+## Refonte visuelle (retour porteur ~10h40)
+- Preset shadcn **maia** appliqué (`shadcn apply maia`), Lucide et Open Sans rétablis, Hugeicons/Figtree retirés, tokens Vatel réappliqués (`src/styles.css`).
+- Accueil repensé (sélecteur de jours, carte solde, cartes repas avec jauge), Solde et Mes repas harmonisés, `BalanceCard` partagé.
+- Admin : layout `_authed/admin.tsx` avec Sidebar shadcn (#11) ; en-tête usager déplacé dans `_authed/app/route.tsx`.
+- Vérifié : 390 px et 1280 px, console sans erreur sur page neuve ; typecheck, lint, 60 tests, build OK.
+
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
 - Révocation : accès serveur basé sur le JWT, effectif à son expiration.
 - `admin@demo.test` (ancien amorçage, mot de passe temporaire dans un fichier local hors dépôt) : à supprimer sur dev, voir DEPLOYMENT.
-- Style shadcn `new-york` (hérité du générateur) ; CLI 4.23.0 à jour. Passage à un style v4 récent : décision du porteur.
-- Admin : barre latérale #11 (Vue d'ensemble / Menus / Usagers / Services) à construire en A3.
+- Barre latérale admin : seule l'entrée Menus existe ; Vue d'ensemble et Services arrivent en A3, Usagers en P1.
 - Pas de déploiement Vercel (après P0, cf. #14) ; `vercel whoami` non vérifié.
 - Charte PDF Vatel non reçue ; logo, couleurs et police relevés sur vatel.ci. Photo Unsplash (licence Unsplash), auteur à créditer si exigé.
 

@@ -27,12 +27,12 @@ function BookingsPage() {
   const { data: bookings, isPending } = useQuery(convexQuery(api.bookings.mine, { from: todayIso() }))
   const now = useNow()
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-6">
-      <h1 className="text-2xl font-bold tracking-tight">Mes réservations</h1>
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pt-2 pb-8 md:pt-8">
+      <h1 className="text-3xl font-bold tracking-tight">Mes repas</h1>
       {isPending ? (
-        <Skeleton className="h-24" />
+        <Skeleton className="h-28 rounded-3xl" />
       ) : !bookings?.length ? (
-        <Empty className="border bg-background">
+        <Empty className="rounded-3xl border bg-card">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <CalendarCheckIcon />
@@ -43,7 +43,7 @@ function BookingsPage() {
         </Empty>
       ) : (
         bookings.map((booking) => (
-          <Card key={booking._id} className="gap-3 py-4">
+          <Card key={booking._id} className="gap-3 rounded-3xl py-5">
             <CardHeader className="px-4">
               <div className="flex items-start justify-between gap-2">
                 <CardTitle className="text-base">{booking.dishName}</CardTitle>
@@ -54,7 +54,7 @@ function BookingsPage() {
               </p>
             </CardHeader>
             <CardContent className="flex items-center justify-between px-4">
-              <span className="font-semibold">{formatXof(booking.priceXof)}</span>
+              <span className="text-lg font-bold text-primary tabular-nums">{formatXof(booking.priceXof)}</span>
               {booking.status === 'confirmed' && now < booking.cancellableUntil && (
                 <CancelBookingDialog bookingId={booking._id} dishName={booking.dishName} priceXof={booking.priceXof} />
               )}

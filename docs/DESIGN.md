@@ -30,6 +30,17 @@ Les couleurs `color1..7` du site (jaune, vert, rose, orange) sont des couleurs d
 - Français simple. **Aucun tiret long (—) ni demi-tiret (–) dans les textes visibles** : utiliser virgule, deux-points ou « | » dans les titres d'onglet.
 - Prix « 1 500 FCFA ». Pas de jargon technique.
 
+## Style shadcn : maia
+Style **radix-maia** (shadcn v4, CLI 4.23.0) : contrôles 40 px+, cartes aux grands arrondis (`--radius: 0.875rem`,
+`rounded-3xl` pour les cartes principales), espacement éditorial. Choisi pour #11 « gastronomique premium + fintech claire »
+et #19 (cibles tactiles). Icônes **Lucide** conservées (#11) malgré le défaut Hugeicons du preset ; police Open Sans conservée.
+`cn` vient du paquet officiel `cn` (mainteneur shadcn).
+
+## Écrans
+- Usager mobile : pas de bandeau haut, logo dans la page, barre du bas Accueil/Repas/Solde/Profil (+ Menus admin).
+- Accueil : date + salutation, carte de solde (bleu Vatel, motif d'assiette), prochain repas, sélecteur de jours en pastilles, cartes repas (service, prix, jauge de portions, allergènes, action).
+- Administration : barre latérale shadcn (Sidebar offcanvas), résumé de semaine, cartes jour.
+
 ## Composants et UX
 - shadcn d'abord : blocs officiels (`@shadcn/login-02/03`, `signup-03`), `Field*`, `InputGroup`, `Alert`, `Spinner`, `Empty`.
 - Mot de passe : toujours `PasswordInput` (afficher/masquer, `aria-pressed`).
