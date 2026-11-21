@@ -1,8 +1,9 @@
 import { ConvexError, v } from 'convex/values'
 import { mutation, query } from './_generated/server'
 import { getOwned, requireAdmin } from './lib/access'
-import { assertPositive, assertPriceXof, cleanName } from './lib/validation'
+import { assertListLength, assertPositive, assertPriceXof, assertText, cleanName } from './lib/validation'
 import { allergenInfoValidator, recipeLineValidator } from './schema'
+import { dishListReturns } from './lib/returns'
 
 const dishInput = v.object({
   name: v.string(),
@@ -15,6 +16,7 @@ const dishInput = v.object({
 /** Catalogue des plats de l'établissement (administration). */
 export const list = query({
   args: {},
+  returns: dishListReturns,
   handler: async (ctx) => {
     const { canteenId } = await requireAdmin(ctx)
     const dishes = await ctx.db.query('dishes').withIndex('by_canteen', (q) => q.eq('canteenId', canteenId)).collect()
@@ -43,16 +45,16 @@ export const save = mutation({
         ? dish.allergens
         : {
             status: 'declared' as const,
-            present: [...new Set(dish.allergens.present.map((a) => a.trim()).filter(Boolean))],
-            traces: [...new Set(dish.allergens.traces.map((a) => a.trim()).filter(Boolean))],
+            present: [...new Set(assertListLength(dish.allergens.present, 'Allergènes').map((a) => a.trim()).filter(Boolean))],
+            traces: [...new Set(assertListLength(dish.allergens.traces, 'Traces').map((a) => a.trim()).filter(Boolean))],
           }
     const doc = {
       canteenId: membership.canteenId,
       name,
-      description: dish.description?.trim() || undefined,
+      description: assertText(dish.description?.trim(), 'Description') || undefined,
       defaultPriceXof: dish.defaultPriceXof,
       allergens,
-      recipe: dish.recipe,
+      recipe: { ...dish.recipe, lines: assertListLength(dish.recipe.lines, 'Recette') },
     }
     if (!dishId) return await ctx.db.insert('dishes', doc)
     await getOwned(ctx, membership, dishId)

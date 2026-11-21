@@ -10,6 +10,8 @@ import { DayNav, parseDateSearch, resolveDate, serviceDayLabel } from '#/feature
 import { OffersByService, ServiceHero, StatTiles } from '#/features/admin/overview'
 import { OffersTable } from '#/features/admin/offers-table'
 import { ServeQueue } from '#/features/admin/serve-queue'
+import { todayIso } from '#/lib/format'
+import { useMinWidth } from '#/lib/use-min-width'
 import { weekStartOf } from '../../../../convex/lib/dates'
 
 const summaryQuery = (date: string) => convexQuery(api.admin.daySummary, { date })
@@ -27,6 +29,8 @@ function Overview() {
   const date = resolveDate(Route.useSearch().date)
   const { data } = useSuspenseQuery(summaryQuery(date))
   const { totals, offers } = data
+  // La file « à servir » porte un abonnement Convex : montée seulement là où elle est affichée (bureau).
+  const wide = useMinWidth(1280)
   return (
     <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -46,7 +50,7 @@ function Overview() {
                 <EmptyMedia variant="icon">
                   <SoupIcon />
                 </EmptyMedia>
-                <EmptyTitle>Aucun plat publié {serviceDayLabel(date) === 'du jour' ? 'aujourd’hui' : 'ce jour'}</EmptyTitle>
+                <EmptyTitle>Aucun plat publié {date === todayIso() ? 'aujourd’hui' : 'ce jour'}</EmptyTitle>
                 <EmptyDescription>Les chiffres s’afficheront dès qu’un plat de ce jour sera publié.</EmptyDescription>
               </EmptyHeader>
               <EmptyContent>
@@ -68,9 +72,7 @@ function Overview() {
               <ServiceHero date={date} dayLabel={serviceDayLabel(date)} totals={totals} />
               <StatTiles date={date} totals={totals} />
             </div>
-            <div className="hidden xl:block">
-              <ServeQueue date={date} pendingCount={totals.confirmed} />
-            </div>
+            {wide && <ServeQueue date={date} pendingCount={totals.confirmed} />}
           </div>
           <section aria-labelledby="par-plat" className="flex flex-col gap-3">
             <h2 id="par-plat" className="text-lg font-semibold tracking-tight">

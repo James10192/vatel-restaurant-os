@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation, usePaginatedQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
@@ -24,6 +24,7 @@ import { ORDER_STATUS, OrderRows } from '#/features/admin/orders'
 import type { OrderStatus } from '#/features/admin/orders'
 
 const PAGE_SIZE = 25
+const summaryQuery = (date: string) => convexQuery(api.admin.daySummary, { date })
 type Offer = FunctionReturnType<typeof api.admin.daySummary>['offers'][number]
 type Search = {
   date?: string
@@ -38,13 +39,15 @@ function parseSearch(search: Record<string, unknown>): Search {
   return {
     ...parseDateSearch(search),
     service: search.service === 'lunch' || search.service === 'dinner' ? search.service : undefined,
-    status: typeof search.status === 'string' && search.status in ORDER_STATUS ? (search.status as OrderStatus) : undefined,
+    status: typeof search.status === 'string' && Object.hasOwn(ORDER_STATUS, search.status) ? (search.status as OrderStatus) : undefined,
     item: typeof search.item === 'string' && search.item.length < 64 ? search.item : undefined,
   }
 }
 
 export const Route = createFileRoute('/_authed/admin/services')({
   validateSearch: parseSearch,
+  loaderDeps: ({ search }) => ({ date: resolveDate(search.date) }),
+  loader: ({ context, deps }) => context.queryClient.ensureQueryData(summaryQuery(deps.date)),
   head: () => ({ meta: [{ title: 'Commandes du jour | Vatel Restauration' }] }),
   component: DayOrders,
 })
@@ -54,8 +57,8 @@ function DayOrders() {
   const navigate = useNavigate({ from: Route.fullPath })
   const date = resolveDate(search.date)
   const setFilter: SetFilter = (patch) => navigate({ search: (prev) => ({ ...prev, ...patch }) })
-  const { data: summary } = useQuery(convexQuery(api.admin.daySummary, { date }))
-  const offers = summary?.offers.filter((offer) => !search.service || offer.service === search.service) ?? []
+  const { data: summary } = useSuspenseQuery(summaryQuery(date))
+  const offers = summary.offers.filter((offer) => !search.service || offer.service === search.service)
   const item = offers.some((o) => o.menuItemId === search.item) ? (search.item as Id<'menuItems'>) : undefined
   // Changer un filtre change les arguments : Convex repart du premier curseur.
   const { results, status, loadMore } = usePaginatedQuery(

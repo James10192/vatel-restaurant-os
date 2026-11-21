@@ -1,4 +1,5 @@
 import { ConvexError, v } from 'convex/values'
+import { internal } from './_generated/api'
 import type { Doc } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
@@ -8,6 +9,7 @@ import { assertCapacity, assertIsoDate, assertPriceXof } from './lib/validation'
 import { activeBookingsCount } from './lib/capacity'
 import { cutoffAt, policyOf } from './lib/policy'
 import { serviceValidator } from './schema'
+import { adminWeekReturns, publishedWeekReturns } from './lib/returns'
 
 async function itemsOfWeek(ctx: QueryCtx, canteenId: Doc<'canteens'>['_id'], weekStart: string) {
   const start = weekStartOf(assertIsoDate(weekStart))
@@ -28,6 +30,7 @@ async function withDishes(ctx: QueryCtx, items: Array<Doc<'menuItems'>>) {
 /** Semaine complète (brouillons inclus) pour l'administration. */
 export const adminWeek = query({
   args: { weekStart: v.string() },
+  returns: adminWeekReturns,
   handler: async (ctx, { weekStart }) => {
     const { canteenId } = await requireAdmin(ctx)
     const rows = await withDishes(ctx, await itemsOfWeek(ctx, canteenId, weekStart))
@@ -38,6 +41,7 @@ export const adminWeek = query({
 /** Semaine publiée, visible par tout membre rattaché. Projection minimale, sans recette ni coûts. */
 export const publishedWeek = query({
   args: { weekStart: v.string() },
+  returns: publishedWeekReturns,
   handler: async (ctx, { weekStart }) => {
     const { canteenId } = await requireMember(ctx)
     const canteen = await ctx.db.get(canteenId)
@@ -114,6 +118,10 @@ export const publishWeek = mutation({
     const { canteenId } = await requireAdmin(ctx)
     const drafts = (await itemsOfWeek(ctx, canteenId, weekStart)).filter((item) => item.status === 'draft')
     await Promise.all(drafts.map((item) => ctx.db.patch(item._id, { status: 'published' })))
+    // Planifié dans la même transaction : la notification ne part que si la publication est validée.
+    if (drafts.length > 0) {
+      await ctx.scheduler.runAfter(0, internal.pushSend.deliver, { target: { canteenId }, kind: 'menuPublished' })
+    }
     return { published: drafts.length }
   },
 })

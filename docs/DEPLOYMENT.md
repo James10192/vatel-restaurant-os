@@ -1,46 +1,55 @@
 # Déploiement sécurisé
 
-Cible : **Vercel** (application TanStack Start) + **Convex** (base, fonctions, auth). Deux déploiements Convex
-distincts : `dev` (développement, comptes de démo) et `prod` (jury). Aucune donnée ni compte n'est copié de dev vers prod.
+Cible : **Vercel** (application TanStack Start, sortie Nitro) + **Convex** (base, fonctions, auth). Deux déploiements Convex
+distincts : `dev` (développement, comptes de test) et `prod` (jury). Aucune donnée ni compte n'est copié de dev vers prod.
+Ne jamais écrire de nom de déploiement, d'URL Convex ni de secret dans le dépôt (il deviendra public).
 
-## Secrets : où ils vivent
-| Variable | Où | Remarque |
+## État vérifié (21/11/2026, ~13h50)
+| Point | Constat |
+|---|---|
+| CLI Vercel | 66.5.0, session active ; dépôt **non lié** à un projet (`.vercel/project.json` absent) |
+| Build Vercel | `VERCEL=1 pnpm build` réussi : Nitro produit `.vercel/output` (Build Output API v3, runtime Node 24, assets `immutable`) |
+| Convex prod | Déploiement prod **déjà créé** avec le projet, **vide** : aucune fonction, aucune table, aucune variable |
+| Secrets | `gitleaks git --redact` sur tout l'historique : **aucune fuite** détectée |
+| Mot de passe démo | Présent en clair dans l'historique (`ef1b2f5`, `3f74952`) ; non détectable par gitleaks (pas un format de clé). Valable sur **dev** uniquement |
+| Nom du déploiement dev | Présent dans l'historique (`ef1b2f5`), et les routes d'auth Convex sont publiques : la rotation des comptes démo dev est **obligatoire** avant de rendre le dépôt public |
+
+## Variables : où elles vivent
+| Variable | Où | Lue par |
 |---|---|---|
-| `BETTER_AUTH_SECRET` | Convex (`pnpm exec convex env set`, par déploiement) | Générer une valeur aléatoire **différente** pour prod. Jamais dans Vercel, jamais dans le dépôt. |
-| `SITE_URL` | Convex | URL publique exacte de l'app (ex. `https://<projet>.vercel.app`). |
-| `CONVEX_DEPLOY_KEY` | Vercel, environnement Production uniquement | Clé de déploiement **prod** ; jamais côté client, jamais en Preview. |
-| `VITE_CONVEX_URL` | Vercel (build + runtime) | Injectée par `convex deploy` au build ; la définir aussi pour l'exécution serveur. |
-| `VITE_CONVEX_SITE_URL` | Vercel (build + runtime) | `https://<déploiement-prod>.convex.site`. |
-| `VITE_SITE_URL` | Vercel | Identique à `SITE_URL`. |
+| `BETTER_AUTH_SECRET` | Convex prod (`convex env set --prod`) | `convex/auth.ts`. Valeur aléatoire **différente** de dev, générée localement, jamais affichée |
+| `SITE_URL` | Convex prod | `convex/auth.ts` (`baseURL` Better Auth). URL publique exacte de l'app, sans `/` final |
+| `CONVEX_DEPLOY_KEY` | Vercel, environnement **Production** uniquement | `convex deploy` au build. Jamais en Preview, jamais côté client |
+| `VITE_CONVEX_URL` | Injectée au build par `convex deploy` ; **aussi** en variable Vercel (exécution serveur) | client + `src/lib/auth-server.ts` |
+| `VITE_CONVEX_SITE_URL` | Vercel (build + exécution) | `src/lib/auth-server.ts` (proxy Better Auth) |
 
-`.env.local` (créé par `convex dev`) n'est jamais commité (`.gitignore`) ; `.env.example` ne contient aucune valeur.
+`VITE_SITE_URL` (dans `.env.example`) n'est lue par aucun code : facultative.
 
-## Étapes
-1. `vercel login`, puis `vercel link` dans le dépôt (projet dédié à la démo).
-2. Créer le déploiement Convex prod : `pnpm exec convex deploy` (une première fois, confirmer le projet).
-3. Variables Convex prod :
-   ```bash
-   pnpm exec convex env set --prod BETTER_AUTH_SECRET "<valeur aléatoire générée localement, jamais collée dans un ticket>"
-   pnpm exec convex env set --prod SITE_URL "https://<projet>.vercel.app"
-   ```
-4. Dans Vercel (Settings > Environment Variables, Production) : `CONVEX_DEPLOY_KEY` (Convex dashboard > Settings >
-   Deploy keys, clé **prod**), `VITE_CONVEX_SITE_URL`, `VITE_SITE_URL`, `VITE_CONVEX_URL`.
-5. Commande de build Vercel :
-   `pnpm exec convex deploy --cmd 'pnpm build' --cmd-url-env-var-name VITE_CONVEX_URL`
-6. Déployer, puis sur l'URL réelle : inscription, connexion, page protégée, menu publié, réservation, annulation,
-   solde, sur mobile 360 px et ordinateur, avec deux rôles.
-7. Amorçage prod : la personne responsable s'inscrit sur `/auth`, puis l'opérateur exécute
-   `pnpm exec convex run --prod setup:bootstrap '{"canteenName":"…","canteenSlug":"…","adminEmail":"…"}'`
-   et **vérifie le nom et la date d'inscription renvoyés** avant de communiquer l'accès.
+## Procédure (une étape à la fois, preuve, puis la suivante)
+Légende : **[P]** porteur (compte ou décision personnelle), **[A]** agent après accord explicite.
 
-## Rotation des comptes de démonstration (avant de rendre le dépôt public)
-Un mot de passe de démonstration figure dans l'historique (`ef1b2f5`, `3f74952`) ; l'historique n'est pas réécrit
-(pas de force-push), la valeur est donc considérée comme **publique**. Elle ne vaut que sur le déploiement **dev**.
-1. Sur le déploiement dev, supprimer ou neutraliser les comptes `gerant@demo.test`, `awa.etudiante@demo.test`
-   et `admin@demo.test` (Convex dashboard > Data > composant `betterAuth` > tables `user`, `account`, `session`),
-   ou changer leur mot de passe depuis l'application.
-2. Supprimer le fichier local de l'ancien amorçage (mot de passe temporaire, hors dépôt) s'il existe encore.
-3. Le déploiement prod ne contient aucun de ces comptes : créer les comptes de démo jury par inscription,
-   avec de nouveaux mots de passe transmis hors dépôt.
-4. Relancer `gitleaks git --redact` sur tout l'historique et vérifier qu'aucun autre secret n'apparaît.
-5. Seulement ensuite, rendre le dépôt public (Settings GitHub), si le règlement le permet.
+1. **[A] Rotation des comptes démo dev : FAITE le 21/11 vers 14h.** `gerant@demo.test`, `awa.etudiante@demo.test` et
+   `admin@demo.test` supprimés du composant `betterAuth` (`user`, `account`, `session`) par identifiant exact, via
+   `convex run --component betterAuth adapter:deleteMany / deleteOne`. Vérifié : aucune ligne restante liée à ces comptes.
+   Les profils applicatifs restent orphelins et inutilisables (une nouvelle inscription crée un autre identifiant).
+2. **[A] Clé de déploiement : FAITE le 21/11 vers 14h05**, à la demande du porteur, de CLI à CLI sans affichage :
+   `convex deployment token create <nom> --prod` lu en mémoire, format `prod:` vérifié, transmis par l'entrée standard à
+   `vercel env add CONVEX_DEPLOY_KEY production --sensitive` (jamais en argument ni sur disque).
+   Une première clé, créée lors d'un essai raté (jamais affichée ni stockée), n'a pas pu être révoquée par la CLI :
+   **[P]** la révoquer au dashboard Convex (prod > Settings > Deploy keys, nom `vercel-production`).
+3. **[A] Projet Vercel : FAIT le 21/11 vers 14h.** Projet `vatel-restauration` créé par `vercel link`, sans variable,
+   **non connecté à GitHub** (aucun déploiement automatique ; connexion GitHub à ajouter au compte Vercel si souhaitée).
+   Commande de build versionnée dans `vercel.json` : `pnpm exec convex deploy --cmd 'pnpm build' --cmd-url-env-var-name VITE_CONVEX_URL`.
+   Région des fonctions : `iad1`, proche de Convex (US East), car chaque rendu serveur interroge la base.
+4. **[A] Variables Vercel (Production) : FAITES.** `CONVEX_DEPLOY_KEY` (Secret), `VITE_CONVEX_URL` et `VITE_CONVEX_SITE_URL`
+   (Config, URL du déploiement **prod** ; `.convex.cloud` vérifiée en HTTP 200). Relues par `vercel env pull` dans un
+   fichier temporaire supprimé aussitôt.
+5. **[A] Convex prod** : `convex env set --prod BETTER_AUTH_SECRET` (aléatoire, généré et passé sans affichage) ;
+   `SITE_URL` une fois l'URL Vercel connue.
+6. **[A] Premier déploiement** : `vercel deploy --prod`. Puis sur l'URL réelle, en 360 px et 1280 px : inscription, connexion,
+   page protégée, menu publié, réservation, annulation, solde, commandes, deux rôles.
+7. **[P] Amorçage prod** : le responsable s'inscrit sur `/auth` ; **[A]** `convex run --prod setup:bootstrap '{…}'`,
+   puis vérification du nom et de la date renvoyés avant de communiquer l'accès. Comptes de démo jury : inscription
+   avec de nouveaux mots de passe transmis hors dépôt, rattachés par `setup:attachAccount --prod`.
+8. **[A] Mesures #21** sur l'URL déployée (brotli réel) : Slow 3G, CPU ×4, 360 px ; LCP, CLS, octets.
+9. **[P] Dépôt public** (Settings GitHub), seulement après les étapes 1 à 8 et si le règlement l'exige.

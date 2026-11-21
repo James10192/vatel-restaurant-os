@@ -36,3 +36,27 @@ export function assertIsoDate(value: string): string {
   if (!isIsoDate(value)) throw new ConvexError('Date invalide.')
   return value
 }
+
+export const MAX_KEY_LENGTH = 100
+export const MAX_TEXT_LENGTH = 500
+export const MAX_LIST_LENGTH = 50
+
+/** Clé d'idempotence générée par le client : non vide et bornée (évite un stockage arbitraire). */
+export function assertIdempotencyKey(value: string): string {
+  if (value.length === 0 || value.length > MAX_KEY_LENGTH) throw new ConvexError('Clé de requête invalide.')
+  return value
+}
+
+/** Texte libre facultatif (description) : borné. */
+export function assertText(value: string | undefined, label: string): string | undefined {
+  if (value !== undefined && value.length > MAX_TEXT_LENGTH) {
+    throw new ConvexError(`${label} : ${MAX_TEXT_LENGTH} caractères au maximum.`)
+  }
+  return value
+}
+
+/** Liste saisie (allergènes, lignes de recette) : bornée. */
+export function assertListLength<T>(list: Array<T>, label: string): Array<T> {
+  if (list.length > MAX_LIST_LENGTH) throw new ConvexError(`${label} : ${MAX_LIST_LENGTH} éléments au maximum.`)
+  return list
+}
