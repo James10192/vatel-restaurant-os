@@ -16,10 +16,11 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Skeleton } from '#/components/ui/skeleton'
 import { Spinner } from '#/components/ui/spinner'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { SERVICE_LABELS } from '#/lib/format'
+import { SERVICE_LABELS, todayIso } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
 import { DayNav, parseDateSearch, resolveDate } from '#/features/admin/day'
+import { PassScanner } from '#/features/admin/pass-scanner'
 import { ORDER_STATUS, OrderRows } from '#/features/admin/orders'
 import type { OrderStatus } from '#/features/admin/orders'
 import { useT, pageTitle } from '#/i18n/i18n'
@@ -79,7 +80,10 @@ function DayOrders() {
           <h1 className="text-display">{t('Commandes du jour')}</h1>
           <p className="text-sm text-muted-foreground">{t('Repas réservés, à servir et remis, mis à jour en temps réel.')}</p>
         </div>
-        <DayNav date={date} to="/admin/services" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {date === todayIso() && <PassScanner />}
+          <DayNav date={date} to="/admin/services" />
+        </div>
       </header>
 
       {/* Barre de travail : compteurs par statut toujours visibles ; filtres en ligne dès la tablette, en Sheet sur mobile. */}

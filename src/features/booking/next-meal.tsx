@@ -5,6 +5,7 @@ import { CalendarCheckIcon } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { Button } from '#/components/ui/button'
 import { Card, CardContent } from '#/components/ui/card'
+import { usePickupPass } from './pickup-pass-dialog'
 import { SERVICE_LABELS, formatDayLong, todayIso } from '#/lib/format'
 import { useT , useLocale } from '#/i18n/i18n'
 
@@ -16,7 +17,8 @@ export function NextMeal() {
   const next = bookings
     ?.filter((b) => b.status === 'confirmed')
     .sort((a, b) => a.cancellableUntil - b.cancellableUntil)[0]
-  if (!next) return null
+  const pass = usePickupPass(bookings)
+  if (!next) return pass.dialog
   return (
     <Card className="py-4">
       <CardContent className="flex items-center gap-3 px-4">
@@ -30,10 +32,15 @@ export function NextMeal() {
             {formatDayLong(next.date, locale)}, {t(SERVICE_LABELS[next.service]).toLowerCase()}
           </span>
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/app/bookings">{t('Voir')}</Link>
-        </Button>
+        {next.date === todayIso() ? (
+          pass.trigger(next)
+        ) : (
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/app/bookings">{t('Voir')}</Link>
+          </Button>
+        )}
       </CardContent>
+      {pass.dialog}
     </Card>
   )
 }
