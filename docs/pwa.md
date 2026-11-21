@@ -31,7 +31,7 @@ les variables d'environnement ou le déploiement. Aucune dépendance ajoutée (l
 
 ## Icônes : origine et méthode
 - Source unique : `public/logo-vatel.svg`, identique octet pour octet à `branding/vatel/logo-vatel-fond-blanc.svg`
-  (copie intacte de vatel.ci, voir `docs/DESIGN.md`). Aucun fichier `branding/idj-ai-*` utilisé.
+  (copie intacte de vatel.ci, voir `docs/DESIGN.md`). Aucune ancienne ressource de marque utilisée.
 - Rendu par Chromium (Playwright déjà installé) : SVG d'origine dans un carré blanc, `object-fit: contain`.
   Ni recoloration, ni déformation, ni recadrage, ni redessin. Le logo complet (V, bandeau VATEL, mention
   « Hotel & Tourism Business School ») est conservé ; la mention devient peu lisible à 48 px, c'est le logo officiel tel quel.

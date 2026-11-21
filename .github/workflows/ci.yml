@@ -1,0 +1,66 @@
+# Intégration continue minimale (#14, reste du STEP 00) : lockfile figé, typecheck, lint, tests, build, scan des secrets.
+# Aucune clé ni déploiement : la CI vérifie, elle ne publie rien.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Typecheck, lint, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Même version que l'équipe : pnpm-workspace.yaml utilise `allowBuilds` (pnpm récent).
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Installation (lockfile figé)
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tests (Vitest + convex-test)
+        run: pnpm test
+
+      # URL fictives : le build ne contacte aucun service ; les vraies valeurs sont injectées au déploiement (docs/DEPLOYMENT.md).
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_CONVEX_URL: https://ci-placeholder.convex.cloud
+          VITE_CONVEX_SITE_URL: https://ci-placeholder.convex.site
+
+  secrets:
+    name: Scan des secrets (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Faux positifs vérifiés et autorisés un par un, par empreinte : .gitleaksignore.
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
