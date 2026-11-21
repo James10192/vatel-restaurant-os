@@ -10,10 +10,18 @@ const initials = (name: string) =>
     .toUpperCase() || name.slice(0, 1).toUpperCase()
 
 /**
- * Visuel de repli d'un plat : une assiette stylisée portant ses initiales.
- * Aucune photo de plat n'est autorisée à ce jour ; on n'affiche jamais une image qui ne serait pas le vrai plat.
+ * Visuel d'un plat : la photo RÉELLE envoyée par la cuisine quand elle existe, sinon une assiette stylisée
+ * portant ses initiales. Jamais de photo d'illustration : on n'affiche pas une image qui ne serait pas le vrai plat.
  */
-export function DishVisual({ name, className }: { name: string; className?: string }) {
+export function DishVisual({ name, photoUrl, className }: { name: string; photoUrl?: string; className?: string }) {
+  if (photoUrl) {
+    return (
+      <div className={cn('relative isolate overflow-hidden bg-plate', className)}>
+        {/* Décorative : le nom du plat est toujours écrit à côté. */}
+        <img src={photoUrl} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
+      </div>
+    )
+  }
   return (
     <div aria-hidden className={cn('relative isolate grid place-items-center overflow-hidden bg-plate', className)}>
       <span className="absolute aspect-square h-[78%] rounded-full border border-plate-rim bg-card shadow-card" />

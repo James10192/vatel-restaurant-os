@@ -8,6 +8,7 @@ import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { formatXof } from '#/lib/format'
 import { DishForm } from '#/features/menus/dish-form'
+import { DishPhoto } from './dish-photo'
 import { useT } from '#/i18n/i18n'
 
 export type CatalogDish = FunctionReturnType<typeof api.dishes.list>[number]
@@ -41,6 +42,8 @@ export function DishDetail({ dish, onSaved }: { dish: CatalogDish; onSaved: (id:
           </Button>
         )}
       </header>
+
+      <DishPhoto dishId={dish._id} name={dish.name} photoUrl={dish.photoUrl} />
 
       {dish.published && (
         <Alert>

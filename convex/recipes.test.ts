@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { api } from './_generated/api'
-import { setupCanteens } from '../tests/convex-fixture'
+import { WEEK, createDish, publishedLunch, setupCanteens } from '../tests/convex-fixture'
 
 type Admin = Awaited<ReturnType<typeof setupCanteens>>['adminA']
 
@@ -60,5 +60,41 @@ describe('fiches techniques et allergènes (#13)', () => {
     await expect(adminB.mutation(api.catalog.setIngredientAllergens, { ingredientId: fish._id, allergens: ['fish'] })).rejects.toThrow()
     const refs = await adminA.query(api.catalog.references, {})
     expect(refs.ingredients.find((i) => i._id === fish._id)?.allergens).toBeUndefined()
+  })
+})
+
+describe('photos de plats', () => {
+  test('photo réelle ajoutée à un plat publié : servie dans le menu ; fichier non image refusé ; droits et établissement', async () => {
+    const { t, adminA, adminB, studentA } = await setupCanteens()
+    await publishedLunch(adminA, 10)
+    const [item] = await adminA.query(api.menus.adminWeek, { weekStart: WEEK })
+    const image = await t.run((ctx) => ctx.storage.store(new Blob(['png'], { type: 'image/png' })))
+    const text = await t.run((ctx) => ctx.storage.store(new Blob(['texte'], { type: 'text/plain' })))
+
+    await expect(adminA.mutation(api.dishes.setPhoto, { dishId: item.dishId, photoId: text })).rejects.toThrow(/image/)
+    await expect(studentA.mutation(api.dishes.setPhoto, { dishId: item.dishId, photoId: image })).rejects.toThrow()
+    await expect(adminB.mutation(api.dishes.setPhoto, { dishId: item.dishId, photoId: image })).rejects.toThrow()
+
+    await adminA.mutation(api.dishes.setPhoto, { dishId: item.dishId, photoId: image })
+    const [published] = await studentA.query(api.menus.publishedWeek, { weekStart: WEEK })
+    expect(typeof published.photoUrl).toBe('string')
+
+    await adminA.mutation(api.dishes.setPhoto, { dishId: item.dishId, photoId: null })
+    const [after] = await studentA.query(api.menus.publishedWeek, { weekStart: WEEK })
+    expect(after.photoUrl).toBeUndefined()
+  })
+
+  test('modifier la fiche d’un plat non publié conserve sa photo', async () => {
+    const { t, adminA } = await setupCanteens()
+    const dishId = await createDish(adminA, 'Garba')
+    const image = await t.run((ctx) => ctx.storage.store(new Blob(['png'], { type: 'image/jpeg' })))
+    await adminA.mutation(api.dishes.setPhoto, { dishId, photoId: image })
+    await adminA.mutation(api.dishes.save, {
+      dishId,
+      dish: { name: 'Garba', defaultPriceXof: 1200, allergens: { status: 'unknown' }, recipe: { portions: 1, lines: [] } },
+    })
+    const dish = (await adminA.query(api.dishes.list, {})).find((d) => d._id === dishId)
+    expect(dish?.photoId).toBe(image)
+    expect(typeof dish?.photoUrl).toBe('string')
   })
 })

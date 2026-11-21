@@ -81,7 +81,7 @@ function RecipesPage() {
                         aria-current={dish._id === search.plat ? 'page' : undefined}
                         className="flex items-center gap-3 rounded-2xl p-2 outline-none hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50 aria-[current=page]:bg-secondary"
                       >
-                        <DishVisual name={dish.name} className="size-10 shrink-0 rounded-xl text-xs" />
+                        <DishVisual name={dish.name} photoUrl={dish.photoUrl} className="size-10 shrink-0 rounded-xl text-xs" />
                         <span className="flex min-w-0 flex-1 flex-col">
                           <span className="truncate text-sm font-medium">{dish.name}</span>
                           <span className="text-xs text-muted-foreground tabular-nums">

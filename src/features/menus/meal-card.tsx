@@ -50,7 +50,7 @@ export function MealCard({
   return (
     <Card className="gap-0 overflow-hidden p-0 shadow-card">
       <div className="relative">
-        <DishVisual name={item.dishName} className="h-28 text-2xl sm:h-32" />
+        <DishVisual name={item.dishName} photoUrl={item.photoUrl} className="h-28 text-2xl sm:h-32" />
         <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-card/95 px-2.5 py-1 text-eyebrow text-muted-foreground shadow-card">
           <ServiceIcon className="size-3.5" />
           {t(SERVICE_LABELS[item.service])}

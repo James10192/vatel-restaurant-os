@@ -19,6 +19,7 @@ import { useT } from '#/i18n/i18n'
 type AdminItem = Doc<'menuItems'> & {
   dishName: string
   allergens: Doc<'dishes'>['allergens']
+  photoUrl?: string
 }
 
 /**
@@ -30,7 +31,7 @@ export function MenuItemRow({ item }: { item: AdminItem }) {
   return (
     <li className="@container rounded-2xl border bg-card shadow-card">
       <div className="flex gap-3 p-2.5 pr-1.5 @max-[15rem]:gap-1.5 @max-[15rem]:p-2 @max-[15rem]:pr-1">
-        <DishVisual name={item.dishName} className="size-14 shrink-0 rounded-xl text-sm @max-[15rem]:hidden" />
+        <DishVisual name={item.dishName} photoUrl={item.photoUrl} className="size-14 shrink-0 rounded-xl text-sm @max-[15rem]:hidden" />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-0.5">
           <div className="flex items-start justify-between gap-2 @max-[15rem]:flex-col @max-[15rem]:gap-0.5">
             <span className="leading-snug font-semibold break-words @max-[15rem]:text-sm">{item.dishName}</span>
