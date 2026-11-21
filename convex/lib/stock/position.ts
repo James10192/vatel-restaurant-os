@@ -12,7 +12,7 @@ export type Count = { at: number; quantity: number; unit: string }
 export type Outflow = { at: number; quantity: number; unit: string }
 
 export type Position = {
-  /** Unité d'affichage : celle du dernier inventaire, sinon de la dernière réception, sinon de la fiche. */
+  /** Unité d'affichage : celle du dernier inventaire, sinon de la première réception, sinon de la fiche. */
   unit: string
   theoretical: number
   lastCount: { at: number; quantity: number } | null
@@ -23,9 +23,15 @@ export type Position = {
   avgUnitCostXof: number | null
 }
 
-export function positionOf(unitHint: string, receptions: Array<Reception>, counts: Array<Count>, outflows: Array<Outflow>): Position {
+/**
+ * `trackedSince` : début du suivi de l'ingrédient (sa première réception ou son premier inventaire). Une
+ * consommation antérieure ne concerne pas ce stock : elle est ignorée, même sans inventaire.
+ */
+export function positionOf(unitHint: string, receptions: Array<Reception>, counts: Array<Count>, outflows: Array<Outflow>, trackedSince = -Infinity): Position {
   const last = [...counts].sort((a, b) => b.at - a.at).at(0)
-  const unit = last?.unit ?? [...receptions].sort((a, b) => b.at - a.at).at(0)?.unit ?? unitHint
+  // Unité stable : celle du dernier inventaire, sinon de la PREMIÈRE réception (une livraison dans une autre
+  // unité ne fait pas basculer tout le stock ; elle est signalée si elle ne se convertit pas).
+  const unit = last?.unit ?? [...receptions].sort((a, b) => a.at - b.at).at(0)?.unit ?? unitHint
   const incompatible = new Set<string>()
   const inUnit = (quantity: number, from: string) => {
     const value = convert(quantity, from, unit)
@@ -36,7 +42,7 @@ export function positionOf(unitHint: string, receptions: Array<Reception>, count
   const start = last ? inUnit(last.quantity, last.unit) : 0
   const received = receptions.filter((r) => since(r.at))
   const inflow = received.reduce((n, r) => n + inUnit(r.quantity, r.unit), 0)
-  const outflow = outflows.filter((o) => since(o.at)).reduce((n, o) => n + inUnit(o.quantity, o.unit), 0)
+  const outflow = outflows.filter((o) => o.at >= trackedSince && since(o.at)).reduce((n, o) => n + inUnit(o.quantity, o.unit), 0)
   const theoretical = Math.max(0, start + inflow - outflow)
   return {
     unit,
@@ -44,7 +50,7 @@ export function positionOf(unitHint: string, receptions: Array<Reception>, count
     lastCount: last ? { at: last.at, quantity: start } : null,
     incompatible: [...incompatible],
     lots: remainingLots(receptions, theoretical, inUnit),
-    avgUnitCostXof: averageCost(receptions, inUnit),
+    avgUnitCostXof: averageCost(receptions, unit),
   }
 }
 
@@ -61,8 +67,10 @@ function remainingLots(receptions: Array<Reception>, stock: number, inUnit: (q: 
   return lots
 }
 
-function averageCost(receptions: Array<Reception>, inUnit: (q: number, u: string) => number) {
-  const priced = receptions.filter((r) => r.unitCostXof !== undefined)
+function averageCost(receptions: Array<Reception>, unit: string) {
+  // Réceptions sans prix ou dont l'unité ne se convertit pas : exclues du prix ET de la quantité.
+  const priced = receptions.filter((r) => r.unitCostXof !== undefined && convert(r.quantity, r.unit, unit) !== null)
+  const inUnit = (q: number, u: string) => convert(q, u, unit) ?? 0
   const quantity = priced.reduce((n, r) => n + inUnit(r.quantity, r.unit), 0)
   if (quantity <= 0) return null
   // Prix saisi par unité de réception : converti en prix par unité de stock.

@@ -19,7 +19,7 @@ export type WasteByReason = Record<WasteReason, number>
 export const emptyWaste = (): WasteByReason => ({ surplus: 0, not_picked_up: 0, kitchen: 0, quality: 0 })
 
 /** Ce que le bilan lit d'une offre : exactement les champs renvoyés par production.day. */
-export type WasteInput = { prepared: number | null; pickedUp: number; confirmed: number; waste: WasteByReason; recovered: number }
+export type WasteInput = { prepared: number | null; pickedUp: number; walkIns: number; confirmed: number; waste: WasteByReason; recovered: number }
 
 export type WasteBalance = {
   prepared: number | null
@@ -37,7 +37,9 @@ export type WasteBalance = {
   wasteRate: number | null
 }
 
-export function wasteBalance({ prepared, pickedUp: served, confirmed, waste, recovered }: WasteInput): WasteBalance {
+export function wasteBalance({ prepared, pickedUp, walkIns, confirmed, waste, recovered }: WasteInput): WasteBalance {
+  // Servi = remis sur réservation + servi au comptoir sans réservation : les deux sortent du préparé.
+  const served = pickedUp + walkIns
   const wasted = WASTE_REASONS.reduce((sum, reason) => sum + waste[reason], 0)
   const left = prepared === null ? null : Math.max(0, prepared - served - wasted - recovered)
   const pending = left === null ? null : Math.min(left, confirmed)

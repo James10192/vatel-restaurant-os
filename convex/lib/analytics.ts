@@ -1,3 +1,5 @@
+import { csvRows } from './csv'
+
 /**
  * Indicateurs (#9) : calcul pur sur des lectures bornées (une période de 7 ou 30 jours d'un établissement).
  * Chaque taux donne son numérateur et son dénominateur ; les taux de retrait et d'absence ne portent que sur
@@ -40,7 +42,7 @@ export function dayRow(day: DayInput, today: string) {
     soldOut: day.offers.filter((o) => o.capacity > 0 && o.active >= o.capacity).length,
     ratingSum: day.scores.reduce((n, s) => n + s, 0),
     ratingCount: day.scores.length,
-    /** Écart absolu entre l'objectif validé et le réellement servi (remis + sans réservation), services passés. */
+    /** Écart absolu entre passages estimés au plan et servis sans réservation, services passés planifiés. */
     planError: past ? planned.reduce((n, o) => n + Math.abs((o.target ?? 0) - o.served), 0) : 0,
     plannedOffers: past ? planned.length : 0,
   }
@@ -74,5 +76,5 @@ export function totals(rows: Array<DayRow>) {
 export function analyticsCsv(rows: Array<DayRow>) {
   const head = ['Date', 'Offres', 'Capacité', 'Réservés', 'Remis', 'Absents', 'Annulés', 'Sans réservation', 'Préparé', 'Perdu', 'Récupéré', 'Crédits démo (FCFA)', 'Plats complets', 'Notes', 'Note moyenne']
   const lines = rows.map((r) => [r.date, r.offers, r.capacity, r.booked, r.pickedUp, r.noShow, r.cancelled, r.walkIns, r.prepared ?? '', r.wasted, r.recovered, r.demoCreditsXof, r.soldOut, r.ratingCount, r.ratingCount ? (r.ratingSum / r.ratingCount).toFixed(1) : ''])
-  return [head, ...lines].map((line) => line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(';')).join('\r\n')
+  return csvRows([head, ...lines])
 }

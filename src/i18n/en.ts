@@ -990,8 +990,6 @@ export const EN: Record<string, string> = {
   'Annulations': 'Cancellations',
   'Pertes': 'Waste',
   'Satisfaction': 'Satisfaction',
-  'Écart du plan': 'Plan gap',
-  'portions par service, sur {n} services planifiés': 'portions per service, over {n} planned services',
   'Plats complets': 'Sold-out dishes',
   'sur {n} offres publiées': 'out of {n} published offers',
   'Sans réservation': 'Without booking',
@@ -1019,6 +1017,8 @@ export const EN: Record<string, string> = {
   'Mettre à jour mes habitudes': 'Update my habits',
   'Enregistrer comme habitude': 'Save as a habit',
   'Jours : de 1 (lundi) à 7 (dimanche).': 'Days: from 1 (Monday) to 7 (Sunday).',
+  'Écart des passages estimés': 'Walk-in estimate gap',
+  'repas par service, sur {n} services planifiés': 'meals per service, over {n} planned services',
 }
 
 /**
@@ -1032,8 +1032,7 @@ export const EN_PATTERNS: Record<string, string> = {
   '{label} : entier entre 0 et {max}.': '{label}: whole number between 0 and {max}.',
   'Entre 1 et {max} repas par réservation groupée.': 'Between 1 and {max} meals per group booking.',
   'Repas du {date} : {reason}': 'Meal on {date}: {reason}',
-  'Correction refusée : {n} portions déjà déclarées perdues.':
-    'Correction refused: {n} portions already recorded as wasted.',
+  'Correction refusée : {n} portions déjà servies ou déclarées.': 'Correction refused: {n} portions already served or recorded.',
   'Au plus {max} portions peuvent encore être déclarées.': 'At most {max} more portions can be recorded.',
   'Portions : entier entre 1 et {max}.': 'Portions: whole number between 1 and {max}.',
   'Déjà {booked} portions réservées : capacité trop basse.':

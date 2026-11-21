@@ -18,8 +18,11 @@ const remainingDays = (today: string) => {
  * jusqu'à dimanche. Lectures indexées par établissement ; la consommation ne lit que les préparations
  * postérieures au plus ancien point de départ (inventaire ou première réception).
  */
-export async function loadStock(ctx: QueryCtx, canteenId: Id<'canteens'>, today: string) {
-  const movements = await ctx.db.query('stockMovements').withIndex('by_canteen', (q) => q.eq('canteenId', canteenId)).collect()
+export async function loadStock(ctx: QueryCtx, canteenId: Id<'canteens'>, today: string, only?: Id<'ingredients'>) {
+  // Un seul ingrédient (inventaire) : lecture indexée de ses seuls mouvements, sans le besoin de la semaine.
+  const movements = only
+    ? await ctx.db.query('stockMovements').withIndex('by_canteen_ingredient', (q) => q.eq('canteenId', canteenId).eq('ingredientId', only)).collect()
+    : await ctx.db.query('stockMovements').withIndex('by_canteen', (q) => q.eq('canteenId', canteenId)).collect()
   const unitNames = await namesOf(ctx, [...new Set(movements.map((m) => m.unitId))])
   const tracked = [...new Set(movements.map((m) => m.ingredientId))]
   const startOf = (ingredientId: Id<'ingredients'>) => {
@@ -29,7 +32,7 @@ export async function loadStock(ctx: QueryCtx, canteenId: Id<'canteens'>, today:
   }
   const sinceAt = tracked.length ? Math.min(...tracked.map(startOf)) : Date.now()
   const consumption = await consumptionSince(ctx, canteenId, sinceAt, new Set(tracked))
-  const needs = await weekNeeds(ctx, canteenId, today)
+  const needs = only ? [] : await weekNeeds(ctx, canteenId, today)
 
   return await Promise.all(
     tracked.map(async (ingredientId) => {
@@ -38,7 +41,7 @@ export async function loadStock(ctx: QueryCtx, canteenId: Id<'canteens'>, today:
       const receptions = own.filter((m) => m.kind === 'reception').map((m) => ({ ...as(m), lotCode: m.lotCode, expiresOn: m.expiresOn, supplier: m.supplier, unitCostXof: m.unitCostXof }))
       const losses: Array<Outflow> = own.filter((m) => m.kind === 'loss').map(as)
       const recipeUnit = consumption.get(ingredientId)?.at(0)?.unit ?? receptions.at(-1)?.unit ?? '?'
-      const position = positionOf(recipeUnit, receptions, own.filter((m) => m.kind === 'count').map(as), [...(consumption.get(ingredientId) ?? []), ...losses])
+      const position = positionOf(recipeUnit, receptions, own.filter((m) => m.kind === 'count').map(as), [...(consumption.get(ingredientId) ?? []), ...losses], Math.min(...own.map((m) => m._creationTime)))
       const need = needs.filter((n) => n.ingredientId === ingredientId)
       const needInUnit = need.map((n) => convert(n.gross, n.unit, position.unit))
       const known = needInUnit.filter((n): n is number => n !== null)
@@ -77,8 +80,9 @@ async function consumptionSince(ctx: QueryCtx, canteenId: Id<'canteens'>, sinceA
       recipes.set(e.menuItemId, item ? ((await ctx.db.get(item.dishId))?.recipe ?? null) : null)
     }
     const recipe = recipes.get(e.menuItemId)
-    if (!recipe || recipe.portions < 1) continue
-    for (const line of recipe.lines.filter((l) => tracked.has(l.ingredientId))) {
+    if (!recipe || !Number.isInteger(recipe.portions) || recipe.portions < 1) continue
+    // Même règle que materialsFor : une ligne invalide (quantité nulle) ne consomme rien.
+    for (const line of recipe.lines.filter((l) => tracked.has(l.ingredientId) && l.quantity > 0)) {
       if (!units.has(line.unitId)) units.set(line.unitId, (await ctx.db.get(line.unitId))?.name ?? '?')
       const list = out.get(line.ingredientId) ?? []
       list.push({ at: e._creationTime, quantity: (line.quantity / recipe.portions) * e.portions, unit: units.get(line.unitId) ?? '?' })

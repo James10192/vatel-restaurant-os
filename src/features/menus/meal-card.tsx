@@ -69,6 +69,9 @@ export function MealCard({
           <h3 className="text-xl leading-snug font-semibold tracking-tight">{item.dishName}</h3>
           {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
         </div>
+        {booking?.slot && booking.status === 'confirmed' && (
+          <p className="text-sm font-medium text-primary tabular-nums">{t('Retrait à {slot}', { slot: booking.slot })}</p>
+        )}
         <AllergenBadges allergens={item.allergens} />
         <AllergyAlert alert={item.allergyAlert} />
         {!booking && (

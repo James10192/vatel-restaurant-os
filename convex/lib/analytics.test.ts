@@ -52,3 +52,13 @@ describe('indicateurs', () => {
     expect(csv).toContain('"2026-11-22";"1";"10"')
   })
 })
+
+describe('export tableur', () => {
+  test('formule neutralisée, guillemets échappés, nombres intacts', async () => {
+    const { csvCell } = await import('./csv')
+    expect(csvCell('=HYPERLINK("x")')).toBe('"\'=HYPERLINK(""x"")"')
+    expect(csvCell('@SUM(A1)')).toBe('"\'@SUM(A1)"')
+    expect(csvCell(-3)).toBe('"-3"')
+    expect(csvCell('Grossiste "Adjamé"')).toBe('"Grossiste ""Adjamé"""')
+  })
+})

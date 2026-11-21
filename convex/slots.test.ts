@@ -34,6 +34,8 @@ describe('créneaux et capacité de service', () => {
       { slot: '12:15', remaining: 0 },
     ])
     await expect(studentA3.mutation(api.bookings.book, { menuItemId: a, idempotencyKey: 'z' })).rejects.toThrow(/créneaux de retrait sont complets/)
+    // Créneau choisi plein : refusé, jamais remplacé en silence.
+    await expect(studentA3.mutation(api.bookings.book, { menuItemId: a, idempotencyKey: 'w', slot: '12:15' })).rejects.toThrow(/Ce créneau est complet/)
     const [mine] = await studentA.query(api.bookings.mine, { from: WEEK })
     await expect(studentA.mutation(api.bookings.changeSlot, { bookingId: mine._id, slot: '12:00' })).rejects.toThrow(/complet/)
     await expect(studentA.mutation(api.bookings.changeSlot, { bookingId: mine._id, slot: '13:00' })).rejects.toThrow(/inconnu/)
@@ -77,11 +79,24 @@ describe('liste d’attente', () => {
     await studentA3.mutation(api.waitlist.join, { menuItemId: a })
     expect(await studentA2.query(api.waitlist.mine, {})).toEqual([a])
     await studentA.mutation(api.bookings.cancel, { bookingId })
-    const entries = await t.run((ctx) => ctx.db.query('waitlist').collect())
-    expect(entries.map((e) => e.notifiedAt !== undefined)).toEqual([true, false])
-    await studentA2.mutation(api.bookings.book, { menuItemId: a, idempotencyKey: 'y' })
+    // Le plus ancien (A2) est prévenu puis retiré ; A3 attend toujours.
     expect(await studentA2.query(api.waitlist.mine, {})).toEqual([])
+    expect(await studentA3.query(api.waitlist.mine, {})).toEqual([a])
+    await studentA2.mutation(api.bookings.book, { menuItemId: a, idempotencyKey: 'y' })
     await studentA3.mutation(api.waitlist.leave, { menuItemId: a })
     expect(await t.run((ctx) => ctx.db.query('waitlist').collect())).toEqual([])
+  })
+
+  test('service complet (capacité globale) : inscription possible même si le plat a de la place', async () => {
+    const fixture = await setupCanteens()
+    const { adminA, studentA, studentA2 } = fixture
+    await funded(fixture)
+    await withPolicy(adminA, { serviceCapacity: { lunch: 1, dinner: 10 } })
+    const a = await publishedLunch(adminA, 10)
+    const b = await publishedLunch(adminA, 10, 1500, WEEK)
+    const { bookingId } = await studentA.mutation(api.bookings.book, { menuItemId: a, idempotencyKey: 'x' })
+    await studentA2.mutation(api.waitlist.join, { menuItemId: b })
+    await studentA.mutation(api.bookings.cancel, { bookingId })
+    expect(await studentA2.query(api.waitlist.mine, {})).toEqual([])
   })
 })

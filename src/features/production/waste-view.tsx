@@ -48,7 +48,7 @@ export function WasteView({ date, offers, canRecord }: { date: string; offers: A
 function WasteRow({ offer, canRecord }: { offer: ProductionOffer; canRecord: boolean }) {
   const t = useT()
   const b = wasteBalance(offer)
-  const max = offer.prepared === null ? 0 : maxDeclarable(offer.prepared, offer.pickedUp, b.wasted + b.recovered)
+  const max = offer.prepared === null ? 0 : maxDeclarable(offer.prepared, b.served, b.wasted + b.recovered)
   return (
     <li className="flex flex-col gap-3 rounded-3xl border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 flex-col gap-1">

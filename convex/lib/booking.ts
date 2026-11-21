@@ -7,8 +7,8 @@ import { activeBookingsCount } from './capacity'
 import { appendEntry, getOrCreateWallet } from './ledger'
 import { cutoffAt, policyOf, slotPolicyOf } from './policy'
 import type { Policy } from './policy'
-import { assignSlot } from './slots'
-import { leaveAfterBooking } from './waitlist'
+import { assignSlot, slotsOf } from './slots'
+import { leaveWaitlist } from './waitlist'
 
 type Service = Doc<'bookings'>['service']
 
@@ -57,7 +57,7 @@ export async function bookMeal(ctx: MutationCtx, membership: Membership, menuIte
     slot,
   })
   const balanceXof = await appendEntry(ctx, wallet, { kind: 'booking_debit', amountXof: -item.priceXof, label: `Réservation : ${dish.name}`, bookingId })
-  await leaveAfterBooking(ctx, menuItemId, membership._id)
+  await leaveWaitlist(ctx, menuItemId, membership._id)
   return { bookingId, date: item.date, slot, balanceXof }
 }
 
@@ -71,7 +71,14 @@ export async function placeInService(ctx: QueryCtx, membership: Membership, poli
   const active = await activeInService(ctx, membership.canteenId, date, service)
   if (policy.serviceCapacity && active.length >= policy.serviceCapacity[service]) throw new ConvexError('Service complet : plus de place pour ce service.')
   if (!slotPolicy) return undefined
-  const slot = assignSlot(slotPolicy, countBySlot(active), wantedSlot)
+  const taken = countBySlot(active)
+  // Créneau choisi : il est respecté ou refusé, jamais remplacé en silence par un autre.
+  if (wantedSlot !== undefined) {
+    if (!slotsOf(slotPolicy).includes(wantedSlot)) throw new ConvexError('Créneau inconnu.')
+    if ((taken[wantedSlot] ?? 0) >= slotPolicy.slotCapacity) throw new ConvexError('Ce créneau est complet.')
+    return wantedSlot
+  }
+  const slot = assignSlot(slotPolicy, taken)
   if (!slot) throw new ConvexError('Tous les créneaux de retrait sont complets.')
   return slot
 }
@@ -93,3 +100,14 @@ function countBySlot(bookings: Array<Doc<'bookings'>>) {
 /** Réservations actives par créneau d'un service (pour proposer ou changer un créneau). */
 export const slotLoad = async (ctx: QueryCtx, canteenId: Id<'canteens'>, date: string, service: Service) =>
   countBySlot(await activeInService(ctx, canteenId, date, service))
+
+/** Le service refuserait-il une réservation (capacité globale ou créneaux pleins) ? Même règle que `placeInService`. */
+export async function serviceFull(ctx: QueryCtx, membership: Membership, policy: Policy, date: string, service: Service) {
+  try {
+    await placeInService(ctx, membership, policy, date, service)
+    return false
+  } catch (error) {
+    if (error instanceof ConvexError) return true
+    throw error
+  }
+}

@@ -37,6 +37,12 @@ describe('position de stock', () => {
     expect(p.lastCount).toEqual({ at: 2.5, quantity: 3000 })
   })
 
+  test('consommation antérieure au début du suivi ignorée ; coût moyen sans réception non convertible', () => {
+    const p = positionOf('kg', [{ at: 10, quantity: 20, unit: 'kg', unitCostXof: 500 }, { at: 11, quantity: 2, unit: 'sac', unitCostXof: 9000 }], [], [{ at: 5, quantity: 10, unit: 'kg' }], 10)
+    expect(p.theoretical).toBe(20)
+    expect(p.avgUnitCostXof).toBe(500)
+  })
+
   test('unités incompatibles : sortie ignorée et signalée, jamais devinée ; jamais négatif', () => {
     const p = positionOf('kg', [{ at: 1, quantity: 2, unit: 'kg' }], [], [{ at: 2, quantity: 3, unit: 'pièce' }, { at: 3, quantity: 5, unit: 'kg' }])
     expect(p.incompatible).toEqual(['pièce'])

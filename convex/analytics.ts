@@ -77,9 +77,10 @@ export const period = query({
           return {
             capacity: item.capacity,
             active,
-            // Objectif rapporté aux réservations finales : mesure la qualité des hypothèses (passages, marge).
-            target: plan ? active + plan.walkIns + plan.margin : null,
-            served: mine.filter((b) => b.status === 'picked_up').length + walkIns,
+            // Qualité de l'estimation des passages : estimés au plan contre servis sans réservation.
+            // La marge (sécurité voulue) et les absents (déjà comptés à part) n'en font pas partie.
+            target: plan ? plan.walkIns : null,
+            served: walkIns,
           }
         })
       return dayRow({ date, offers, bookings: ofDay, events: events.filter((e) => e.date === date), scores: ratings.filter((r) => r.date === date).map((r) => r.score) }, today)

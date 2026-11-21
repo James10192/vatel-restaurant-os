@@ -18,16 +18,7 @@ export function slotsOf(policy: SlotPolicy): Array<string> {
   return Array.from({ length: count }, (_, i) => toHHMM(start + i * policy.slotMinutes))
 }
 
-/**
- * Créneau attribué : celui demandé s'il reste de la place, sinon le premier qui en a. Null si tous sont pleins
- * (la réservation est alors refusée : pas de débordement promis).
- */
-export function assignSlot(policy: SlotPolicy, taken: Record<string, number>, wanted?: string): string | null {
-  const slots = slotsOf(policy)
-  const free = (slot: string) => (taken[slot] ?? 0) < policy.slotCapacity
-  if (wanted && slots.includes(wanted) && free(wanted)) return wanted
-  return slots.find(free) ?? null
+/** Premier créneau qui a encore de la place, ou null si tous sont pleins (pas de débordement promis). */
+export function assignSlot(policy: SlotPolicy, taken: Record<string, number>): string | null {
+  return slotsOf(policy).find((slot) => (taken[slot] ?? 0) < policy.slotCapacity) ?? null
 }
-
-/** Fin du créneau (ms), pour signaler un retard au comptoir sans jamais refuser le repas. */
-export const slotEndsAt = (date: string, slot: string, slotMinutes: number) => Date.parse(`${date}T${slot}:00Z`) + slotMinutes * 60_000

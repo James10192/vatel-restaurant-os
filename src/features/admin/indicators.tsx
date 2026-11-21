@@ -84,9 +84,9 @@ function tilesOf(totals: Totals, t: (text: string, vars?: Record<string, string 
       detail: t(totals.rating.count > 1 ? '{n} notes' : '{n} note', { n: totals.rating.count }),
     },
     {
-      label: t('Écart du plan'),
+      label: t('Écart des passages estimés'),
       value: totals.planError.value === null ? '?' : String(totals.planError.value).replace('.', ','),
-      detail: t('portions par service, sur {n} services planifiés', { n: totals.planError.services }),
+      detail: t('repas par service, sur {n} services planifiés', { n: totals.planError.services }),
     },
     { label: t('Plats complets'), value: String(totals.soldOut), detail: t('sur {n} offres publiées', { n: totals.offers }) },
     { label: t('Sans réservation'), value: String(totals.walkIns), detail: t('repas servis au comptoir') },

@@ -16,7 +16,7 @@ import { notifyNextWaiting } from './lib/waitlist'
  */
 export const book = mutation({
   args: { menuItemId: v.id('menuItems'), idempotencyKey: v.string(), slot: v.optional(v.string()) },
-  returns: v.object({ bookingId: v.id('bookings'), balanceXof: v.number(), replayed: v.boolean() }),
+  returns: v.object({ bookingId: v.id('bookings'), balanceXof: v.number(), replayed: v.boolean(), slot: v.optional(v.string()) }),
   handler: async (ctx, { menuItemId, idempotencyKey, slot }) => {
     assertIdempotencyKey(idempotencyKey)
     const membership = await requireMember(ctx)
@@ -28,12 +28,12 @@ export const book = mutation({
       .unique()
     if (previous) {
       if (previous.menuItemId !== menuItemId) throw new ConvexError('Demande déjà traitée pour un autre repas.')
-      return { bookingId: previous._id, balanceXof: wallet.balanceXof, replayed: true }
+      return { bookingId: previous._id, balanceXof: wallet.balanceXof, replayed: true, slot: previous.slot }
     }
 
-    const { bookingId, balanceXof } = await bookMeal(ctx, membership, menuItemId, idempotencyKey, slot)
-    await alertIfLowBalance(ctx, membership._id, wallet.balanceXof, balanceXof)
-    return { bookingId, balanceXof, replayed: false }
+    const booked = await bookMeal(ctx, membership, menuItemId, idempotencyKey, slot)
+    await alertIfLowBalance(ctx, membership._id, wallet.balanceXof, booked.balanceXof)
+    return { bookingId: booked.bookingId, balanceXof: booked.balanceXof, replayed: false, slot: booked.slot }
   },
 })
 
@@ -101,7 +101,7 @@ export const cancel = mutation({
       throw new ConvexError('Délai d’annulation dépassé pour ce service.')
     }
     await ctx.db.patch(bookingId, { status: 'cancelled' })
-    await notifyNextWaiting(ctx, booking.menuItemId)
+    await notifyNextWaiting(ctx, booking)
     const wallet = await getOrCreateWallet(ctx, membership)
     const balanceXof = await appendEntry(ctx, wallet, {
       kind: 'booking_refund',

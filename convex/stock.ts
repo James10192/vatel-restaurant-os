@@ -145,7 +145,7 @@ export const count = mutation({
   handler: async (ctx, args) => {
     const { membership, base, duplicate } = await prepare(ctx, args)
     if (duplicate) return { expectedBefore: null }
-    const row = (await loadStock(ctx, membership.canteenId, todayUtc())).find((r) => r.ingredientId === args.ingredientId)
+    const row = (await loadStock(ctx, membership.canteenId, todayUtc(), args.ingredientId)).at(0)
     const unit = (await ctx.db.get(args.unitId))?.name ?? '?'
     const expectedBefore = row ? convert(row.theoretical, row.unit, unit) : null
     await ctx.db.insert('stockMovements', { ...base, kind: 'count', quantity: assertQuantity(args.quantity, true), expectedBefore: expectedBefore ?? undefined })

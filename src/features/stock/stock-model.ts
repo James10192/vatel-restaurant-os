@@ -3,13 +3,14 @@ import type { api } from '../../../convex/_generated/api'
 import { addDays } from '../../../convex/lib/dates'
 import { roundQty } from '../../../convex/lib/production/plan'
 import { expiringLots, toBuy } from '../../../convex/lib/stock/position'
+import { csvRows } from '../../../convex/lib/csv'
 
 export type StockRow = FunctionReturnType<typeof api.stock.overview>[number]
 
 /** Alerte d'une ligne de stock : rupture prévue d'ici dimanche, lots qui expirent sous 2 jours, unités sans conversion. */
 export function alertsOf(row: StockRow, today: string) {
   return {
-    shortage: row.need !== null && row.need > row.theoretical ? row.need - row.theoretical : 0,
+    shortage: row.need === null ? 0 : toBuy(row.need, row),
     expiring: expiringLots(row, today, addDays(today, 2)),
     incompatible: row.incompatible,
   }
@@ -28,7 +29,5 @@ export function purchaseList(rows: Array<StockRow>) {
 
 /** Export tableur (séparateur « ; » lu par Excel en français), texte échappé. */
 export function purchaseCsv(list: ReturnType<typeof purchaseList>) {
-  const cell = (value: string | number | null) => `"${String(value ?? '').replace(/"/g, '""')}"`
-  const lines = [['Ingrédient', 'Quantité', 'Unité', 'Fournisseur', 'Coût estimé (FCFA)'], ...list.map((p) => [p.name, roundQty(p.quantity), p.unit, p.supplier, p.costXof])]
-  return lines.map((line) => line.map(cell).join(';')).join('\r\n')
+  return csvRows([['Ingrédient', 'Quantité', 'Unité', 'Fournisseur', 'Coût estimé (FCFA)'], ...list.map((p) => [p.name, roundQty(p.quantity), p.unit, p.supplier, p.costXof])])
 }

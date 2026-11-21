@@ -40,7 +40,7 @@ describe('production du jour', () => {
     expect((await offer()).prepared).toBe(6)
     await chefA.mutation(api.production.recordWaste, { menuItemId, portions: 3, reason: 'surplus', idempotencyKey: 'w1' })
     await expect(chefA.mutation(api.production.recordPrepared, { menuItemId, portions: -4, idempotencyKey: 'p2' })).rejects.toThrow(
-      /déjà déclarées perdues/,
+      /déjà servies ou déclarées/,
     )
     await chefA.mutation(api.production.recordPrepared, { menuItemId, portions: -2, idempotencyKey: 'p3' })
     expect(await offer()).toMatchObject({ prepared: 4, waste: { surplus: 3, not_picked_up: 0, kitchen: 0, quality: 0 } })

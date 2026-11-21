@@ -4,6 +4,7 @@ import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
 import { Settings2Icon } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
+import { SUGGESTED_SERVICE_CAPACITY, SUGGESTED_SLOTS } from '../../../convex/lib/policy'
 import { FormError } from '#/components/form-error'
 import { Button } from '#/components/ui/button'
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '#/components/ui/field'
@@ -47,12 +48,12 @@ export function ServiceSettings() {
           dinner: policy.serviceStart.dinner,
           cutoff: String(policy.cutoffMinutes),
           capacityOn: Boolean(policy.serviceCapacity),
-          lunchCapacity: String(policy.serviceCapacity?.lunch ?? 200),
-          dinnerCapacity: String(policy.serviceCapacity?.dinner ?? 200),
+          lunchCapacity: String(policy.serviceCapacity?.lunch ?? SUGGESTED_SERVICE_CAPACITY.lunch),
+          dinnerCapacity: String(policy.serviceCapacity?.dinner ?? SUGGESTED_SERVICE_CAPACITY.dinner),
           slotsOn: Boolean(policy.slots),
-          duration: String(policy.slots?.durationMinutes ?? 90),
-          slotMinutes: String(policy.slots?.slotMinutes ?? 15),
-          slotCapacity: String(policy.slots?.slotCapacity ?? 40),
+          duration: String(policy.slots?.durationMinutes ?? SUGGESTED_SLOTS.durationMinutes),
+          slotMinutes: String(policy.slots?.slotMinutes ?? SUGGESTED_SLOTS.slotMinutes),
+          slotCapacity: String(policy.slots?.slotCapacity ?? SUGGESTED_SLOTS.slotCapacity),
         }
       : null)
   const set = (patch: Partial<Form>) => value && setForm({ ...value, ...patch })

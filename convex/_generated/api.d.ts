@@ -30,6 +30,7 @@ import type * as lib_capacity from "../lib/capacity.js";
 import type * as lib_copilot_brief from "../lib/copilot/brief.js";
 import type * as lib_copilot_facts from "../lib/copilot/facts.js";
 import type * as lib_copilot_llm from "../lib/copilot/llm.js";
+import type * as lib_csv from "../lib/csv.js";
 import type * as lib_dates from "../lib/dates.js";
 import type * as lib_ledger from "../lib/ledger.js";
 import type * as lib_locale from "../lib/locale.js";
@@ -98,6 +99,7 @@ declare const fullApi: ApiFromModules<{
   "lib/copilot/brief": typeof lib_copilot_brief;
   "lib/copilot/facts": typeof lib_copilot_facts;
   "lib/copilot/llm": typeof lib_copilot_llm;
+  "lib/csv": typeof lib_csv;
   "lib/dates": typeof lib_dates;
   "lib/ledger": typeof lib_ledger;
   "lib/locale": typeof lib_locale;

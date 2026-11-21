@@ -43,6 +43,14 @@ describe('stocks', () => {
     await expect(studentA.query(api.stock.overview, {})).rejects.toThrow(/cuisine/)
   })
 
+  test('préparation antérieure à la première réception : ne consomme pas ce stock', async () => {
+    const { adminA } = await setupCanteens()
+    const { kg, rice, menuItemId } = await kitchen(adminA)
+    await adminA.mutation(api.production.recordPrepared, { menuItemId, portions: 10, idempotencyKey: 'avant' })
+    await adminA.mutation(api.stock.receive, { ingredientId: rice._id, quantity: 5, unitId: kg._id, idempotencyKey: 'r' })
+    expect((await adminA.query(api.stock.overview, {}))[0].theoretical).toBe(5)
+  })
+
   test('entrées invalides et autre établissement refusés', async () => {
     const { adminA, adminB } = await setupCanteens()
     const { kg, rice } = await kitchen(adminA)
@@ -69,5 +77,7 @@ describe('surplus récupéré', () => {
     await expect(recover(2, true, 'c')).rejects.toThrow(/Au plus 1 portions/)
     const [offer] = (await adminA.query(api.production.day, { date: WEEK })).offers
     expect(offer).toMatchObject({ prepared: 5, recovered: 2, waste: { kitchen: 2 } })
+    // Correction sous ce qui est déjà sorti (2 récupérées + 2 perdues) : refusée.
+    await expect(adminA.mutation(api.production.recordPrepared, { menuItemId, portions: -2, idempotencyKey: 'c' })).rejects.toThrow(/déjà servies ou déclarées/)
   })
 })

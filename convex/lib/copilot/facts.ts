@@ -3,7 +3,7 @@ import type { QueryCtx } from '../../_generated/server'
 import { addDays, todayUtc } from '../dates'
 import { suggest, summarizeHistory } from '../production/history'
 import { loadDishHistory, loadProductionDay } from '../production/load'
-import { expiringLots } from '../stock/position'
+import { expiringLots, toBuy } from '../stock/position'
 import { loadStock } from '../stock/load'
 import type { ManagerFacts } from './brief'
 
@@ -21,7 +21,7 @@ export async function managerFacts(ctx: QueryCtx, canteenId: Id<'canteens'>, day
   const stock = stockRows.map((row) => ({
     name: row.name,
     unit: row.unit,
-    shortage: row.need !== null && row.need > row.theoretical ? row.need - row.theoretical : 0,
+    shortage: row.need === null ? 0 : toBuy(row.need, row),
     expiring: expiringLots(row, today, addDays(today, 2)).map((lot) => ({ qty: lot.remaining, day: lot.expiresOn ?? today })),
   }))
   const tomorrow = await Promise.all(
@@ -37,7 +37,7 @@ export async function managerFacts(ctx: QueryCtx, canteenId: Id<'canteens'>, day
 
 /** Note moyenne et taux de pertes par plat sur les 30 derniers jours (plages indexées). */
 async function menuStats(ctx: QueryCtx, canteenId: Id<'canteens'>, today: string) {
-  const start = addDays(today, -MENU_WINDOW_DAYS)
+  const start = addDays(today, -(MENU_WINDOW_DAYS - 1))
   const [items, events, ratings] = await Promise.all([
     ctx.db.query('menuItems').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).gte('date', start).lte('date', today)).collect(),
     ctx.db.query('productionEvents').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).gte('date', start).lte('date', today)).collect(),
