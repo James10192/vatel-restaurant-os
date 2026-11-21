@@ -87,7 +87,7 @@ export function SuggestionResults({ result, balanceXof }: { result: Suggestion; 
                 <DishVisual name={pick.dishName} className="size-14 shrink-0 rounded-2xl text-sm" />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-xs font-medium text-muted-foreground first-letter:uppercase">
-                    {formatDayLong(pick.date, locale)} · {t(SERVICE_LABELS[pick.service])}
+                    {formatDayLong(pick.date, locale)}, {t(SERVICE_LABELS[pick.service]).toLowerCase()}
                   </span>
                   <span className="leading-snug font-semibold">{pick.dishName}</span>
                   <span className="text-xs text-muted-foreground tabular-nums">

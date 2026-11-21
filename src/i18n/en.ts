@@ -374,7 +374,7 @@ export const EN: Record<string, string> = {
   'Vos envies': 'Your preferences',
   'Facultatif. N’indiquez aucune information personnelle ou médicale.': 'Optional. Do not enter any personal or medical information.',
   'Recherche en cours…': 'Searching…',
-  '{days} · {amount} · rien n’est réservé sans votre confirmation': '{days} · {amount} · nothing is booked without your confirmation',
+  '{days}, {amount}. Rien n’est réservé sans votre confirmation.': '{days}, {amount}. Nothing is booked without your confirmation.',
   '{n} jours': '{n} days',
   '{n} jour': '{n} day',
   'Total proposé': 'Suggested total',
