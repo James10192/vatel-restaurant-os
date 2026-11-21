@@ -22,7 +22,7 @@ export function AppSidebar() {
       aria-label="Navigation principale"
       className="fixed inset-y-0 left-0 z-30 hidden w-19 flex-col gap-4 border-r bg-sidebar py-4 text-sidebar-foreground md:flex xl:w-64 xl:px-3"
     >
-      <Link to="/app" aria-label="Accueil" className="flex items-center justify-center gap-3 xl:justify-start xl:px-2">
+      <Link to={isAdmin ? '/admin' : '/app'} aria-label="Accueil" className="flex items-center justify-center gap-3 xl:justify-start xl:px-2">
         <BrandLogo className="h-10 shrink-0" />
         <span className="hidden flex-col leading-tight xl:flex">
           <span className="text-sm font-semibold">Restauration</span>
@@ -31,8 +31,9 @@ export function AppSidebar() {
       </Link>
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-2 xl:px-0">
-        <NavSection title="Espace repas" items={MEAL_NAV} />
-        {isAdmin && <NavSection title="Gestion" items={ADMIN_NAV} divider />}
+        {/* Administrateur : la gestion est son travail, l'espace repas reste accessible (il peut aussi réserver). */}
+        {isAdmin && <NavSection title="Gestion" items={ADMIN_NAV} />}
+        <NavSection title={isAdmin ? 'Mon espace repas' : 'Espace repas'} items={MEAL_NAV} divider={isAdmin} />
       </nav>
 
       <AccountMenu
