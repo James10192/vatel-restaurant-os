@@ -25,6 +25,7 @@ import type * as lib_policy from "../lib/policy.js";
 import type * as lib_returns from "../lib/returns.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as menus from "../menus.js";
+import type * as notificationPreferences from "../notificationPreferences.js";
 import type * as push from "../push.js";
 import type * as pushSend from "../pushSend.js";
 import type * as reminders from "../reminders.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   "lib/returns": typeof lib_returns;
   "lib/validation": typeof lib_validation;
   menus: typeof menus;
+  notificationPreferences: typeof notificationPreferences;
   push: typeof push;
   pushSend: typeof pushSend;
   reminders: typeof reminders;

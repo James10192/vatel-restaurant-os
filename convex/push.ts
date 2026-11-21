@@ -10,11 +10,14 @@ import type { Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { requireMember } from './lib/access'
 import {
+  CATEGORY_OF,
   MAX_DEVICES_PER_MEMBER,
   isAllowedPushEndpoint,
   isPushKey,
+  notificationKindValidator,
   pushTargetValidator,
 } from './lib/notifications'
+import { withoutMuted } from './notificationPreferences'
 
 /**
  * Notifications push : un appareil s'abonne pour le membre connecté. L'envoi réel se fait dans
@@ -114,12 +117,12 @@ export const sendTest = mutation({
 
 /** Abonnements visés par un envoi (lecture interne, jamais exposée au client). */
 export const recipients = internalQuery({
-  args: { target: pushTargetValidator },
+  args: { target: pushTargetValidator, kind: notificationKindValidator },
   returns: v.array(
     v.object({ endpoint: v.string(), p256dh: v.string(), auth: v.string() }),
   ),
-  handler: async (ctx, { target }) => {
-    const rows =
+  handler: async (ctx, { target, kind }) => {
+    const candidates =
       'canteenId' in target
         ? await ctx.db
             .query('pushSubscriptions')
@@ -133,6 +136,7 @@ export const recipients = internalQuery({
               ).map((profileId) => devicesOf(ctx, profileId)),
             )
           ).flat()
+    const rows = await withoutMuted(ctx, candidates, CATEGORY_OF[kind])
     return rows.map(({ endpoint, p256dh, auth }) => ({
       endpoint,
       p256dh,

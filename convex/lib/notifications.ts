@@ -41,6 +41,33 @@ export const notificationKindValidator = v.union(
   v.literal('lowBalance'),
 )
 
+export type NotificationKind = keyof typeof NOTIFICATIONS
+
+/** Familles que chaque membre peut couper (pour tous ses appareils). */
+export const NOTIFICATION_CATEGORIES = [
+  'menuPublished',
+  'bookingReminder',
+  'lowBalance',
+] as const
+export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number]
+export const notificationCategoryValidator = v.union(
+  v.literal('menuPublished'),
+  v.literal('bookingReminder'),
+  v.literal('lowBalance'),
+)
+
+/** Famille de chaque notification. Le test n'en a pas : c'est le membre lui-même qui le demande. */
+export const CATEGORY_OF: Record<
+  NotificationKind,
+  NotificationCategory | null
+> = {
+  test: null,
+  menuPublished: 'menuPublished',
+  lunchReminder: 'bookingReminder',
+  dinnerReminder: 'bookingReminder',
+  lowBalance: 'lowBalance',
+}
+
 /** Seuil de l'alerte « solde bas » (FCFA, à peu près le prix d'un repas). Le montant n'est jamais affiché. */
 export const LOW_BALANCE_XOF = 2000
 

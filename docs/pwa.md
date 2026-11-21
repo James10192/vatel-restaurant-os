@@ -158,6 +158,17 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
 - Tests (3) : alerte unique au franchissement et ciblée ; solde restant au-dessus : rien ; nouvelle alerte après recharge.
   Non vérifié sur un téléphone.
 
+### Choix du type de notifications (ajout du 21/11, ~15h30)
+- Section Notifications du Profil, bloc « Recevoir » : un interrupteur (composant officiel shadcn `Switch`, ajouté par
+  la CLI) par famille : Menus de la semaine, Rappel avant la clôture, Solde bas. Le test reste toujours possible.
+- **Par compte** (tous ses appareils), affiché même si cet appareil n'est pas abonné. Tout est reçu par défaut.
+- Serveur : table `notificationPreferences` (familles coupées), `convex/notificationPreferences.ts` (`mine`, `set`,
+  `requireMember`, idempotent) ; le filtrage se fait **à l'envoi**, à un seul endroit (`push.recipients` reçoit la
+  notification et retire les membres qui ont coupé sa famille), donc aussi pour le rappel et le solde bas.
+- L'interrupteur montre l'état relu sur le serveur : aucun changement affiché avant confirmation.
+- Tests (3) : défaut, couper/réactiver idempotent ; non rattaché refusé ; à l'envoi, famille coupée exclue, autres
+  familles et test conservés. Navigateur : « Rappel avant la clôture » coupé, conservé après rechargement, réactivé.
+
 ### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
 Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :
 ```bash
@@ -177,7 +188,7 @@ Ne jamais commiter la clé privée. Changer de paire invalide tous les abonnemen
 ### Vérifications de la tranche 2 (exécutées)
 Backend Convex **local anonyme** (`convex deployment select local`), propre à ce conteneur, jamais relié au dev du lead ;
 comptes fictifs `qa.admin@demo.test`, `qa.awa@demo.test`, mot de passe aléatoire non conservé.
-- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**95 tests** avec le rappel et l'alerte de solde ; 89 à cette étape, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**98 tests** avec le rappel, l'alerte de solde et le choix des notifications ; 89 à cette étape, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
   invalides, idempotence et réattribution, retrait d'un appareil d'autrui refusé, test sans appareil refusé,
   isolation A/B, planification à la publication), `pnpm build` : OK. Déploiement local des fonctions (dont l'action
   Node `web-push`) : OK.

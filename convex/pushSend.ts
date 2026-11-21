@@ -42,7 +42,7 @@ export const deliver = internalAction({
     const payload = JSON.stringify(NOTIFICATIONS[kind])
     const subscriptions: Array<Subscription> = await ctx.runQuery(
       internal.push.recipients,
-      { target },
+      { target, kind },
     )
 
     const results = await Promise.allSettled(

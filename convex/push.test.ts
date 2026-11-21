@@ -110,6 +110,7 @@ describe('abonnements push', () => {
     await adminB.mutation(api.push.subscribe, device('b'))
     const recipients = await t.query(internal.push.recipients, {
       target: { canteenId: ids.a },
+      kind: 'menuPublished',
     })
     expect(recipients.map((r) => r.endpoint)).toEqual([device('a').endpoint])
   })

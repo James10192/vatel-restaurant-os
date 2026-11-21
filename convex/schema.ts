@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
+import { notificationCategoryValidator } from './lib/notifications'
 
 export const roleValidator = v.union(
   v.literal('admin'),
@@ -119,6 +120,12 @@ export default defineSchema({
     .index('by_endpoint', ['endpoint'])
     .index('by_profile', ['profileId'])
     .index('by_canteen', ['canteenId']),
+
+  /** Familles de notifications coupées par un membre (absent = tout reçu). Vaut pour tous ses appareils. */
+  notificationPreferences: defineTable({
+    profileId: v.id('profiles'),
+    muted: v.array(notificationCategoryValidator),
+  }).index('by_profile', ['profileId']),
 
   /** Rappels « clôture des réservations » déjà envoyés : un seul par établissement, jour et service. */
   pushReminders: defineTable({

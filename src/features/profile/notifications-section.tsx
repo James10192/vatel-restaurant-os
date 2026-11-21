@@ -14,6 +14,7 @@ import { Spinner } from '#/components/ui/spinner'
 import { usePushNotifications } from '#/lib/push'
 import type { PushStatus } from '#/lib/push'
 import { useServerAction } from '#/lib/server-action'
+import { NotificationPreferences } from './notification-preferences'
 import { SettingsSection, StatusLine } from './settings-section'
 
 /** Explication de chaque état où l'activation n'est pas possible ici (aucun bouton factice). */
@@ -42,7 +43,7 @@ export function NotificationsSection() {
     <SettingsSection
       icon={BellIcon}
       title="Notifications"
-      description="Soyez prévenu quand les menus de la semaine sont publiés. Aucun détail personnel ne s’affiche sur l’écran verrouillé."
+      description="Menus publiés, rappel avant la clôture des réservations, solde bas. Aucun détail personnel ne s’affiche sur l’écran verrouillé."
     >
       {status === 'loading' && <Spinner />}
       {blocked && <StatusLine icon={InfoIcon}>{blocked}</StatusLine>}
@@ -105,6 +106,11 @@ export function NotificationsSection() {
       )}
 
       <FormError message={toggle.error ?? test.error} />
+
+      {/* Préférences du compte : utiles même si CET appareil n'est pas abonné (autres appareils). */}
+      {status !== 'loading' && status !== 'not-configured' && (
+        <NotificationPreferences />
+      )}
     </SettingsSection>
   )
 }
