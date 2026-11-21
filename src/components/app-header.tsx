@@ -1,12 +1,11 @@
 import { Link, useMatchRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { UserIcon } from 'lucide-react'
 import { BrandLogo } from '#/components/brand-logo'
-import { AccountMenu } from '#/components/shell/account-menu'
-import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV } from '#/components/shell/nav-model'
+import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV, PROFILE_NAV } from '#/components/shell/nav-model'
 import { currentUserQuery } from '#/lib/session'
 
 const GestionIcon = ADMIN_NAV[0].icon
+const ProfileIcon = PROFILE_NAV.icon
 const tabClass =
   'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium text-muted-foreground outline-none focus-visible:bg-accent data-[status=active]:text-primary'
 
@@ -32,14 +31,10 @@ export function MobileTabBar() {
           Gestion
         </Link>
       )}
-      <AccountMenu
-        trigger={
-          <button type="button" className={tabClass}>
-            <UserIcon className="size-5" />
-            Profil
-          </button>
-        }
-      />
+      <Link to={PROFILE_NAV.to} activeOptions={ACTIVE_OPTIONS} className={tabClass}>
+        <ProfileIcon className="size-5" />
+        {PROFILE_NAV.short}
+      </Link>
     </nav>
   )
 }
@@ -52,7 +47,7 @@ export function MobileBrand() {
   const { data: user } = useSuspenseQuery(currentUserQuery)
   const matchRoute = useMatchRoute()
   if (matchRoute({ to: '/app' })) return null
-  const page = [...MEAL_NAV, ...ADMIN_NAV].find(({ to }) => matchRoute({ to }))
+  const page = [...MEAL_NAV, PROFILE_NAV, ...ADMIN_NAV].find(({ to }) => matchRoute({ to }))
   const Icon = page?.icon
   return (
     <header className="flex items-center justify-between gap-4 px-4 pt-5 pb-2 md:hidden">

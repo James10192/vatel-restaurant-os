@@ -105,6 +105,21 @@ export default defineSchema({
     .index('by_auth_user', ['authUserId'])
     .index('by_canteen_role', ['canteenId', 'role']),
 
+  /**
+   * Abonnement Web Push d'un appareil (un navigateur = un `endpoint`). Rattaché au membre qui l'a activé :
+   * le même appareil réactivé par un autre compte change de propriétaire. Aucune donnée personnelle ici.
+   */
+  pushSubscriptions: defineTable({
+    canteenId: v.id('canteens'),
+    profileId: v.id('profiles'),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+  })
+    .index('by_endpoint', ['endpoint'])
+    .index('by_profile', ['profileId'])
+    .index('by_canteen', ['canteenId']),
+
   /** Unités de mesure propres à l'établissement, créables au point d'usage. */
   units: defineTable({
     canteenId: v.id('canteens'),

@@ -6,6 +6,8 @@ import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
 import { authClient } from '#/lib/auth-client'
 import { getToken } from '#/lib/auth-server'
 import { THEME_BOOT_SCRIPT } from '#/lib/theme'
+// Écoute `beforeinstallprompt` dès le premier chargement (l'événement n'est émis qu'une fois).
+import '#/lib/install'
 import appCss from '../styles.css?url'
 
 const getAuth = createServerFn({ method: 'GET' }).handler(async () => (await getToken()) ?? null)

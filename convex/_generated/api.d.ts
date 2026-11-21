@@ -18,10 +18,13 @@ import type * as lib_access from "../lib/access.js";
 import type * as lib_capacity from "../lib/capacity.js";
 import type * as lib_dates from "../lib/dates.js";
 import type * as lib_ledger from "../lib/ledger.js";
+import type * as lib_notifications from "../lib/notifications.js";
 import type * as lib_policy from "../lib/policy.js";
 import type * as lib_returns from "../lib/returns.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as menus from "../menus.js";
+import type * as push from "../push.js";
+import type * as pushSend from "../pushSend.js";
 import type * as setup from "../setup.js";
 import type * as wallet from "../wallet.js";
 
@@ -42,10 +45,13 @@ declare const fullApi: ApiFromModules<{
   "lib/capacity": typeof lib_capacity;
   "lib/dates": typeof lib_dates;
   "lib/ledger": typeof lib_ledger;
+  "lib/notifications": typeof lib_notifications;
   "lib/policy": typeof lib_policy;
   "lib/returns": typeof lib_returns;
   "lib/validation": typeof lib_validation;
   menus: typeof menus;
+  push: typeof push;
+  pushSend: typeof pushSend;
   setup: typeof setup;
   wallet: typeof wallet;
 }>;

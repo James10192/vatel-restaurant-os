@@ -1,0 +1,69 @@
+import { v } from 'convex/values'
+import type { Infer } from 'convex/values'
+
+/**
+ * Catalogue des notifications push. Textes fixes et génériques : jamais de nom, de solde, de plat réservé
+ * ni de donnée d'un mineur, car ils s'affichent sur un écran verrouillé, parfois sur un appareil partagé.
+ */
+export const NOTIFICATIONS = {
+  test: {
+    title: 'Vatel Restauration',
+    body: 'Les notifications fonctionnent sur cet appareil.',
+    url: '/app/profile',
+  },
+  menuPublished: {
+    title: 'Menus publiés',
+    body: 'Les menus de la semaine sont disponibles. Réservez vos repas.',
+    url: '/app',
+  },
+} as const
+
+export const notificationKindValidator = v.union(
+  v.literal('test'),
+  v.literal('menuPublished'),
+)
+
+/** Destinataires : les appareils d'un membre, ou ceux de tout l'établissement. */
+export const pushTargetValidator = v.union(
+  v.object({ profileId: v.id('profiles') }),
+  v.object({ canteenId: v.id('canteens') }),
+)
+export type PushTarget = Infer<typeof pushTargetValidator>
+
+/** Un membre ne garde pas plus d'appareils abonnés que ceci (borne les écritures et les envois). */
+export const MAX_DEVICES_PER_MEMBER = 10
+
+/**
+ * Services push officiels des navigateurs. Le serveur n'envoie qu'à ces hôtes : un `endpoint` arbitraire
+ * fourni par le client ferait de l'envoi une requête sortante vers n'importe quelle adresse (SSRF).
+ */
+const PUSH_HOSTS = [
+  'fcm.googleapis.com',
+  'jmt17.google.com',
+  'web.push.apple.com',
+] // jmt17 : Chromium sans clés Google
+const PUSH_HOST_SUFFIXES = [
+  '.push.services.mozilla.com',
+  '.notify.windows.com',
+  '.push.apple.com',
+]
+
+export function isAllowedPushEndpoint(endpoint: string): boolean {
+  if (endpoint.length > 2048) return false
+  let url: URL
+  try {
+    url = new URL(endpoint)
+  } catch {
+    return false
+  }
+  if (url.protocol !== 'https:' || url.username || url.password || url.port)
+    return false
+  return (
+    PUSH_HOSTS.includes(url.hostname) ||
+    PUSH_HOST_SUFFIXES.some((suffix) => url.hostname.endsWith(suffix))
+  )
+}
+
+/** Clés d'abonnement : base64url, longueur bornée (p256dh ~87 caractères, auth ~22). */
+export const isPushKey = (value: string) =>
+  /^[A-Za-z0-9_-]{16,128}={0,2}$/.test(value)

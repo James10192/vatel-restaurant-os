@@ -2,7 +2,9 @@
 
 _21/11/2026, agent PWA (session isolée). Référence : issue #10, sections « PWA-A » et « PWA-1 »._
 
-**Statut : PWA installable SANS mode hors ligne. Aucun service worker.**
+**Statut : PWA installable SANS mode hors ligne.** Mise à jour du même jour (décision porteur) : page Profil,
+bouton Installer et **notifications push réelles** (section « Tranche 2 » plus bas). Le service worker ajouté
+ne sert QU'aux notifications : aucun gestionnaire `fetch`, aucun cache.
 Assets livrés et vérifiés. Patch de `src/routes/__root.tsx` (fichier partagé) **validé par le lead et appliqué**
 dans cette branche. La meta `application-name` initialement proposée a été retirée en revue : redondante avec le
 `short_name` du manifeste pour les navigateurs ciblés.
@@ -92,18 +94,90 @@ servi sur `localhost:3100`. **Aucun backend Convex contacté** : un bouchon loca
 4. Bureau Chrome/Edge : icône d'installation dans la barre d'adresse.
 5. Se déconnecter dans l'application installée : `/app` doit renvoyer vers `/auth`.
 
-## Bouton « Installer » : non livré
-Il demanderait de modifier le menu Profil (`src/`, fichier hors attribution) et un petit hook `beforeinstallprompt`.
-Proposition pour une tranche validée : composant affiché **seulement** si l'événement `beforeinstallprompt` a été reçu
-(Chrome, Edge, Android), masqué en mode `display-mode: standalone`, et sur iOS une simple aide « Partager, puis Sur l'écran
-d'accueil ». Jamais de bannière automatique ni de bouton affiché sans API réellement disponible.
+## Tranche 2 : Profil, Installer, notifications push (porteur, 21/11 après-midi)
+Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela touche des fichiers partagés
+(schéma, `menus.ts`, coquille, `package.json`, lockfile) : modifications additives et minimales, listées ci-dessous.
+
+### Page `/app/profile` (9e page sur 12)
+- Onglet « Profil » de la barre du bas : ouvre la page (avant : un menu déroulant). Tablette et bureau : le menu
+  compte garde ses raccourcis et gagne « Mon profil » et « Installer l'application ».
+- Sections : identité (nom, e-mail, rôle, établissement, ou « en attente de rattachement »), Notifications (membres
+  rattachés seulement), Application (installer), Apparence (thème), Mot de passe (Better Auth `changePassword`,
+  ancien exigé, autres sessions révoquées, afficher/masquer), À propos (démo, aucun paiement réel, pas de hors ligne),
+  Se déconnecter.
+- Fichiers : `src/routes/_authed/app/profile.tsx`, `src/features/profile/*` (5 composants, < 120 lignes chacun).
+
+### Bouton « Installer »
+- `src/lib/install.ts` : écoute `beforeinstallprompt` dès `__root` (émis une seule fois par chargement), empêche la
+  mini-bannière automatique, état `installed | available | ios | unavailable` via `useSyncExternalStore` (SSR : `unavailable`).
+- Le bouton n'existe que si l'événement a réellement été reçu. iOS : marche à suivre Partager puis « Sur l'écran
+  d'accueil ». Sinon : explication, aucun bouton.
+
+### Notifications push
+- Serveur : table `pushSubscriptions` (index endpoint, profil, établissement), `convex/push.ts`
+  (`publicKey`, `subscribe`, `unsubscribe`, `sendTest` : `requireMember` partout ; `recipients`, `removeGone` internes),
+  `convex/pushSend.ts` (action Node, `web-push` 3.6.7, VAPID), `convex/lib/notifications.ts` (catalogue de textes).
+- Déclencheurs : « Envoyer un test » (appareils du membre) ; publication de la semaine par l'administration
+  (`menus.publishWeek` planifie l'envoi dans la même transaction, seulement si des brouillons sont publiés).
+- Client : `src/lib/push.ts` ; `public/sw.js` enregistré seulement à l'activation.
+- Sécurité :
+  - textes fixes et génériques, jamais de nom, solde, plat réservé ni donnée de mineur (écran verrouillé partagé) ;
+  - **anti-SSRF** : le serveur n'accepte que les `endpoint` https des services push officiels (FCM, Chromium
+    `jmt17.google.com`, Mozilla, Windows, Apple), sans port ni identifiants ; clés base64url bornées ;
+  - au plus 10 appareils par membre ; un appareil réactivé par un autre compte change de propriétaire ;
+  - un membre ne peut retirer que ses propres appareils ; isolation par établissement testée ;
+  - **déconnexion** (`useSignOut`) : retrait serveur puis désabonnement navigateur, bornés à 2,5 s chacun, avant
+    la fermeture de session (appareil partagé) ;
+  - abonnements expirés (404/410) supprimés à l'envoi ; clé privée VAPID uniquement dans l'environnement Convex ;
+  - le service worker ne suit au clic que des chemins internes (une URL externe dans la charge utile devient `/app`).
+- Dépendances : `web-push@3.6.7`, `@types/web-push@3.6.4`. Le lockfile change aussi des clés de pairs
+  (`supports-color`) sans changer de version. `eslint.config.js` ignore `public/**` (fichiers statiques hors projet TS).
+
+### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
+Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :
+```bash
+pnpm exec web-push generate-vapid-keys --json
+```
+```bash
+pnpm exec convex env set VAPID_PUBLIC_KEY <publicKey>
+```
+```bash
+pnpm exec convex env set VAPID_PRIVATE_KEY <privateKey>
+```
+```bash
+pnpm exec convex env set VAPID_SUBJECT mailto:<adresse de contact>
+```
+Ne jamais commiter la clé privée. Changer de paire invalide tous les abonnements existants.
+
+### Vérifications de la tranche 2 (exécutées)
+Backend Convex **local anonyme** (`convex deployment select local`), propre à ce conteneur, jamais relié au dev du lead ;
+comptes fictifs `qa.admin@demo.test`, `qa.awa@demo.test`, mot de passe aléatoire non conservé.
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**89 tests**, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
+  invalides, idempotence et réattribution, retrait d'un appareil d'autrui refusé, test sans appareil refusé,
+  isolation A/B, planification à la publication), `pnpm build` : OK. Déploiement local des fonctions (dont l'action
+  Node `web-push`) : OK.
+- Navigateur (Chromium) : onglet Profil actif sur `/app/profile` ; identité correcte ; mauvais mot de passe refusé
+  (« Mot de passe actuel incorrect. »), changement effectif (ancien 401, nouveau 200) ; déconnexion vers `/auth`,
+  abonnement navigateur supprimé ; `/app/profile` déconnecté renvoie vers `/auth?redirect=%2Fapp%2Fprofile`.
+- Notifications : activation réelle (abonnement au service push Google), « Envoyer un test » accepté par le serveur,
+  action `deliver` terminée en succès ; appel direct `deliver` : `{ sent: 2, removed: 0 }` (le service push a accepté).
+  Affichage vérifié en injectant un push par le protocole DevTools (`ServiceWorker.deliverPushMessage`) : titre et texte
+  affichés, URL externe neutralisée en `/app`, charge illisible remplacée par un texte générique ; Cache Storage vide.
+- En navigation privée, Chrome refuse le push : message clair affiché, aucun succès annoncé.
+- Bouton Installer : apparition et appel de `prompt()` vérifiés avec un événement `beforeinstallprompt` **simulé**
+  (Chromium sans écran n'en émet pas) ; bouton retiré après le choix.
+- 360, 834, 1440 px, clair et sombre : pas de défilement horizontal ; menu compte bureau : « Mon profil, Apparence,
+  Se déconnecter ».
+
+**Non vérifié** : réception visible d'une notification sur un vrai téléphone (Android, iOS 16.4+ installé) ou un
+bureau ; fenêtre d'installation native réelle ; préréglage Vercel ; envoi sur le déploiement du lead (clés non posées).
 
 ## Sécurité
-- Aucun service worker, donc aucun cache applicatif : ni HTML authentifié, ni `/api/auth`, ni réponses Convex,
-  ni solde, réservations, comptes ou données de mineurs. Le cache HTTP du navigateur reste celui de toute page web.
+- Service worker limité aux notifications, sans gestionnaire `fetch` ni Cache Storage : ni HTML authentifié,
+  ni `/api/auth`, ni réponses Convex, ni solde, réservations, comptes ou données de mineurs en cache.
 - Aucune file de mutations hors ligne : réservations, recharges, annulations et remises restent confirmées
   uniquement par le serveur, exactement comme dans le navigateur.
-- Pas de notifications push (hors lot).
+- Notifications push : voir « Tranche 2 », textes génériques et désabonnement à la déconnexion.
 - Le manifeste ne contient ni secret ni donnée personnelle.
 
 ## Risques et limites
