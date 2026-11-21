@@ -37,3 +37,7 @@ Les couleurs `color1..7` du site (jaune, vert, rose, orange) sont des couleurs d
 - Animations d'entrée `tw-animate-css` sous `motion-safe:` uniquement (respect de « réduire les animations »).
 - `/auth` : écran d'accueil bleu Vatel animé (titre, motif d'assiette, bouton Commencer) puis formulaire sur mobile ; deux colonnes sur ordinateur.
 - Mobile 360px d'abord, cibles tactiles confortables, états loading/empty/error systématiques.
+
+## Photo
+`public/images/accueil-chef-*.webp` : Unsplash, photo `6jVutqtcgQs` (« A chef presents a beautifully plated dish »), licence Unsplash.
+Cadrage : photo sur les 58 % supérieurs, `object-bottom`, voile `from-primary` pour la lisibilité du texte.

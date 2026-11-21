@@ -26,6 +26,15 @@ export const getCurrentUser = query({
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx)
     if (!user) return null
-    return { id: user._id, name: user.name, email: user.email }
+    const profile = await ctx.db
+      .query('profiles')
+      .withIndex('by_auth_user', (q) => q.eq('authUserId', user._id))
+      .unique()
+    const canteen = profile && (await ctx.db.get(profile.canteenId))
+    return {
+      name: user.name,
+      email: user.email,
+      membership: profile && canteen ? { role: profile.role, canteenName: canteen.name } : null,
+    }
   },
 })

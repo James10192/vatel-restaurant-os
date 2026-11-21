@@ -1,9 +1,9 @@
-# HANDOFF — état du développement
+# HANDOFF : état du développement
 
-_Mis à jour : 21/11/2026 ~09h10 (Abidjan)_
+_Mis à jour : 21/11/2026 ~09h35 (Abidjan)_
 
 ## Lot actuel
-**A0 terminé — en attente de validation humaine avant A1.** (STEP 00 validé, commit 1dabc00.)
+**A0 terminé, en attente de validation humaine avant A1.** (STEP 00 validé, commit 1dabc00.)
 
 ## Fait en A0
 - Scaffold officiel `@tanstack/cli@0.72.16` (React, pnpm, add-ons convex + shadcn, ESLint, adaptateur Vercel), copié dans le dépôt.
@@ -30,12 +30,16 @@ _Mis à jour : 21/11/2026 ~09h10 (Abidjan)_
 - Logo officiel Vatel, palette bleuvatel et Open Sans relevés sur vatel.ci (voir DESIGN.md). Tirets longs supprimés de l'UI.
 - Skill `thermo-nuclear-code-quality-review` installée (invocation agent uniquement) + hook Stop `scripts/hooks/review-gate.mjs` ; commit-msg refuse Co-authored-by et attributions IA ; `attribution` vide dans settings Claude.
 - Vérifié navigateur : accueil mobile → Commencer → formulaire ; œil afficher/masquer ; deux colonnes en 1280px ; connexion invalide puis valide.
+- Accueil premium : photo Unsplash (chef présentant une assiette, `public/images/accueil-chef-{720,1400}.webp`, 44 Ko mobile), zoom d'entrée et apparition en cascade sous `motion-safe`.
+- Schéma : `canteens` + `profiles` (role admin/student/parent/chef/distribution, index by_auth_user, by_canteen_role).
+- Inscription conservée (#1) mais sans privilège : sans profil, `/app` affiche « Compte en attente de rattachement » (vérifié avec Awa Test).
+- `convex/setup.ts` `bootstrap` (internalMutation) : crée l'établissement « Vatel Abidjan (démo) » + admin@demo.test, mot de passe généré serveur, exécuté une fois ; 2e appel refusé (vérifié). Mot de passe non versionné.
 
 ## Non fait / risques
 - Pas encore de tests automatisés (Vitest/convex-test/Playwright) : à poser en A1 avec la première logique métier.
-- Pas de rôles ni d'établissement (tenant) : schéma vide, prévu A1 (staff jamais auto-promu).
+- Connexion admin non testée dans le navigateur (mot de passe affiché uniquement au porteur). Rattachement d'un inscrit par l'admin : A1/admin users.
 - Pas de déploiement Vercel (après P0, cf. #14) ; `vercel whoami` non vérifié.
-- Charte/logo Vatel officiels toujours non reçus.
+- Charte PDF Vatel non reçue ; logo, couleurs et police relevés sur vatel.ci. Photo Unsplash (licence Unsplash), auteur à créditer si exigé.
 
 ## Prochaine action
 A1 : schéma minimal (canteens, profils/rôles, menus, plats, recette légère), permissions, admin menu brouillon/publié, lecture menu semaine (#1, #11, #13, #22, #19).

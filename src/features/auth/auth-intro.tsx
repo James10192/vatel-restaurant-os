@@ -3,52 +3,52 @@ import { BrandLogo } from '#/components/brand-logo'
 import { Button } from '#/components/ui/button'
 import { cn } from '#/lib/utils'
 
-const reveal = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:fill-mode-both'
+const reveal = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-6 motion-safe:fill-mode-both'
 
-/** Écran d'accueil animé : plein écran sur mobile, panneau gauche sur ordinateur. */
+/** Écran d'accueil : photo plein cadre sur mobile, panneau gauche sur ordinateur. */
 export function AuthIntro({ onStart, className }: { onStart: () => void; className?: string }) {
   return (
-    <section className={cn('relative flex flex-col overflow-hidden bg-primary p-6 text-primary-foreground md:p-10', className)}>
-      <PlateMotif />
-      <div className={cn('relative flex items-center gap-3 duration-500', reveal)}>
-        <span className="rounded-lg bg-background p-1.5">
-          <BrandLogo className="h-12" />
-        </span>
-        <span className="text-sm font-semibold">Restauration</span>
-      </div>
-      <div className="relative mt-auto flex flex-col gap-4 pb-6 md:mb-auto md:mt-auto">
-        <h1 className={cn('text-4xl font-bold leading-tight delay-150 duration-700 md:text-5xl', reveal)}>
-          Vos repas,
-          <br />
-          réservés en
-          <br />
-          quelques secondes.
-        </h1>
-        <p className={cn('max-w-xs text-primary-foreground/80 delay-300 duration-700', reveal)}>
-          Menus de la semaine, réservations et solde, au même endroit.
-        </p>
-      </div>
-      <Button
-        size="lg"
-        variant="secondary"
-        className={cn('relative justify-between delay-500 duration-700 md:hidden', reveal)}
-        onClick={onStart}
-      >
-        Commencer
-        <ArrowRightIcon data-icon="inline-end" />
-      </Button>
-    </section>
-  )
-}
+    <section className={cn('relative isolate flex min-h-svh flex-col overflow-hidden bg-primary text-primary-foreground', className)}>
+      <picture>
+        <source media="(min-width: 768px)" srcSet="/images/accueil-chef-1400.webp" />
+        <img
+          src="/images/accueil-chef-720.webp"
+          alt=""
+          fetchPriority="high"
+          className="absolute inset-x-0 top-0 -z-10 h-[58%] w-full object-cover object-bottom motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-110 motion-safe:duration-[1600ms] motion-safe:ease-out"
+        />
+      </picture>
+      <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-t from-primary from-45% via-primary/20 via-60% to-transparent" />
 
-/** Motif décoratif d'assiette (cercles concentriques), purement visuel. */
-function PlateMotif() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute -right-24 top-1/4 size-80 rounded-full border-[28px] border-primary-foreground/10 motion-safe:animate-in motion-safe:zoom-in-75 motion-safe:fade-in motion-safe:duration-1000 md:size-[28rem]"
-    >
-      <div className="absolute inset-10 rounded-full border-2 border-primary-foreground/15" />
-    </div>
+      <header className={cn('flex items-center gap-3 p-6 duration-700 md:p-10', reveal)}>
+        <span className="rounded-lg bg-background p-1.5 shadow-sm">
+          <BrandLogo className="h-11" />
+        </span>
+        <span className="text-xs font-semibold tracking-[0.2em] uppercase">Restauration</span>
+      </header>
+
+      <div className="mt-auto flex flex-col gap-6 p-6 md:p-10">
+        <p className={cn('text-xs font-semibold tracking-[0.2em] text-primary-foreground/70 uppercase delay-200 duration-700', reveal)}>
+          Hotel &amp; Tourism Business School
+        </p>
+        <h1 className={cn('text-4xl leading-[1.1] font-bold text-balance delay-300 duration-700 md:text-6xl', reveal)}>
+          L'art de recevoir, jusque dans votre assiette.
+        </h1>
+        <p className={cn('max-w-sm text-primary-foreground/80 delay-500 duration-700', reveal)}>
+          Consultez les menus de la semaine, réservez votre repas et suivez votre solde en quelques gestes.
+        </p>
+        <Button
+          size="lg"
+          variant="secondary"
+          className={cn('h-14 justify-between rounded-full pr-2 pl-6 text-base delay-700 duration-700 md:hidden', reveal)}
+          onClick={onStart}
+        >
+          Commencer
+          <span className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <ArrowRightIcon />
+          </span>
+        </Button>
+      </div>
+    </section>
   )
 }

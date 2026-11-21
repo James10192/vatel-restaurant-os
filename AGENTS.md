@@ -23,7 +23,9 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
 - Création contextuelle des références (unités, ingrédients) dans le formulaire, sans perte de saisie.
 - Recherche/tri/pagination côté serveur avec index Convex ; temps réel Convex natif, pas de polling.
 - Français simple, prix XOF entiers, mobile 360px, réseau lent, états loading/empty/error.
-- Branding : Vatel uniquement, via tokens de `docs/DESIGN.md`. Ne pas utiliser `branding/idj-ai-*`.
+- Branding : Vatel uniquement (logo officiel, Open Sans, palette bleuvatel), via `docs/DESIGN.md`. Ne pas utiliser `branding/idj-ai-*`.
+- Aucun tiret long (—) ni demi-tiret (–) dans les textes visibles. Mot de passe toujours avec afficher/masquer.
+- Inscription publique sans aucun privilège (compte non rattaché) ; premier admin via `setup:bootstrap` interne, unique (SEC-02 #16).
 
 ## Règles serveur (non négociables)
 - Auth + rôle + tenant + ownership vérifiés dans CHAQUE fonction publique Convex ; tenant jamais fourni par le client.
@@ -36,8 +38,13 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
   de mock caché ou de succès non confirmé par le serveur. Aucun code KLASSCI/Joliba/projet préexistant.
 - Après tâche : typecheck + lint + test ciblé + vérif navigateur si UI. Ne jamais déclarer testé ce qui ne l'est pas.
 
+## Revue qualité
+- Après toute modification de `src/` ou `convex/`, invoquer soi-même la skill `thermo-nuclear-code-quality-review`
+  (`.agents/skills/`, `.claude/skills/`) et appliquer les corrections structurelles. Le hook Stop de Claude l'impose.
+
 ## Git et secrets
-- Hooks : `git config core.hooksPath .githooks` (gitleaks staged, .env bloqué, conventional commits).
+- Hooks : `git config core.hooksPath .githooks` (gitleaks staged, .env bloqué, conventional commits,
+  aucun `Co-authored-by` ni mention « Generated with » / attribution IA).
 - Jamais de secret commité/affiché ; `.env.example` sans valeur. Pas de force-push ni réécriture d'historique.
 - Un seul agent écrit schema/auth/lockfile ; reviewers en lecture seule.
 
