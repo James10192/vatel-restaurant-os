@@ -1,11 +1,10 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
-import { AppHeader, MobileBrand } from '#/components/app-header'
+import { MobileBrand } from '#/components/app-header'
 
-/** Espace usager : en-tête sur ordinateur, logo intégré à la page sur mobile. */
+/** Espace usager : la navigation vient de la coquille ; sur mobile, le logo est intégré à la page. */
 export const Route = createFileRoute('/_authed/app')({
   component: () => (
     <>
-      <AppHeader />
       <MobileBrand />
       <Outlet />
     </>

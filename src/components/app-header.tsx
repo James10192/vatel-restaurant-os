@@ -1,130 +1,37 @@
 import { Link, useMatchRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { CalendarCheckIcon, ClipboardListIcon, HouseIcon, LogOutIcon, UserIcon, WalletIcon } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { UserIcon } from 'lucide-react'
 import { BrandLogo } from '#/components/brand-logo'
-import { Avatar, AvatarFallback } from '#/components/ui/avatar'
-import { Button } from '#/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '#/components/ui/dropdown-menu'
-import { ThemeSubmenu } from '#/components/theme-submenu'
-import { ROLE_LABELS, currentUserQuery, signOut } from '#/lib/session'
-import { cn } from '#/lib/utils'
+import { AccountMenu } from '#/components/shell/account-menu'
+import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV } from '#/components/shell/nav-model'
+import { currentUserQuery } from '#/lib/session'
 
-type NavItem = { to: '/app' | '/app/bookings' | '/app/wallet' | '/admin'; label: string; icon: LucideIcon }
-
-/** Navigation usager de #11 : Accueil / Repas / Solde / Profil (+ Menus pour l'administration). */
-const USER_NAV: Array<NavItem> = [
-  { to: '/app', label: 'Accueil', icon: HouseIcon },
-  { to: '/app/bookings', label: 'Repas', icon: CalendarCheckIcon },
-  { to: '/app/wallet', label: 'Solde', icon: WalletIcon },
-]
-const ADMIN_NAV: NavItem = { to: '/admin', label: 'Gestion', icon: ClipboardListIcon }
-
-const initials = (name: string) =>
-  name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-
-function useNavItems(): Array<NavItem> {
-  const { data: user } = useSuspenseQuery(currentUserQuery)
-  return user?.membership?.role === 'admin' ? [...USER_NAV, ADMIN_NAV] : USER_NAV
-}
-
-/** Menu du compte (« Profil ») : identité, rôle, déconnexion. */
-function AccountMenu({ trigger }: { trigger: React.ReactNode }) {
-  const { data: user } = useSuspenseQuery(currentUserQuery)
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="flex flex-col">
-          <span className="truncate">{user?.name}</span>
-          <span className="truncate text-xs font-normal text-muted-foreground">
-            {user?.membership ? `${ROLE_LABELS[user.membership.role]}, ${user.membership.canteenName}` : 'Compte non rattaché'}
-          </span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <ThemeSubmenu />
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={signOut}>
-            <LogOutIcon />
-            Se déconnecter
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
-/** En-tête ordinateur uniquement : sur mobile, la barre du bas le remplace et le logo est dans la page. */
-export function AppHeader() {
-  const { data: user } = useSuspenseQuery(currentUserQuery)
-  const items = useNavItems()
-  return (
-    <header className="sticky top-0 z-20 hidden border-b bg-background/90 backdrop-blur md:block">
-      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-4 px-4">
-        <Link to="/app" aria-label="Accueil">
-          <BrandLogo className="h-10" />
-        </Link>
-        <nav className="flex items-center gap-1 text-sm">
-          {items.map(({ to, label }) => (
-            <Button key={to} variant="ghost" size="sm" asChild>
-              <Link to={to} activeOptions={{ exact: true }} activeProps={{ className: 'bg-accent' }}>
-                {label}
-              </Link>
-            </Button>
-          ))}
-        </nav>
-        <div className="ml-auto">
-          <AccountMenu
-            trigger={
-              <Button variant="ghost" size="icon" className="rounded-full" aria-label="Mon compte">
-                <Avatar>
-                  <AvatarFallback>{initials(user?.name ?? '?')}</AvatarFallback>
-                </Avatar>
-              </Button>
-            }
-          />
-        </div>
-      </div>
-    </header>
-  )
-}
-
-const tabClass = 'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium text-muted-foreground'
+const GestionIcon = ADMIN_NAV[0].icon
+const tabClass =
+  'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium text-muted-foreground outline-none focus-visible:bg-accent data-[status=active]:text-primary'
 
 /** Barre de navigation du bas, mobile uniquement : cibles tactiles larges, accessible au pouce. */
 export function MobileTabBar() {
-  const items = useNavItems()
+  const { data: user } = useSuspenseQuery(currentUserQuery)
+  const isAdmin = user?.membership?.role === 'admin'
   return (
     <nav
       aria-label="Navigation principale"
       className="fixed inset-x-0 bottom-0 z-20 flex border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
-      {items.map(({ to, label, icon: Icon }) => (
-        <Link
-          key={to}
-          to={to}
-          activeOptions={{ exact: true }}
-          className={tabClass}
-          activeProps={{ className: cn(tabClass, 'text-primary') }}
-        >
+      {MEAL_NAV.map(({ to, short, icon: Icon }) => (
+        <Link key={to} to={to} activeOptions={ACTIVE_OPTIONS} className={tabClass}>
           <Icon className="size-5" />
-          {label}
+          {short}
         </Link>
       ))}
+      {isAdmin && (
+        // Un seul onglet pour toute la gestion ; les sous-pages ont leurs onglets en haut de page.
+        <Link to="/admin" activeOptions={{ includeSearch: false }} className={tabClass}>
+          <GestionIcon className="size-5" />
+          Gestion
+        </Link>
+      )}
       <AccountMenu
         trigger={
           <button type="button" className={tabClass}>
@@ -143,8 +50,27 @@ export function MobileBrand() {
   const onHome = useMatchRoute()({ to: '/app' })
   if (onHome) return null
   return (
-    <Link to="/app" aria-label="Accueil" className="mx-auto flex w-full max-w-2xl px-4 pt-5 md:hidden">
+    <Link to="/app" aria-label="Accueil" className="flex w-full px-4 pt-5 md:hidden">
       <BrandLogo className="h-12" />
     </Link>
+  )
+}
+
+/** Sous-navigation de la gestion sur mobile : onglets défilants en haut de page (le rail les montre dès la tablette). */
+export function AdminMobileTabs() {
+  return (
+    <nav aria-label="Gestion" className="flex gap-2 overflow-x-auto px-4 pt-4 [scrollbar-width:none] md:hidden">
+      {ADMIN_NAV.map(({ to, label, icon: Icon }) => (
+        <Link
+          key={to}
+          to={to}
+          activeOptions={ACTIVE_OPTIONS}
+          className="flex shrink-0 items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-medium text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[status=active]:border-primary data-[status=active]:bg-primary data-[status=active]:text-primary-foreground"
+        >
+          <Icon className="size-4" />
+          {label}
+        </Link>
+      ))}
+    </nav>
   )
 }
