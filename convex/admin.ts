@@ -6,6 +6,7 @@ import { mutation, query } from './_generated/server'
 import { requireAdmin } from './lib/access'
 import { assertIsoDate } from './lib/validation'
 import { serviceValidator } from './schema'
+import { dayOrdersReturns, daySummaryReturns } from './lib/returns'
 
 const bookingStatusValidator = v.union(
   v.literal('confirmed'),
@@ -34,6 +35,7 @@ export const dayOrders = query({
     menuItemId: v.optional(v.id('menuItems')),
     paginationOpts: paginationOptsValidator,
   },
+  returns: dayOrdersReturns,
   handler: async (
     ctx,
     { date, service, status, menuItemId, paginationOpts },
@@ -85,6 +87,7 @@ export const dayOrders = query({
  */
 export const daySummary = query({
   args: { date: v.string() },
+  returns: daySummaryReturns,
   handler: async (ctx, { date }) => {
     const { canteenId } = await requireAdmin(ctx)
     const day = assertIsoDate(date)

@@ -3,6 +3,7 @@ import { mutation, query } from './_generated/server'
 import { getOwned, requireAdmin } from './lib/access'
 import { assertListLength, assertPositive, assertPriceXof, assertText, cleanName } from './lib/validation'
 import { allergenInfoValidator, recipeLineValidator } from './schema'
+import { dishListReturns } from './lib/returns'
 
 const dishInput = v.object({
   name: v.string(),
@@ -15,6 +16,7 @@ const dishInput = v.object({
 /** Catalogue des plats de l'établissement (administration). */
 export const list = query({
   args: {},
+  returns: dishListReturns,
   handler: async (ctx) => {
     const { canteenId } = await requireAdmin(ctx)
     const dishes = await ctx.db.query('dishes').withIndex('by_canteen', (q) => q.eq('canteenId', canteenId)).collect()
