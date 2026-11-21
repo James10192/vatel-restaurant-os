@@ -10,7 +10,7 @@ Prototype étudiant : ne jamais le présenter comme produit officiellement appro
 - Source observée : `https://www.vatel.ci/assets/svg/logo-vatel-fond-blanc.svg` (fond clair),
   `https://www.vatel.ci/assets/images/logo-vatel-footer.png` (footer).
 - À intégrer dans `branding/vatel/` **uniquement** après autorisation des organisateurs. Ne jamais redessiner.
-- Anciens `branding/idj-ai-*.png` : archivés, interdits dans l'UI.
+- Les anciens fichiers de marque non-Vatel sont supprimés du dépôt de travail ; ne pas les réintroduire.
 - Libellé provisoire : « Vatel — Restauration ».
 
 ## Couleurs (observées, provisoires)
