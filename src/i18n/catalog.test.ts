@@ -89,6 +89,9 @@ describe('catalogue FR/EN', () => {
     expect(translate('fr', 'Quantité : valeur positive attendue.')).toBe(
       'Quantité : valeur positive attendue.',
     )
-    expect(Object.keys(EN_PATTERNS).length).toBe(templates.length)
+    expect(Object.keys(EN_PATTERNS).length).toBeGreaterThanOrEqual(
+      templates.length,
+    )
+    expect(translate('en', 'Réservation : Garba')).toBe('Booking: Garba')
   })
 })

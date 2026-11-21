@@ -588,6 +588,7 @@ export const EN: Record<string, string> = {
   'Vous avez déjà un repas réservé pour ce service.':
     'You already have a meal booked for this service.',
   'Élément introuvable.': 'Item not found.',
+  'Recharge de démonstration (fictive)': 'Demo top-up (fictitious)',
   'Établissement introuvable.': 'School not found.',
   'Perte à la préparation : entre 0 et 99 %.':
     'Preparation loss: between 0 and 99%.',
@@ -613,4 +614,7 @@ export const EN_PATTERNS: Record<string, string> = {
     'Demo balance capped at {max} FCFA.',
   'Notifications déjà actives sur {n} appareils. Désactivez-en un d’abord.':
     'Notifications already on for {n} devices. Turn one off first.',
+  // Libellés du journal du solde enregistrés par le serveur (convex/bookings.ts)
+  'Réservation : {dish}': 'Booking: {dish}',
+  'Annulation : {dish}': 'Cancellation: {dish}',
 }
