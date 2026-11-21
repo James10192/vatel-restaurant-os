@@ -21,6 +21,11 @@ export const NOTIFICATIONS = {
     body: 'Elles ferment bientôt. Réservez votre repas avant la clôture.',
     url: '/app',
   },
+  lowBalance: {
+    title: 'Solde bas',
+    body: 'Votre solde ne couvre bientôt plus un repas. Rechargez-le depuis l’application.',
+    url: '/app/wallet',
+  },
   dinnerReminder: {
     title: 'Réservations du dîner',
     body: 'Elles ferment bientôt. Réservez votre repas avant la clôture.',
@@ -33,7 +38,11 @@ export const notificationKindValidator = v.union(
   v.literal('menuPublished'),
   v.literal('lunchReminder'),
   v.literal('dinnerReminder'),
+  v.literal('lowBalance'),
 )
+
+/** Seuil de l'alerte « solde bas » (FCFA, à peu près le prix d'un repas). Le montant n'est jamais affiché. */
+export const LOW_BALANCE_XOF = 2000
 
 /** Le rappel part dans l'heure qui précède la clôture des réservations d'un service. */
 export const REMINDER_LEAD_MINUTES = 60

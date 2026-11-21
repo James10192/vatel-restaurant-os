@@ -147,6 +147,17 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
 - Exécuté sur le backend Convex local : `reminders:sendDue` renvoie `{ reminders: 0 }` à 15h (aucune clôture dans l'heure).
   **Non vérifié** : un passage réel du cron dans la fenêtre et la notification reçue sur un téléphone.
 
+### Alerte de solde bas (ajout du 21/11, ~15h15)
+- `convex/lib/lowBalance.ts`, appelé par `bookings.book` juste après le débit, dans la même transaction.
+- Part **seulement au franchissement** du seuil (solde avant ≥ 2 000 FCFA, solde après < 2 000) : pas d'alerte à chaque
+  réservation suivante ; une recharge puis un nouveau franchissement en redéclenchent une.
+- Vers les appareils du seul membre concerné. Texte générique, **aucun montant** sur l'écran verrouillé ; le clic ouvre `/app/wallet`.
+- Seuil `LOW_BALANCE_XOF = 2000` dans `convex/lib/notifications.ts` (à rendre réglable par établissement plus tard,
+  ce qui demanderait de modifier `canteens.policy`).
+- Le journal du solde (`ledger.ts`) n'est pas modifié.
+- Tests (3) : alerte unique au franchissement et ciblée ; solde restant au-dessus : rien ; nouvelle alerte après recharge.
+  Non vérifié sur un téléphone.
+
 ### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
 Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :
 ```bash
@@ -166,7 +177,7 @@ Ne jamais commiter la clé privée. Changer de paire invalide tous les abonnemen
 ### Vérifications de la tranche 2 (exécutées)
 Backend Convex **local anonyme** (`convex deployment select local`), propre à ce conteneur, jamais relié au dev du lead ;
 comptes fictifs `qa.admin@demo.test`, `qa.awa@demo.test`, mot de passe aléatoire non conservé.
-- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**92 tests** avec le rappel ; 89 à cette étape, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (**95 tests** avec le rappel et l'alerte de solde ; 89 à cette étape, dont 21 nouveaux : anti-SSRF, refus non rattaché, clés
   invalides, idempotence et réattribution, retrait d'un appareil d'autrui refusé, test sans appareil refusé,
   isolation A/B, planification à la publication), `pnpm build` : OK. Déploiement local des fonctions (dont l'action
   Node `web-push`) : OK.
