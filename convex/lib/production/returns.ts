@@ -23,6 +23,7 @@ const offerValidator = v.object({
     quality: count,
   }),
   recovered: count,
+  walkIns: count,
   lots: v.array(
     v.object({ at: v.number(), portions: v.number(), by: v.string() }),
   ),
@@ -73,13 +74,14 @@ export const dishHistoryReturns = v.object({
   history: v.object({
     services: count,
     avgBooked: rate,
+    avgWalkIns: rate,
     pickupRate: rate,
     noShowRate: rate,
     cancelRate: rate,
     wasteRate: rate,
   }),
-  suggestion: v.object({ coldStart: v.boolean(), margin: count, expectedNoShows: count }),
+  suggestion: v.object({ coldStart: v.boolean(), margin: count, walkIns: count, expectedNoShows: count }),
   services: v.array(
-    v.object({ date: v.string(), booked: count, pickedUp: count, noShow: count, cancelled: count, prepared: v.union(v.null(), count), wasted: count }),
+    v.object({ date: v.string(), booked: count, pickedUp: count, noShow: count, cancelled: count, prepared: v.union(v.null(), count), wasted: count, walkIns: count }),
   ),
 })

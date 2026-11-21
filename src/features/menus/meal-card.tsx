@@ -8,6 +8,7 @@ import { Progress } from '#/components/ui/progress'
 import { SERVICE_LABELS, formatXof } from '#/lib/format'
 import { cn } from '#/lib/utils'
 import { BookMealDialog } from '#/features/booking/book-meal-dialog'
+import { WaitlistButton } from '#/features/booking/waitlist-button'
 import { CancelBookingDialog } from '#/features/booking/cancel-booking-dialog'
 import { AllergenBadges } from './allergen-badges'
 import { AllergyAlert } from './allergy-alert'
@@ -92,6 +93,8 @@ export function MealCard({
           <BookMealDialog meal={item} balanceXof={balanceXof} />
         ) : bookedThisService ? (
           <span className="text-right text-sm text-muted-foreground">{t('Déjà un repas ce service')}</span>
+        ) : !closed && item.remaining === 0 ? (
+          <WaitlistButton menuItemId={item._id} />
         ) : null}
       </div>
     </Card>

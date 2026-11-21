@@ -14,6 +14,7 @@ import type * as auth from "../auth.js";
 import type * as bookings from "../bookings.js";
 import type * as catalog from "../catalog.js";
 import type * as copilot from "../copilot.js";
+import type * as counter from "../counter.js";
 import type * as crons from "../crons.js";
 import type * as dishes from "../dishes.js";
 import type * as http from "../http.js";
@@ -38,6 +39,7 @@ import type * as lib_production_plan from "../lib/production/plan.js";
 import type * as lib_production_returns from "../lib/production/returns.js";
 import type * as lib_production_waste from "../lib/production/waste.js";
 import type * as lib_returns from "../lib/returns.js";
+import type * as lib_slots from "../lib/slots.js";
 import type * as lib_smartMenu_contract from "../lib/smartMenu/contract.js";
 import type * as lib_smartMenu_llm from "../lib/smartMenu/llm.js";
 import type * as lib_smartMenu_providers from "../lib/smartMenu/providers.js";
@@ -46,6 +48,7 @@ import type * as lib_stock_load from "../lib/stock/load.js";
 import type * as lib_stock_position from "../lib/stock/position.js";
 import type * as lib_stock_units from "../lib/stock/units.js";
 import type * as lib_validation from "../lib/validation.js";
+import type * as lib_waitlist from "../lib/waitlist.js";
 import type * as menus from "../menus.js";
 import type * as notificationPreferences from "../notificationPreferences.js";
 import type * as passes from "../passes.js";
@@ -54,9 +57,11 @@ import type * as productionPlan from "../productionPlan.js";
 import type * as push from "../push.js";
 import type * as pushSend from "../pushSend.js";
 import type * as reminders from "../reminders.js";
+import type * as settings from "../settings.js";
 import type * as setup from "../setup.js";
 import type * as smartMenu from "../smartMenu.js";
 import type * as stock from "../stock.js";
+import type * as waitlist from "../waitlist.js";
 import type * as wallet from "../wallet.js";
 
 import type {
@@ -72,6 +77,7 @@ declare const fullApi: ApiFromModules<{
   bookings: typeof bookings;
   catalog: typeof catalog;
   copilot: typeof copilot;
+  counter: typeof counter;
   crons: typeof crons;
   dishes: typeof dishes;
   http: typeof http;
@@ -96,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   "lib/production/returns": typeof lib_production_returns;
   "lib/production/waste": typeof lib_production_waste;
   "lib/returns": typeof lib_returns;
+  "lib/slots": typeof lib_slots;
   "lib/smartMenu/contract": typeof lib_smartMenu_contract;
   "lib/smartMenu/llm": typeof lib_smartMenu_llm;
   "lib/smartMenu/providers": typeof lib_smartMenu_providers;
@@ -104,6 +111,7 @@ declare const fullApi: ApiFromModules<{
   "lib/stock/position": typeof lib_stock_position;
   "lib/stock/units": typeof lib_stock_units;
   "lib/validation": typeof lib_validation;
+  "lib/waitlist": typeof lib_waitlist;
   menus: typeof menus;
   notificationPreferences: typeof notificationPreferences;
   passes: typeof passes;
@@ -112,9 +120,11 @@ declare const fullApi: ApiFromModules<{
   push: typeof push;
   pushSend: typeof pushSend;
   reminders: typeof reminders;
+  settings: typeof settings;
   setup: typeof setup;
   smartMenu: typeof smartMenu;
   stock: typeof stock;
+  waitlist: typeof waitlist;
   wallet: typeof wallet;
 }>;
 

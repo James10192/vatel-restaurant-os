@@ -52,7 +52,7 @@ describe('plan de production', () => {
     await adminA.mutation(api.admin.markPickedUp, { bookingId: awa._id })
     vi.setSystemTime(new Date(`${addDays(WEEK, 1)}T08:00:00Z`))
     const result = await adminA.query(api.productionPlan.dishHistory, { menuItemId: tuesday })
-    expect(result.services).toEqual([{ date: WEEK, booked: 2, pickedUp: 1, noShow: 1, cancelled: 0, prepared: null, wasted: 0 }])
+    expect(result.services).toEqual([{ date: WEEK, booked: 2, pickedUp: 1, noShow: 1, cancelled: 0, prepared: null, wasted: 0, walkIns: 0 }])
     expect(result.suggestion.coldStart).toBe(true)
     const week = await adminA.query(api.productionPlan.week, { weekStart: addDays(WEEK, 2) })
     expect(week.map((d) => d.offers.length)).toEqual([1, 1, 0, 0, 0, 0, 0])

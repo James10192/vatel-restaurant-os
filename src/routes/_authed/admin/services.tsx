@@ -21,6 +21,9 @@ import type { Service } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
 import { DayNav, parseDateSearch, resolveDate } from '#/features/admin/day'
 import { PassScanner } from '#/features/admin/pass-scanner'
+import { CounterPanel } from '#/features/admin/counter-panel'
+import { ServiceSettings } from '#/features/admin/service-settings'
+import { currentUserQuery } from '#/lib/session'
 import { ORDER_STATUS, OrderRows } from '#/features/admin/orders'
 import type { OrderStatus } from '#/features/admin/orders'
 import { useT, pageTitle } from '#/i18n/i18n'
@@ -61,6 +64,8 @@ function DayOrders() {
   const date = resolveDate(search.date)
   const setFilter: SetFilter = (patch) => navigate({ search: (prev) => ({ ...prev, ...patch }) })
   const { data: summary } = useSuspenseQuery(summaryQuery(date))
+  const { data: user } = useSuspenseQuery(currentUserQuery)
+  const isAdmin = user?.membership?.role === 'admin'
   const offers = summary.offers.filter((offer) => !search.service || offer.service === search.service)
   const item = offers.some((o) => o.menuItemId === search.item) ? (search.item as Id<'menuItems'>) : undefined
   // Changer un filtre change les arguments : Convex repart du premier curseur.
@@ -80,8 +85,9 @@ function DayOrders() {
           <h1 className="text-display">{t('Commandes du jour')}</h1>
           <p className="text-sm text-muted-foreground">{t('Repas réservés, à servir et remis, mis à jour en temps réel.')}</p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           {date === todayIso() && <PassScanner />}
+          {isAdmin && <ServiceSettings />}
           <DayNav date={date} to="/admin/services" />
         </div>
       </header>
@@ -111,6 +117,8 @@ function DayOrders() {
           </SheetContent>
         </Sheet>
       </div>
+
+      {date === todayIso() && offers.length > 0 && <CounterPanel date={date} offers={offers} />}
 
       <FormError message={markPickedUp.error} />
 

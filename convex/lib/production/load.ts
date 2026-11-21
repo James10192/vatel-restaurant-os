@@ -17,17 +17,25 @@ const SERVICE_ORDER = { lunch: 0, dinner: 1 } as const
 /** Cumul des événements d'une offre : préparé (null si jamais saisi) et pertes par motif. */
 export function tally(events: Array<Event>) {
   const waste: WasteByReason = emptyWaste()
-  let prepared: number | null = null
+  const sum = { prepared: 0, recovered: 0, walkin: 0 }
   let preparedAt: number | null = null
-  let recovered = 0
   for (const e of events) {
-    if (e.kind === 'prepared') {
-      prepared = (prepared ?? 0) + e.portions
-      preparedAt = Math.max(preparedAt ?? 0, e._creationTime)
-    } else if (e.kind === 'recovered') recovered += e.portions
-    else if (e.reason) waste[e.reason] += e.portions
+    if (e.kind === 'waste') {
+      if (e.reason) waste[e.reason] += e.portions
+      continue
+    }
+    sum[e.kind] += e.portions
+    if (e.kind === 'prepared') preparedAt = Math.max(preparedAt ?? 0, e._creationTime)
   }
-  return { prepared, preparedAt, waste, recovered, wasted: WASTE_REASONS.reduce((n, r) => n + waste[r], 0) }
+  return {
+    // Préparé jamais saisi : inconnu (null), jamais zéro.
+    prepared: events.some((e) => e.kind === 'prepared') ? sum.prepared : null,
+    preparedAt,
+    waste,
+    recovered: sum.recovered,
+    walkIns: sum.walkin,
+    wasted: WASTE_REASONS.reduce((n, r) => n + waste[r], 0),
+  }
 }
 
 /** Fiche technique avec noms lisibles ; null si le plat n'a pas de fiche exploitable. */
@@ -67,7 +75,7 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
         const dish = await ctx.db.get(item.dishId)
         const count = (status: BookingStatus) => bookings.filter((b) => b.menuItemId === item._id && b.status === status).length
         const ofItem = events.filter((e) => e.menuItemId === item._id)
-        const { prepared, preparedAt, waste, recovered } = tally(ofItem)
+        const { prepared, preparedAt, waste, recovered, walkIns } = tally(ofItem)
         // Dernière validation du plan (les précédentes restent en base : corrections tracées).
         const plan = plans.filter((p) => p.menuItemId === item._id).sort((a, b) => b._creationTime - a._creationTime).at(0)
         return {
@@ -83,6 +91,8 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
           preparedAt,
           waste,
           recovered,
+          /** Repas servis au comptoir sans réservation (comptés par la distribution). */
+          walkIns,
           lots: ofItem
             .filter((e) => e.kind === 'prepared')
             .map((e) => ({ at: e._creationTime, portions: e.portions, by: names.get(e.profileId) ?? 'Membre' })),

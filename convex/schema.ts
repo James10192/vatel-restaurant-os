@@ -43,6 +43,10 @@ export const policyValidator = v.object({
   cutoffMinutes: v.number(),
   /** Montant maximal d'une recharge de démonstration. */
   demoTopUpMaxXof: v.number(),
+  /** Repas réservables par service, tous plats confondus (capacité globale, en plus de celle de chaque plat). Absent = illimité. */
+  serviceCapacity: v.optional(v.object({ lunch: v.number(), dinner: v.number() })),
+  /** Créneaux de retrait : durée du service, longueur d'un créneau, repas remis par créneau. Absent = pas de créneaux. */
+  slots: v.optional(v.object({ durationMinutes: v.number(), slotMinutes: v.number(), slotCapacity: v.number() })),
 })
 
 export const wasteReasonValidator = v.union(
@@ -97,6 +101,8 @@ export default defineSchema({
     priceXof: v.number(),
     status: v.union(v.literal('confirmed'), v.literal('cancelled'), v.literal('picked_up')),
     idempotencyKey: v.string(),
+    /** Créneau de retrait « HH:MM », si l'établissement en utilise. */
+    slot: v.optional(v.string()),
   })
     .index('by_profile_date', ['profileId', 'date'])
     .index('by_profile_key', ['profileId', 'idempotencyKey'])
@@ -203,7 +209,8 @@ export default defineSchema({
     menuItemId: v.id('menuItems'),
     date: v.string(),
     service: serviceValidator,
-    kind: v.union(v.literal('prepared'), v.literal('waste'), v.literal('recovered')),
+    /** prepared : sorti de cuisine ; waste : perdu ; recovered : surplus redistribué ; walkin : servi sans réservation. */
+    kind: v.union(v.literal('prepared'), v.literal('waste'), v.literal('recovered'), v.literal('walkin')),
     portions: v.number(),
     reason: v.optional(wasteReasonValidator),
     profileId: v.id('profiles'),
@@ -268,6 +275,19 @@ export default defineSchema({
   })
     .index('by_code_hash', ['codeHash'])
     .index('by_booking', ['bookingId']),
+
+  /**
+   * Liste d'attente d'une offre complète (#4). À chaque place libérée, la plus ancienne demande non prévenue
+   * reçoit une notification ; rien n'est réservé ni débité sans la confirmation de l'usager.
+   */
+  waitlist: defineTable({
+    canteenId: v.id('canteens'),
+    menuItemId: v.id('menuItems'),
+    profileId: v.id('profiles'),
+    notifiedAt: v.optional(v.number()),
+  })
+    .index('by_menu_item', ['menuItemId'])
+    .index('by_profile', ['profileId']),
 
   /** Smart Menu (B1) : quotas et coût IA par usager et par jour. Aucun texte de requête conservé. */
   aiUsage: defineTable({

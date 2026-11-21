@@ -68,10 +68,10 @@ export const dishHistory = query({
           ctx.db.query('productionEvents').withIndex('by_menu_item', (q) => q.eq('menuItemId', other._id)).collect(),
         ])
         const count = (status: (typeof bookings)[number]['status']) => bookings.filter((b) => b.status === status).length
-        const { prepared, wasted } = tally(events)
+        const { prepared, wasted, walkIns } = tally(events)
         // Jour passé : « confirmée » restante = repas jamais retiré.
         const noShow = count('confirmed')
-        return { date: other.date, booked: noShow + count('picked_up'), pickedUp: count('picked_up'), noShow, cancelled: count('cancelled'), prepared, wasted }
+        return { date: other.date, booked: noShow + count('picked_up'), pickedUp: count('picked_up'), noShow, cancelled: count('cancelled'), prepared, wasted, walkIns }
       }),
     )
     const history = summarizeHistory(services)

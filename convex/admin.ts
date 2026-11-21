@@ -3,7 +3,7 @@ import { paginationOptsValidator } from 'convex/server'
 import type { Doc } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
-import { requireAdmin } from './lib/access'
+import { requireCounter } from './lib/access'
 import { assertIsoDate } from './lib/validation'
 import { serviceValidator } from './schema'
 import { dayOrdersReturns, daySummaryReturns } from './lib/returns'
@@ -40,7 +40,7 @@ export const dayOrders = query({
     ctx,
     { date, service, status, menuItemId, paginationOpts },
   ) => {
-    const { canteenId } = await requireAdmin(ctx)
+    const { canteenId } = await requireCounter(ctx)
     const day = assertIsoDate(date)
     const base = service
       ? ctx.db
@@ -74,6 +74,7 @@ export const dayOrders = query({
         dishName: b.dishName,
         priceXof: b.priceXof,
         status: b.status,
+        slot: b.slot,
         diner: await displayName(ctx, b.profileId),
       })),
     )
@@ -89,9 +90,9 @@ export const daySummary = query({
   args: { date: v.string() },
   returns: daySummaryReturns,
   handler: async (ctx, { date }) => {
-    const { canteenId } = await requireAdmin(ctx)
+    const { canteenId } = await requireCounter(ctx)
     const day = assertIsoDate(date)
-    const [items, bookings] = await Promise.all([
+    const [items, bookings, walkIns] = await Promise.all([
       ctx.db
         .query('menuItems')
         .withIndex('by_canteen_date', (q) =>
@@ -104,6 +105,11 @@ export const daySummary = query({
           q.eq('canteenId', canteenId).eq('date', day),
         )
         .collect(),
+      ctx.db
+        .query('productionEvents')
+        .withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', day))
+        .collect()
+        .then((events) => events.filter((e) => e.kind === 'walkin')),
     ])
     const published = items.filter((item) => item.status === 'published')
     const dishes = await Promise.all(
@@ -128,10 +134,11 @@ export const daySummary = query({
         pickedUp,
         cancelled: count(item._id, 'cancelled'),
         remaining: Math.max(item.capacity - confirmed - pickedUp, 0),
+        walkIns: walkIns.filter((e) => e.menuItemId === item._id).length,
       }
     })
     const sum = (
-      key: 'capacity' | 'confirmed' | 'pickedUp' | 'cancelled' | 'remaining',
+      key: 'capacity' | 'confirmed' | 'pickedUp' | 'cancelled' | 'remaining' | 'walkIns',
     ) => offers.reduce((total, offer) => total + offer[key], 0)
     const active = bookings.filter((b) => b.status !== 'cancelled')
     return {
@@ -142,6 +149,7 @@ export const daySummary = query({
         pickedUp: sum('pickedUp'),
         cancelled: sum('cancelled'),
         remaining: sum('remaining'),
+        walkIns: sum('walkIns'),
         demoAmountXof: active.reduce((total, b) => total + b.priceXof, 0),
       },
     }
@@ -153,7 +161,7 @@ export const markPickedUp = mutation({
   args: { bookingId: v.id('bookings') },
   returns: v.null(),
   handler: async (ctx, { bookingId }) => {
-    const { canteenId } = await requireAdmin(ctx)
+    const { canteenId } = await requireCounter(ctx)
     const booking = await ctx.db.get(bookingId)
     if (!booking || booking.canteenId !== canteenId)
       throw new ConvexError('Réservation introuvable.')

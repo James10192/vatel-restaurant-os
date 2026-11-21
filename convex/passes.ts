@@ -74,6 +74,7 @@ const inspectReturns = v.object({
       dishName: v.string(),
       date: v.string(),
       service: serviceValidator,
+      slot: v.optional(v.string()),
       usedAt: v.union(v.null(), v.number()),
     }),
   ),
@@ -96,6 +97,7 @@ export const inspect = query({
         dishName: booking.dishName,
         date: booking.date,
         service: booking.service,
+        slot: booking.slot,
         usedAt: pass.usedAt ?? null,
       },
     }

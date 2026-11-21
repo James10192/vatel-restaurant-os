@@ -151,6 +151,7 @@ function PassPreview({
           <p className="font-medium">{meal.dishName}</p>
           <p className="text-sm text-muted-foreground first-letter:uppercase">
             {formatDayLong(meal.date, locale)}, {t(SERVICE_LABELS[meal.service]).toLowerCase()}
+            {meal.slot && <>, {t('retrait à {slot}', { slot: meal.slot })}</>}
           </p>
         </div>
       )}

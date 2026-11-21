@@ -83,11 +83,22 @@ export function PlanDialog({ offer, trigger }: { offer: ProductionOffer; trigger
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs text-muted-foreground">
                   {data.suggestion.coldStart
-                    ? t('Démarrage à froid : marge par défaut de 5 % des réservations.')
-                    : t('Marge proposée : 5 % des réservations ; environ {n} absents attendus.', { n: data.suggestion.expectedNoShows })}
+                    ? t('Démarrage à froid : aucun passage supposé, marge par défaut de 5 % des réservations.')
+                    : t('Proposition : {walkIns} passages (moyenne mesurée au comptoir), marge de 5 % ; environ {n} absents attendus.', {
+                        walkIns: data.suggestion.walkIns,
+                        n: data.suggestion.expectedNoShows,
+                      })}
                 </p>
-                <Button type="button" size="sm" variant="outline" onClick={() => setMargin(String(data.suggestion.margin))}>
-                  {t('Utiliser {n}', { n: data.suggestion.margin })}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setWalkIns(String(data.suggestion.walkIns))
+                    setMargin(String(data.suggestion.margin))
+                  }}
+                >
+                  {t('Appliquer la proposition')}
                 </Button>
               </div>
             )}

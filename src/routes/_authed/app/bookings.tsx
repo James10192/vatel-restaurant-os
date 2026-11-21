@@ -11,6 +11,7 @@ import { SERVICE_LABELS, formatDayLong, formatXof, todayIso } from '#/lib/format
 import { useNow } from '#/lib/use-now'
 import { CancelBookingDialog } from '#/features/booking/cancel-booking-dialog'
 import { usePickupPass } from '#/features/booking/pickup-pass-dialog'
+import { ChangeSlotDialog } from '#/features/booking/change-slot-dialog'
 import type { MyBooking } from '#/features/menus/meal-card'
 import { useT , useLocale, pageTitle } from '#/i18n/i18n'
 
@@ -89,6 +90,7 @@ function BookingsPage() {
                           <span className="text-sm text-muted-foreground first-letter:uppercase">
                             {formatDayLong(booking.date, locale)}, {t(SERVICE_LABELS[booking.service]).toLowerCase()}
                           </span>
+                          <SlotLine booking={booking} cancellable={cancellable(booking)} />
                         </div>
                         <Badge variant={STATUS[booking.status].variant}>{t(STATUS[booking.status].label)}</Badge>
                       </div>
@@ -122,7 +124,10 @@ function BookingsPage() {
               <TableBody>
                 {[...upcoming, ...done].map((booking) => (
                   <TableRow key={booking._id}>
-                    <TableCell className="font-medium first-letter:uppercase">{formatDayLong(booking.date, locale)}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="block first-letter:uppercase">{formatDayLong(booking.date, locale)}</span>
+                      <SlotLine booking={booking} cancellable={cancellable(booking)} />
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{t(SERVICE_LABELS[booking.service])}</TableCell>
                     <TableCell className="max-w-72 truncate">{booking.dishName}</TableCell>
                     <TableCell className="text-right tabular-nums">{formatXof(booking.priceXof)}</TableCell>
@@ -149,4 +154,12 @@ function BookingsPage() {
       {pass.dialog}
     </main>
   )
+}
+
+/** Créneau de retrait : modifiable tant que la réservation l'est, sinon simple rappel. */
+function SlotLine({ booking, cancellable }: { booking: MyBooking; cancellable: boolean }) {
+  const t = useT()
+  if (!booking.slot) return null
+  if (cancellable) return <ChangeSlotDialog booking={{ _id: booking._id, menuItemId: booking.menuItemId, slot: booking.slot }} />
+  return <span className="text-xs text-muted-foreground tabular-nums">{t('Retrait à {slot}', { slot: booking.slot })}</span>
 }

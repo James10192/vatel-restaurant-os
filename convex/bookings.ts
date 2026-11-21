@@ -1,21 +1,23 @@
 import { ConvexError, v } from 'convex/values'
 import { mutation, query } from './_generated/server'
-import { requireMember } from './lib/access'
+import { getOwned, requireMember } from './lib/access'
 import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
 import { appendEntry, getOrCreateWallet } from './lib/ledger'
-import { bookMeal, requirePolicy } from './lib/booking'
+import { bookMeal, requirePolicy, slotLoad } from './lib/booking'
 import { alertIfLowBalance } from './lib/lowBalance'
-import { cutoffAt } from './lib/policy'
+import { cutoffAt, slotPolicyOf } from './lib/policy'
+import { slotsOf } from './lib/slots'
 import { myBookingsReturns } from './lib/returns'
+import { notifyNextWaiting } from './lib/waitlist'
 
 /**
  * Réserve un repas : vérifie publication, échéance, doublon, capacité et solde, puis débite et
  * enregistre la réservation dans UNE transaction. Idempotente par clé client.
  */
 export const book = mutation({
-  args: { menuItemId: v.id('menuItems'), idempotencyKey: v.string() },
+  args: { menuItemId: v.id('menuItems'), idempotencyKey: v.string(), slot: v.optional(v.string()) },
   returns: v.object({ bookingId: v.id('bookings'), balanceXof: v.number(), replayed: v.boolean() }),
-  handler: async (ctx, { menuItemId, idempotencyKey }) => {
+  handler: async (ctx, { menuItemId, idempotencyKey, slot }) => {
     assertIdempotencyKey(idempotencyKey)
     const membership = await requireMember(ctx)
     const wallet = await getOrCreateWallet(ctx, membership)
@@ -29,7 +31,7 @@ export const book = mutation({
       return { bookingId: previous._id, balanceXof: wallet.balanceXof, replayed: true }
     }
 
-    const { bookingId, balanceXof } = await bookMeal(ctx, membership, menuItemId, idempotencyKey)
+    const { bookingId, balanceXof } = await bookMeal(ctx, membership, menuItemId, idempotencyKey, slot)
     await alertIfLowBalance(ctx, membership._id, wallet.balanceXof, balanceXof)
     return { bookingId, balanceXof, replayed: false }
   },
@@ -99,6 +101,7 @@ export const cancel = mutation({
       throw new ConvexError('Délai d’annulation dépassé pour ce service.')
     }
     await ctx.db.patch(bookingId, { status: 'cancelled' })
+    await notifyNextWaiting(ctx, booking.menuItemId)
     const wallet = await getOrCreateWallet(ctx, membership)
     const balanceXof = await appendEntry(ctx, wallet, {
       kind: 'booking_refund',
@@ -130,6 +133,42 @@ export const mine = query({
       priceXof: b.priceXof,
       status: b.status,
       cancellableUntil: cutoffAt(policy, b.date, b.service),
+      slot: b.slot,
     }))
+  },
+})
+
+/** Créneaux de retrait d'une offre avec les places restantes (vide si l'établissement n'en utilise pas). */
+export const slotsFor = query({
+  args: { menuItemId: v.id('menuItems') },
+  returns: v.array(v.object({ slot: v.string(), remaining: v.number() })),
+  handler: async (ctx, { menuItemId }) => {
+    const membership = await requireMember(ctx)
+    const item = await getOwned(ctx, membership, menuItemId)
+    const slotPolicy = slotPolicyOf(await requirePolicy(ctx, membership), item.service)
+    if (!slotPolicy) return []
+    const taken = await slotLoad(ctx, membership.canteenId, item.date, item.service)
+    return slotsOf(slotPolicy).map((slot) => ({ slot, remaining: Math.max(0, slotPolicy.slotCapacity - (taken[slot] ?? 0)) }))
+  },
+})
+
+/** Change le créneau d'une réservation confirmée, avant la clôture et seulement vers un créneau qui a de la place. */
+export const changeSlot = mutation({
+  args: { bookingId: v.id('bookings'), slot: v.string() },
+  returns: v.null(),
+  handler: async (ctx, { bookingId, slot }) => {
+    const membership = await requireMember(ctx)
+    const booking = await ctx.db.get(bookingId)
+    if (!booking || booking.profileId !== membership._id) throw new ConvexError('Réservation introuvable.')
+    if (booking.status !== 'confirmed') throw new ConvexError('Cette réservation ne peut plus être modifiée.')
+    const policy = await requirePolicy(ctx, membership)
+    if (Date.now() >= cutoffAt(policy, booking.date, booking.service)) throw new ConvexError('Délai de modification dépassé pour ce service.')
+    const slotPolicy = slotPolicyOf(policy, booking.service)
+    if (!slotPolicy || !slotsOf(slotPolicy).includes(slot)) throw new ConvexError('Créneau inconnu.')
+    if (slot === booking.slot) return null
+    const taken = await slotLoad(ctx, membership.canteenId, booking.date, booking.service)
+    if ((taken[slot] ?? 0) >= slotPolicy.slotCapacity) throw new ConvexError('Ce créneau est complet.')
+    await ctx.db.patch(bookingId, { slot })
+    return null
   },
 })

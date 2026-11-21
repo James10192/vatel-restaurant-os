@@ -17,6 +17,7 @@ const offer = (over: Partial<ProductionDayOffer>): ProductionDayOffer => ({
   preparedAt: null,
   waste: { surplus: 0, not_picked_up: 0, kitchen: 0, quality: 0 },
   recovered: 0,
+  walkIns: 0,
   lots: [],
   plan: null,
   recipe: null,

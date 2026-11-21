@@ -25,3 +25,8 @@ export function cutoffAt(policy: Policy, date: string, service: Service): number
   if (!Number.isFinite(at)) throw new ConvexError('Horaires de service mal configurés pour cet établissement.')
   return at
 }
+
+/** Créneaux d'un service selon la politique, ou null si l'établissement n'en utilise pas. */
+export function slotPolicyOf(policy: Policy, service: Service) {
+  return policy.slots ? { startHHMM: policy.serviceStart[service], ...policy.slots } : null
+}
