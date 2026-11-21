@@ -20,9 +20,11 @@ import { Spinner } from '#/components/ui/spinner'
 import { SERVICE_LABELS, formatDayLong, formatXof } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
+import { AllergyAlert } from '#/features/menus/allergy-alert'
+import type { AllergyAlertData } from '#/features/menus/allergy-alert'
 import { useT , useLocale } from '#/i18n/i18n'
 
-type Meal = { _id: Id<'menuItems'>; dishName: string; date: string; service: Service; priceXof: number }
+type Meal = { _id: Id<'menuItems'>; dishName: string; date: string; service: Service; priceXof: number; allergyAlert?: AllergyAlertData }
 
 /**
  * Confirmation explicite avant débit. La clé d'idempotence est créée à l'ouverture : un double clic
@@ -60,6 +62,7 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
             })}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        <AllergyAlert alert={meal.allergyAlert} />
         <dl className="flex flex-col gap-2 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted-foreground">{t('Prix')}</dt>
@@ -87,7 +90,7 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
               }}
             >
               {pending && <Spinner data-icon="inline-start" />}
-              {t('Confirmer et payer')}
+              {meal.allergyAlert?.matches.length ? t('Réserver malgré l’allergie') : t('Confirmer et payer')}
             </Button>
           ) : (
             <Button asChild>

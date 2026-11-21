@@ -25,11 +25,19 @@ export function assertPositive(value: number, label: string): number {
 }
 
 /** Nom lisible nettoyé, et clé de dédoublonnage insensible à la casse et aux accents. */
+/** Clé de comparaison : sans accents, sans casse, espaces réduits (« Pâte  d’Arachide » = « pate d’arachide »). */
+export const toKey = (value: string) =>
+  value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+
 export function cleanName(value: string, label: string): { name: string; key: string } {
   const name = value.trim().replace(/\s+/g, ' ')
   if (name.length < 1 || name.length > 80) throw new ConvexError(`${label} : 1 à 80 caractères.`)
-  const key = name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
-  return { name, key }
+  return { name, key: toKey(name) }
 }
 
 export function assertIsoDate(value: string): string {

@@ -20,6 +20,7 @@ import type * as http from "../http.js";
 import type * as lib_access from "../lib/access.js";
 import type * as lib_aiQuota from "../lib/aiQuota.js";
 import type * as lib_allergens from "../lib/allergens.js";
+import type * as lib_allergies from "../lib/allergies.js";
 import type * as lib_booking from "../lib/booking.js";
 import type * as lib_capacity from "../lib/capacity.js";
 import type * as lib_copilot_brief from "../lib/copilot/brief.js";
@@ -77,6 +78,7 @@ declare const fullApi: ApiFromModules<{
   "lib/access": typeof lib_access;
   "lib/aiQuota": typeof lib_aiQuota;
   "lib/allergens": typeof lib_allergens;
+  "lib/allergies": typeof lib_allergies;
   "lib/booking": typeof lib_booking;
   "lib/capacity": typeof lib_capacity;
   "lib/copilot/brief": typeof lib_copilot_brief;

@@ -3,9 +3,15 @@ import { mutation, query } from './_generated/server'
 import { getOwned, requireAdmin } from './lib/access'
 import { allergenCodeValidator } from './lib/allergens'
 import { cleanName } from './lib/validation'
+import { cleanAllergyList } from './lib/allergies'
 
 const entry = v.object({ _id: v.string(), name: v.string() })
-const ingredientEntry = v.object({ _id: v.string(), name: v.string(), allergens: v.optional(v.array(allergenCodeValidator)) })
+const ingredientEntry = v.object({
+  _id: v.string(),
+  name: v.string(),
+  allergens: v.optional(v.array(allergenCodeValidator)),
+  otherAllergens: v.optional(v.array(v.string())),
+})
 
 /** Unités et ingrédients de l'établissement, triés par nom. */
 export const references = query({
@@ -20,7 +26,7 @@ export const references = query({
     const project = (d: { _id: string; name: string }) => ({ _id: d._id, name: d.name })
     return {
       units: units.map(project),
-      ingredients: ingredients.map((d) => ({ ...project(d), allergens: d.allergens })),
+      ingredients: ingredients.map((d) => ({ ...project(d), allergens: d.allergens, otherAllergens: d.otherAllergens })),
     }
   },
 })
@@ -66,12 +72,13 @@ export const createIngredient = mutation({
  * recalculée au prochain enregistrement de leur fiche.
  */
 export const setIngredientAllergens = mutation({
-  args: { ingredientId: v.id('ingredients'), allergens: v.array(allergenCodeValidator) },
+  args: { ingredientId: v.id('ingredients'), allergens: v.array(allergenCodeValidator), others: v.optional(v.array(v.string())) },
   returns: v.null(),
-  handler: async (ctx, { ingredientId, allergens }) => {
+  handler: async (ctx, { ingredientId, allergens, others }) => {
     const membership = await requireAdmin(ctx)
     await getOwned(ctx, membership, ingredientId)
-    await ctx.db.patch(ingredientId, { allergens: [...new Set(allergens)] })
+    const clean = cleanAllergyList({ codes: allergens, others: others ?? [] })
+    await ctx.db.patch(ingredientId, { allergens: clean.codes, otherAllergens: clean.others.length ? clean.others : undefined })
     return null
   },
 })

@@ -97,7 +97,10 @@ function deriveAllergens(ingredients: Array<Doc<'ingredients'>>, manual: Infer<t
   }
   if (ingredients.some((ingredient) => ingredient.allergens === undefined)) return { status: 'unknown' as const }
   const codes = new Set(ingredients.flatMap((ingredient) => ingredient.allergens ?? []))
-  const fromRecipe = ALLERGEN_CODES.filter((code) => codes.has(code)).map((code) => ALLERGEN_LABELS[code])
+  const fromRecipe = [
+    ...ALLERGEN_CODES.filter((code) => codes.has(code)).map((code) => ALLERGEN_LABELS[code]),
+    ...ingredients.flatMap((ingredient) => ingredient.otherAllergens ?? []),
+  ]
   return {
     status: 'declared' as const,
     present: cleanList([...fromRecipe, ...declared.present], 'Allergènes'),

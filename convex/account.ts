@@ -1,7 +1,9 @@
 import { ConvexError, v } from 'convex/values'
-import { mutation } from './_generated/server'
+import { mutation, query } from './_generated/server'
 import { authComponent, createAuth } from './auth'
 import { cleanName } from './lib/validation'
+import { requireMember } from './lib/access'
+import { allergyListValidator, cleanAllergyList } from './lib/allergies'
 
 /**
  * Modification du nom par le titulaire du compte (rattaché ou non : c'est son propre compte).
@@ -23,5 +25,27 @@ export const rename = mutation({
       .unique()
     if (profile) await ctx.db.patch(profile._id, { displayName: name })
     return null
+  },
+})
+
+/** Allergies déclarées par le membre connecté (jamais celles d'un autre). */
+export const myAllergies = query({
+  args: {},
+  returns: allergyListValidator,
+  handler: async (ctx) => {
+    const { allergies } = await requireMember(ctx)
+    return allergies ?? { codes: [], others: [] }
+  },
+})
+
+/** La personne déclare elle-même ses allergies ; elles servent à l'alerter sur les plats de la semaine. */
+export const setMyAllergies = mutation({
+  args: allergyListValidator,
+  returns: allergyListValidator,
+  handler: async (ctx, list) => {
+    const membership = await requireMember(ctx)
+    const clean = cleanAllergyList(list)
+    await ctx.db.patch(membership._id, { allergies: clean })
+    return clean
   },
 })
