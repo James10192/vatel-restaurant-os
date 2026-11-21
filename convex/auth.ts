@@ -6,6 +6,7 @@ import { components } from './_generated/api'
 import type { DataModel } from './_generated/dataModel'
 import { query } from './_generated/server'
 import authConfig from './auth.config'
+import { currentUserReturns } from './lib/returns'
 
 export const authComponent = createClient<DataModel>(components.betterAuth)
 
@@ -23,6 +24,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 /** Utilisateur connecté (projection minimale) ou null. */
 export const getCurrentUser = query({
   args: {},
+  returns: currentUserReturns,
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx)
     if (!user) return null

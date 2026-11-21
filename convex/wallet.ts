@@ -5,6 +5,7 @@ import { requireMember } from './lib/access'
 import { appendEntry, findWallet, getOrCreateWallet } from './lib/ledger'
 import { DEMO_BALANCE_MAX_XOF, policyOf } from './lib/policy'
 import { assertIdempotencyKey } from './lib/validation'
+import { walletHistoryReturns } from './lib/returns'
 
 /** Solde du membre connecté (0 tant qu'aucun mouvement). */
 export const balance = query({
@@ -19,6 +20,7 @@ export const balance = query({
 /** Historique paginé côté serveur, du plus récent au plus ancien. */
 export const history = query({
   args: { paginationOpts: paginationOptsValidator },
+  returns: walletHistoryReturns,
   handler: async (ctx, { paginationOpts }) => {
     const wallet = await findWallet(ctx, await requireMember(ctx))
     if (!wallet) return { page: [], isDone: true, continueCursor: '' }

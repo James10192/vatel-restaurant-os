@@ -8,6 +8,7 @@ import { assertCapacity, assertIsoDate, assertPriceXof } from './lib/validation'
 import { activeBookingsCount } from './lib/capacity'
 import { cutoffAt, policyOf } from './lib/policy'
 import { serviceValidator } from './schema'
+import { adminWeekReturns, publishedWeekReturns } from './lib/returns'
 
 async function itemsOfWeek(ctx: QueryCtx, canteenId: Doc<'canteens'>['_id'], weekStart: string) {
   const start = weekStartOf(assertIsoDate(weekStart))
@@ -28,6 +29,7 @@ async function withDishes(ctx: QueryCtx, items: Array<Doc<'menuItems'>>) {
 /** Semaine complète (brouillons inclus) pour l'administration. */
 export const adminWeek = query({
   args: { weekStart: v.string() },
+  returns: adminWeekReturns,
   handler: async (ctx, { weekStart }) => {
     const { canteenId } = await requireAdmin(ctx)
     const rows = await withDishes(ctx, await itemsOfWeek(ctx, canteenId, weekStart))
@@ -38,6 +40,7 @@ export const adminWeek = query({
 /** Semaine publiée, visible par tout membre rattaché. Projection minimale, sans recette ni coûts. */
 export const publishedWeek = query({
   args: { weekStart: v.string() },
+  returns: publishedWeekReturns,
   handler: async (ctx, { weekStart }) => {
     const { canteenId } = await requireMember(ctx)
     const canteen = await ctx.db.get(canteenId)

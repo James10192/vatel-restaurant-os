@@ -7,6 +7,7 @@ import { appendEntry, getOrCreateWallet } from './lib/ledger'
 import { cutoffAt, policyOf } from './lib/policy'
 import { activeBookingsCount } from './lib/capacity'
 import type { Membership } from './lib/access'
+import { myBookingsReturns } from './lib/returns'
 
 async function requirePolicy(ctx: QueryCtx, membership: Membership) {
   const canteen = await ctx.db.get(membership.canteenId)
@@ -102,6 +103,7 @@ export const cancel = mutation({
 /** Réservations du membre à partir d'une date (incluse), ordre chronologique. */
 export const mine = query({
   args: { from: v.string() },
+  returns: myBookingsReturns,
   handler: async (ctx, { from }) => {
     const membership = await requireMember(ctx)
     const policy = await requirePolicy(ctx, membership)
