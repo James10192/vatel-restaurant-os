@@ -55,4 +55,4 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
 - Accès serveur : `requireMember` / `requireAdmin` / `getOwned` (`convex/lib/access.ts`) dans CHAQUE fonction publique.
 - Formulaires : `useServerAction` (`src/lib/server-action.ts`) + `FormError`.
 - Variables Convex : `pnpm exec convex env list` (BETTER_AUTH_SECRET, SITE_URL). Jamais lire .env.local.
-- Routes protégées : enfants de `src/routes/_authed/`. Auth serveur : `authComponent.safeGetAuthUser(ctx)`.
+- Routes protégées : enfants de `src/routes/_authed/` ; admin : `src/routes/_authed/admin/` (confort seulement, le serveur revérifie).
