@@ -42,4 +42,7 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
 - Un seul agent écrit schema/auth/lockfile ; reviewers en lecture seule.
 
 ## Commandes
-(à compléter en A0 après scaffold : dev, typecheck, lint, test, build)
+- `pnpm exec convex dev` (backend dev, terminal 1) · `pnpm dev` (web :3000, terminal 2)
+- `pnpm typecheck` · `pnpm lint` · `pnpm build`
+- Variables Convex : `pnpm exec convex env list` (BETTER_AUTH_SECRET, SITE_URL). Jamais lire .env.local.
+- Routes protégées : enfants de `src/routes/_authed/`. Auth serveur : `authComponent.safeGetAuthUser(ctx)`.
