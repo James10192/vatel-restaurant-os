@@ -3,6 +3,7 @@ import { v } from 'convex/values'
 import { allergenCodeValidator } from './lib/allergens'
 import { notificationCategoryValidator } from './lib/notifications'
 import { localeValidator } from './lib/locale'
+import { allergyListValidator } from './lib/allergies'
 
 export const roleValidator = v.union(
   v.literal('admin'),
@@ -114,6 +115,8 @@ export default defineSchema({
     role: roleValidator,
     /** Nom affiché au personnel (copie du nom d'inscription au rattachement ; pas d'e-mail). */
     displayName: v.optional(v.string()),
+    /** Allergies déclarées par la personne elle-même, pour l'alerter sur les plats. Absent = rien déclaré. */
+    allergies: v.optional(allergyListValidator),
   })
     .index('by_auth_user', ['authUserId'])
     .index('by_canteen_role', ['canteenId', 'role']),
@@ -161,6 +164,8 @@ export default defineSchema({
     key: v.string(),
     /** Allergènes de l'ingrédient. Absent = non renseigné (le plat sera « non renseigné ») ; [] = aucun allergène. */
     allergens: v.optional(v.array(allergenCodeValidator)),
+    /** Allergènes hors des 14 majeurs (mangue, kiwi…), repris par les plats comme les majeurs. */
+    otherAllergens: v.optional(v.array(v.string())),
   }).index('by_canteen_key', ['canteenId', 'key']),
 
   /** Plat du catalogue, avec fiche recette légère (#13 A1). */

@@ -10,6 +10,7 @@ import { cn } from '#/lib/utils'
 import { BookMealDialog } from '#/features/booking/book-meal-dialog'
 import { CancelBookingDialog } from '#/features/booking/cancel-booking-dialog'
 import { AllergenBadges } from './allergen-badges'
+import { AllergyAlert } from './allergy-alert'
 import { useT } from '#/i18n/i18n'
 
 export type PublishedItem = FunctionReturnType<typeof api.menus.publishedWeek>[number]
@@ -68,6 +69,7 @@ export function MealCard({
           {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
         </div>
         <AllergenBadges allergens={item.allergens} />
+        <AllergyAlert alert={item.allergyAlert} />
         {!booking && (
           <div className="flex flex-col gap-1.5">
             <Progress

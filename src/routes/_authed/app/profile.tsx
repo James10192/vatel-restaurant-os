@@ -5,6 +5,7 @@ import { FlaskConicalIcon,
 import { LanguageToggle } from '#/components/language-toggle'
 import { ThemeToggle } from '#/components/theme-toggle'
 import { Button } from '#/components/ui/button'
+import { AllergiesSection } from '#/features/profile/allergies-section'
 import { IdentityCard } from '#/features/profile/identity-card'
 import { InstallSection } from '#/features/profile/install-section'
 import { NotificationsSection } from '#/features/profile/notifications-section'
@@ -30,6 +31,7 @@ function ProfilePage() {
       <h1 className="text-3xl font-bold tracking-tight">{t('Mon profil')}</h1>
       <IdentityCard />
 
+      {user?.membership && <AllergiesSection />}
       {user?.membership && <NotificationsSection />}
       <InstallSection />
 
