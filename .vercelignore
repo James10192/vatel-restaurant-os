@@ -1,0 +1,18 @@
+# Envoyé à Vercel : uniquement ce qui sert au build (src, convex, public, configuration).
+# Jamais de fichier d'environnement local : Vite le chargerait au build (risque de pointer la prod vers le dev).
+.env*
+!.env.example
+.vercel
+.output
+.tanstack
+node_modules
+.git
+.githooks
+.claude
+.agents
+.vscode
+docs
+branding
+scripts
+skills-lock.json
+# tests/ reste envoyé : convex/tsconfig.json inclut les *.test.ts, qui importent tests/convex-fixture.ts (typecheck de convex deploy).
