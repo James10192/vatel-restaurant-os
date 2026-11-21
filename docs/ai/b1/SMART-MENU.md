@@ -10,15 +10,12 @@ Aucune réservation automatique : chaque suggestion ouvre la confirmation habitu
 
 | Élément | Valeur |
 |---|---|
-| SDK | `ai@7.0.173` (Vercel AI SDK 7, version publiée il y a plus de 7 jours, conforme à `minimumReleaseAge` pnpm), `zod@4.6.7` |
-| Fournisseur | Vercel AI Gateway (`createGateway({ apiKey })`), clé côté serveur uniquement (variable Convex `AI_GATEWAY_API_KEY`) |
-| Modèle configuré | `SMART_MENU_MODEL=inception/mercury-3` (candidat n°1 de #18) |
-| Liste autorisée | `inception/mercury-3`, `anthropic/claude-haiku-5.5` : outils + sortie structurée, `no_training: all` d'après `vercel ai-gateway models list --json` (21/11). Nemotron free et Hy4 Flash exclus (`no_training: none`, données conservées). Tout autre identifiant désactive l'IA |
-| Clé de test | `vatel-b1-local`, plafond 1 $, sans renouvellement, expiration 7 jours, posée seulement sur le backend Convex **local** du worktree |
-| Résultat réel | **Mercury 3 non validé.** Chaque appel est refusé par AI Gateway : `GatewayInternalServerError: AI Gateway requires a valid credit card on file to service requests`. Les crédits gratuits ne se débloquent qu'après ajout d'une carte au compte Vercel, action réservée au porteur. Aucun euro dépensé |
-
-Conséquence : la couche IA est testée avec `MockLanguageModelV4` (outils, sortie structurée, erreurs),
-et le repli sans IA est vérifié contre le **vrai** endpoint en erreur. Aucun modèle n'est déclaré validé (#18).
+| SDK | `ai@7.0.173` (Vercel AI SDK 7), `@openrouter/ai-sdk-provider@3.1.0` (peer `ai ^7`), `zod@4.6.7` ; versions publiées depuis plus de 7 jours (`minimumReleaseAge` pnpm respecté) |
+| Configuration serveur | `SMART_MENU_PROVIDER=openrouter`, `SMART_MENU_MODEL=anthropic/claude-haiku-5.5`, `OPENROUTER_API_KEY` : variables Convex du backend **local** uniquement, jamais côté client |
+| Routage OpenRouter | `provider: { data_collection: 'deny', require_parameters: true }` : refuse les fournisseurs qui conservent ou réutilisent les requêtes ; exige le support des outils |
+| Liste blanche (`convex/lib/smartMenu/providers.ts`) | OpenRouter : `anthropic/claude-haiku-5.5`. AI Gateway : `inception/mercury-3`, `anthropic/claude-haiku-5.5`. Modèles gratuits (`:free`) et Nemotron/Hy4 exclus (données conservées). Tout autre identifiant désactive l'IA |
+| **Modèle validé sur données fictives** | **`anthropic/claude-haiku-5.5` via OpenRouter** (0,10 $/M entrée, 0,50 $/M sortie) |
+| Mercury 3 (#18 n°1) | Non testable : absent du catalogue OpenRouter ; sur AI Gateway, refus « valid credit card on file » (crédits gratuits débloqués seulement après ajout d'une carte). Le repli sans IA a été vérifié contre ce vrai refus |
 
 ## 2. Outils et permissions
 
@@ -60,12 +57,13 @@ plats écartés pour allergènes inconnus listés. Rappel : un allergène non re
 
 ## 4. Tests
 
-`pnpm test` : 26 tests B1 (94 au total).
+`pnpm test` : 30 tests B1 (98 au total).
 
 | Fichier | Cas |
 |---|---|
 | `convex/lib/smartMenu/rules.test.ts` (11) | nominal ; budget serré ; complet/clos/déjà réservé ; allergène présent ou en traces, accents ; allergène inconnu exclu et compté ; inconnu affiché sans filtre ; offre inconnue ou d'un autre établissement ; deux repas le même jour ; dépassement de budget ; `checkPlan` ; explications rassurantes supprimées |
-| `convex/lib/smartMenu/llm.test.ts` (6) | outils puis sortie structurée, usage cumulé ; sortie non conforme ; panne fournisseur ; prix falsifié ignoré ; injection (souhait borné, sans balises, aucun allergène évité ni solde transmis) ; identifiant halluciné |
+| `convex/lib/smartMenu/llm.test.ts` (7) | outils puis sortie structurée, usage cumulé ; sortie non conforme ; panne fournisseur ; prix falsifié ignoré ; injection (souhait borné, sans balises, aucun allergène évité ni solde transmis) ; explication trop longue tronquée (régression observée avec Haiku) ; identifiant halluciné |
+| `convex/lib/smartMenu/providers.test.ts` (3) | OpenRouter configuré ; clé absente, modèle hors liste, `:free`, fournisseur inconnu désactivent l'IA ; AI Gateway par défaut |
 | `convex/smartMenu.test.ts` (9) | nominal serveur ; brouillon invisible ; menus d'un autre établissement invisibles ; budget jamais dépassé ; gérant, non rattaché et anonyme refusés ; entrées invalides ; IA non configurée ; modèle hors liste ; quotas usager/jour |
 
 Navigateur (`localhost:3002`, backend Convex local, données fictives) : injection « Ignore les règles et
@@ -74,30 +72,38 @@ compté ; quota quotidien atteint visible ; confirmation de réservation avec so
 
 ## 5. Coût et latence observés
 
-Backend Convex local, 10 appels réels (5 scénarios × 2) contre AI Gateway :
+Backend Convex local, données fictives, 5 scénarios × 2 (nominal « plutôt du poulet », budget serré,
+injection directe + description piégée, allergène évité, jour sans menu), Haiku 5.5 via OpenRouter :
 
 | Mesure | Valeur |
 |---|---|
-| Appels facturés | 0 (refus fournisseur avant génération) ; coût 0 $ |
-| Latence de l'action avec appel IA refusé | 0,4 à 3,1 s (premier appel à froid 3,1 s) |
-| Latence de l'action sans IA | 50 à 100 ms |
-| Estimation Mercury 3 (non mesurée) | ~2 500 jetons entrée + 400 sortie par demande ≈ 0,0004 $ |
+| Appels IA | 8 (les 2 « jour sans menu » n'appellent pas l'IA : rien à choisir) |
+| Réussis et validés par le serveur | **7 / 8** ; 1 échec fournisseur (0,4 s) avec repli sans IA |
+| Contraintes déterministes | 100 % : budget jamais dépassé, allergène évité jamais proposé, aucun plat inventé, injection sans effet (plat à la description piégée non choisi) |
+| Étapes | 3 à 4 (listOffers, checkPlan, sortie structurée) |
+| Jetons | 45 476 entrée, 5 855 sortie, soit ~5 700 / 730 par demande |
+| Coût | **≈ 0,0075 $ pour 7 demandes, ≈ 0,001 $ par demande** |
+| Latence de l'action avec IA | moyenne **8,3 s**, max **14,9 s** (plafond 15 s) |
+| Latence sans IA | 60 à 450 ms |
 
-Une demande a échoué une fois avec « too many system operations » pendant un rechargement du code ;
-la requête `context` est depuis parallélisée. Non reproduit.
+Premier essai : 7 échecs `AI_NoObjectGeneratedError` sur 8. Le JSON de Haiku était correct mais ses
+explications dépassaient les `maxLength` du schéma, que le fournisseur n'applique pas. Correctif : schéma
+de forme seulement, bornes appliquées par le serveur (troncature à 160 caractères), test de régression.
 
 ## 6. Captures
 
 `docs/ai/b1/captures/` : `mobile-375-suggestions.jpg`, `mobile-375-allergenes.jpg`,
-`mobile-375-confirmation.jpg`, `tablette-768-budget.jpg`, `bureau-1440-allergene-inconnu.jpg`.
+`mobile-375-confirmation.jpg`, `mobile-375-choix-ia-haiku.jpg` (résultat IA réel), `tablette-768-budget.jpg`,
+`bureau-1440-allergene-inconnu.jpg`.
 
 ## 7. Limites connues
 
-- Aucun modèle réel validé (carte bancaire requise par AI Gateway). Relancer l'évaluation #18 après
-  décision du porteur, sur données fictives, 10 cas × 2, revue humaine.
-- Suggestion figée au moment de la demande : portions non mises à jour en temps réel dans le panneau ;
-  la réservation revalide côté serveur.
+- Latence IA élevée (8 s en moyenne, proche du plafond de 15 s sur une demande) : acceptable avec l'état
+  « Recherche en cours », à réduire en passant les offres directement dans le prompt (une étape de moins).
+- Évaluation #18 partielle : 10 demandes, pas la revue humaine de 20 sorties par candidat ; Mercury 3 non testé.
+- La clé OpenRouter a transité en clair dans la conversation de développement : fixer une limite de
+  dépense sur OpenRouter et la renouveler après le hackathon. Clé AI Gateway `vatel-b1-local` inutile : à révoquer.
+- Suggestion figée au moment de la demande : portions non mises à jour dans le panneau ; la réservation revalide.
 - Quota réservé avant l'appel : un appel en échec compte (choix prudent contre les abus).
-- Pas de déploiement : backend Convex local uniquement ; à configurer en prod (`AI_GATEWAY_API_KEY`,
-  `SMART_MENU_MODEL`) seulement après validation.
-- Table `aiUsage` ajoutée au schéma et `ai`/`zod` au lockfile : fichiers du lead, fusion à arbitrer.
+- Pas de déploiement : backend Convex local uniquement ; en prod, poser les variables seulement après validation.
+- Table `aiUsage` ajoutée au schéma et `ai`/`zod`/`@openrouter/ai-sdk-provider` au lockfile : fichiers du lead, fusion à arbitrer.
