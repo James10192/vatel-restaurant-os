@@ -12,8 +12,8 @@ aucun paiement réel n'est effectué.
 | Réservation d'un repas | Livré | Navigateur (double clic : un seul débit) + tests (survente, doublon, échéance) |
 | Solde et historique | Livré | Navigateur + tests (journal en ajout seul, recharge **de démonstration** idempotente) |
 | Administration des menus | Livré | Navigateur + tests (prix entiers FCFA, publication, plat publié verrouillé) |
-| Commandes du jour | À faire (lot A3) | |
-| Tableau de bord | À faire (lot A3) | |
+| Commandes du jour | Livré | Navigateur (filtres, remise) + tests (filtres, isolation, remise unique) |
+| Tableau de bord | Livré | Navigateur (chiffres cohérents après remise) + test de synthèse |
 
 Fiche recette légère : ingrédients, quantité pour N portions, unités et ingrédients créés sans quitter la fiche.
 
@@ -48,7 +48,7 @@ dates invalides, redirections externes refusées.
 Voir `docs/DEPLOYMENT.md` (secrets, déploiements dev/prod séparés, rotation avant publication du dépôt).
 
 ## Limites connues
-- Pas encore de commandes du jour ni de tableau de bord (lot A3).
+- Bundle JavaScript encore lourd (mesuré 681 Ko non compressé) : optimisation prévue.
 - Rattachement des comptes par commande opérateur (écran de gestion des usagers prévu en P1).
 - Après déconnexion, l'accès serveur prend fin à l'expiration du jeton de session (quelques minutes).
 - Pas de versionnement des recettes : un plat publié est verrouillé, il faut en créer une nouvelle version.

@@ -87,7 +87,9 @@ export default defineSchema({
     .index('by_profile_date', ['profileId', 'date'])
     .index('by_profile_key', ['profileId', 'idempotencyKey'])
     .index('by_menu_item_status', ['menuItemId', 'status'])
-    .index('by_canteen_date', ['canteenId', 'date']),
+    .index('by_canteen_date', ['canteenId', 'date'])
+    .index('by_canteen_date_service', ['canteenId', 'date', 'service'])
+    .index('by_canteen_date_status', ['canteenId', 'date', 'status']),
 
   /**
    * Projection métier d'un compte Better Auth. Absente = compte inscrit mais non rattaché :
@@ -97,6 +99,8 @@ export default defineSchema({
     authUserId: v.string(),
     canteenId: v.id('canteens'),
     role: roleValidator,
+    /** Nom affiché au personnel (copie du nom d'inscription au rattachement ; pas d'e-mail). */
+    displayName: v.optional(v.string()),
   })
     .index('by_auth_user', ['authUserId'])
     .index('by_canteen_role', ['canteenId', 'role']),

@@ -1,9 +1,9 @@
 # HANDOFF : état du développement
 
-_Mis à jour : 21/11/2026 ~11h00 (Abidjan)_
+_Mis à jour : 21/11/2026 ~11h30 (Abidjan)_
 
 ## Lot actuel
-**A2 terminé + audit externe corrigé, en attente de validation humaine avant A3.**
+**A3 terminé (commandes du jour, vue d'ensemble, remise). Les 7 obligations P0 de #1 ont une version fonctionnelle. En attente de validation avant C/livraison.**
 
 ## Fait en A0
 - Scaffold officiel `@tanstack/cli@0.72.16` (React, pnpm, add-ons convex + shadcn, ESLint, adaptateur Vercel), copié dans le dépôt.
@@ -66,13 +66,22 @@ _Mis à jour : 21/11/2026 ~11h00 (Abidjan)_
 - Admin : layout `_authed/admin.tsx` avec Sidebar shadcn (#11) ; en-tête usager déplacé dans `_authed/app/route.tsx`.
 - Vérifié : 390 px et 1280 px, console sans erreur sur page neuve ; typecheck, lint, 60 tests, build OK.
 
+## Fait en A3
+- `convex/admin.ts` : `dayOrders` (filtres serveur date/service/statut/plat, index `by_canteen_date_service` et `by_canteen_date_status`, paginé, nom affiché sans e-mail), `daySummary` (borné à un jour : capacité, réservés, retirés, annulés, restants, montant en crédits démo), `markPickedUp` (confirmée -> remise, une fois).
+- `profiles.displayName` copié au rattachement (`setup.backfillDisplayNames` exécuté : 3 profils).
+- UI : `/admin` Vue d'ensemble (4 indicateurs + tableau par plat), `/admin/services` Commandes du jour (filtres dans l'URL, curseur réinitialisé par Convex, « Charger plus », fin de liste), barre latérale Vue d'ensemble / Menus / Commandes du jour ; onglet mobile « Gestion ».
+- Tests : 64 (dont 4 A3 : filtres, isolation, remise unique, synthèse, repas remis non annulable).
+- Navigateur : Awa réserve -> gérant voit 1 « À servir », « Marquer remis » -> Vue d'ensemble : 0 réservé, 1 retiré, 1 annulé, 79/80, 1 200 FCFA démo.
+- Mesure build prod local (sans throttling) : DOM prêt 2,7 s, liste visible 3,9 s, 681 Ko de JS transféré (serveur Node local non compressé). Dev : ~6 s.
+
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
 - Révocation : accès serveur basé sur le JWT, effectif à son expiration.
 - `admin@demo.test` (ancien amorçage, mot de passe temporaire dans un fichier local hors dépôt) : à supprimer sur dev, voir DEPLOYMENT.
-- Barre latérale admin : seule l'entrée Menus existe ; Vue d'ensemble et Services arrivent en A3, Usagers en P1.
+- Texte d'accessibilité « Toggle Sidebar » en anglais (composant shadcn) : à traduire.
+- Performance : 681 Ko de JS non compressé, au-delà du budget #19 : à traiter en C.
 - Pas de déploiement Vercel (après P0, cf. #14) ; `vercel whoami` non vérifié.
 - Charte PDF Vatel non reçue ; logo, couleurs et police relevés sur vatel.ci. Photo Unsplash (licence Unsplash), auteur à créditer si exigé.
 
 ## Prochaine action
-A3 : commandes du jour (filtres service/plat/statut, compte portions, statut retrait) et dashboard (réservés, annulés, retirés, restants ; réel vs simulation), barre latérale admin (#1, #21, #22, #23, #11).
+Lot C : performance (découpage du JS, budget #19 ~200 Ko compressé), Playwright E2E 2 rôles, accessibilité ; puis déploiement Vercel/Convex prod selon `docs/DEPLOYMENT.md` et rotation des comptes démo. PR de refonte visuelle (session séparée) à relire.

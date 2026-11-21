@@ -18,7 +18,7 @@ import { ThemeSubmenu } from '#/components/theme-submenu'
 import { ROLE_LABELS, currentUserQuery, signOut } from '#/lib/session'
 import { cn } from '#/lib/utils'
 
-type NavItem = { to: '/app' | '/app/bookings' | '/app/wallet' | '/admin/menus'; label: string; icon: LucideIcon }
+type NavItem = { to: '/app' | '/app/bookings' | '/app/wallet' | '/admin'; label: string; icon: LucideIcon }
 
 /** Navigation usager de #11 : Accueil / Repas / Solde / Profil (+ Menus pour l'administration). */
 const USER_NAV: Array<NavItem> = [
@@ -26,7 +26,7 @@ const USER_NAV: Array<NavItem> = [
   { to: '/app/bookings', label: 'Repas', icon: CalendarCheckIcon },
   { to: '/app/wallet', label: 'Solde', icon: WalletIcon },
 ]
-const ADMIN_NAV: NavItem = { to: '/admin/menus', label: 'Menus', icon: ClipboardListIcon }
+const ADMIN_NAV: NavItem = { to: '/admin', label: 'Gestion', icon: ClipboardListIcon }
 
 const initials = (name: string) =>
   name

@@ -26,7 +26,7 @@ export async function setupCanteens() {
       ['admin-b', b, 'admin'],
     ]
     for (const [authUserId, canteenId, role] of members) {
-      await ctx.db.insert('profiles', { authUserId, canteenId, role })
+      await ctx.db.insert('profiles', { authUserId, canteenId, role, displayName: `Nom ${authUserId}` })
     }
     return { a, b }
   })

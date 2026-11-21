@@ -1,6 +1,6 @@
 import { Link, Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { ClipboardListIcon, HouseIcon } from 'lucide-react'
+import { ClipboardListIcon, HouseIcon, LayoutDashboardIcon, ListChecksIcon } from 'lucide-react'
 import { BrandLogo } from '#/components/brand-logo'
 import {
   Sidebar,
@@ -28,7 +28,11 @@ export const Route = createFileRoute('/_authed/admin')({
   component: AdminLayout,
 })
 
-const ADMIN_LINKS = [{ to: '/admin/menus', label: 'Menus', icon: ClipboardListIcon }] as const
+const ADMIN_LINKS = [
+  { to: '/admin', label: 'Vue d’ensemble', icon: LayoutDashboardIcon },
+  { to: '/admin/menus', label: 'Menus', icon: ClipboardListIcon },
+  { to: '/admin/services', label: 'Commandes du jour', icon: ListChecksIcon },
+] as const
 
 function AdminLayout() {
   const { data: user } = useSuspenseQuery(currentUserQuery)
@@ -36,7 +40,7 @@ function AdminLayout() {
     <SidebarProvider>
       <Sidebar collapsible="offcanvas">
         <SidebarHeader className="p-4">
-          <Link to="/admin/menus" className="flex items-center gap-3">
+          <Link to="/admin" className="flex items-center gap-3">
             <BrandLogo className="h-11" />
             <span className="flex flex-col leading-tight">
               <span className="text-sm font-semibold">Restauration</span>
@@ -52,7 +56,7 @@ function AdminLayout() {
                 {ADMIN_LINKS.map(({ to, label, icon: Icon }) => (
                   <SidebarMenuItem key={to}>
                     <SidebarMenuButton asChild>
-                      <Link to={to} activeProps={{ 'data-active': true }}>
+                      <Link to={to} activeOptions={{ exact: true }} activeProps={{ 'data-active': true }}>
                         <Icon />
                         {label}
                       </Link>

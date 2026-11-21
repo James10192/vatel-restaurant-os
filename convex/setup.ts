@@ -55,8 +55,28 @@ export const bootstrap = internalMutation({
     await assertNotAttached(ctx, authUserId)
     const { name } = cleanName(args.canteenName, 'Nom de l’établissement')
     const canteenId = await ctx.db.insert('canteens', { name, slug: args.canteenSlug.trim().toLowerCase() })
-    await ctx.db.insert('profiles', { authUserId, canteenId, role: 'admin' })
+    await ctx.db.insert('profiles', { authUserId, canteenId, role: 'admin', displayName: summary.name })
     return summary
+  },
+})
+
+/** Complète le nom affiché des profils rattachés avant l'ajout de ce champ (idempotent). */
+export const backfillDisplayNames = internalMutation({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    let updated = 0
+    for (const profile of await ctx.db.query('profiles').collect()) {
+      if (profile.displayName) continue
+      const user = await ctx.runQuery(components.betterAuth.adapter.findOne, {
+        model: 'user',
+        where: [{ field: '_id', value: profile.authUserId }],
+      })
+      if (!user) continue
+      await ctx.db.patch(profile._id, { displayName: String(user.name) })
+      updated++
+    }
+    return updated
   },
 })
 
@@ -75,7 +95,7 @@ export const attachAccount = internalMutation({
     if (!canteen) throw new ConvexError('Établissement introuvable pour ce slug.')
     const { authUserId, summary } = await findRegisteredAccount(ctx, email)
     await assertNotAttached(ctx, authUserId)
-    await ctx.db.insert('profiles', { authUserId, canteenId: canteen._id, role })
+    await ctx.db.insert('profiles', { authUserId, canteenId: canteen._id, role, displayName: summary.name })
     return summary
   },
 })
