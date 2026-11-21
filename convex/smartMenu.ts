@@ -5,7 +5,6 @@
  * la réservation reste le parcours normal avec confirmation (bookings.book).
  */
 import { ConvexError, v } from 'convex/values'
-import { createGateway } from 'ai'
 import { internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
 import { action, internalMutation, internalQuery } from './_generated/server'
@@ -14,9 +13,10 @@ import { activeBookingsCount } from './lib/capacity'
 import { addDays } from './lib/dates'
 import { cutoffAt, policyOf } from './lib/policy'
 import { sanitizeWish, selectWithAi } from './lib/smartMenu/llm'
+import { configuredModel } from './lib/smartMenu/providers'
 import { evaluate, planByRules, validateAiPicks } from './lib/smartMenu/rules'
 import type { Plan, SmartRequest } from './lib/smartMenu/rules'
-import { ALLOWED_MODELS, QUOTAS, parseRequest, requestArgs, suggestionValidator } from './lib/smartMenu/contract'
+import { QUOTAS, parseRequest, requestArgs, suggestionValidator } from './lib/smartMenu/contract'
 import type { Suggestion } from './lib/smartMenu/contract'
 
 
@@ -129,13 +129,6 @@ export const recordAiTokens = internalMutation({
 type AiMetrics = { model?: string; steps: number; inputTokens: number; outputTokens: number }
 const NO_AI: AiMetrics = { steps: 0, inputTokens: 0, outputTokens: 0 }
 
-function aiModel() {
-  const apiKey = process.env.AI_GATEWAY_API_KEY
-  const modelId = process.env.SMART_MENU_MODEL
-  if (!apiKey || !modelId || !(ALLOWED_MODELS as ReadonlyArray<string>).includes(modelId)) return null
-  return { modelId, model: createGateway({ apiKey })(modelId) }
-}
-
 export const suggest = action({
   args: requestArgs,
   returns: suggestionValidator,
@@ -157,7 +150,7 @@ export const suggest = action({
 
     const rulesPlan = planByRules(evaluation, request)
     if (!args.useAi || evaluation.eligibleByDay.size === 0) return answer(rulesPlan, 'rules')
-    const config = aiModel()
+    const config = configuredModel(process.env)
     if (!config) return answer(rulesPlan, 'rules', NOTICES.disabled)
     const usageId = await ctx.runMutation(internal.smartMenu.reserveAiCall, { now: started })
     if (!usageId) return answer(rulesPlan, 'rules', NOTICES.quota)

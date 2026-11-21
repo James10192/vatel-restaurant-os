@@ -18,16 +18,19 @@ export const AI_LIMITS = {
   wishMaxChars: 200,
 } as const
 
+/**
+ * Forme seulement : les fournisseurs n'appliquent pas tous maxLength. Les bornes de contenu sont
+ * appliquées après coup par le serveur (identifiants revalidés, explications tronquées à 160 car.).
+ */
 const outputSchema = z.object({
   picks: z
     .array(
       z.object({
-        offerId: z.string().max(64).describe('Identifiant exact renvoyé par listOffers'),
-        reason: z.string().max(200).describe('Une phrase courte, sans affirmation sur la santé ni les allergènes'),
+        offerId: z.string().describe('Identifiant exact renvoyé par listOffers'),
+        reason: z.string().describe('Une phrase de 20 mots maximum, sans affirmation sur la santé ni les allergènes'),
       }),
     )
     .max(7),
-  summary: z.string().max(300),
 })
 
 const SYSTEM = [

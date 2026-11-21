@@ -8,12 +8,6 @@ import type { SmartRequest } from './rules'
 /** Quotas serveur (SEC-05, #16) : jamais uniquement côté interface. */
 export const QUOTAS = { perStudentPerDay: 8, perCanteenPerDay: 150 } as const
 
-/**
- * Modèles autorisés via Vercel AI Gateway : outils + sortie structurée, sans entraînement sur les requêtes
- * (catalogue AI Gateway consulté le 21/11/2026). Tout autre identifiant désactive l'IA.
- */
-export const ALLOWED_MODELS = ['inception/mercury-3', 'anthropic/claude-haiku-5.5'] as const
-
 export const REQUEST_BOUNDS = { maxDays: 7, horizonDays: 13, maxBudgetXof: 100_000, maxAvoid: 14, maxWishChars: 500 } as const
 
 export const requestArgs = {
