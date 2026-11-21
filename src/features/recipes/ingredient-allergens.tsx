@@ -3,103 +3,49 @@ import type { FormEvent } from 'react'
 import { useMutation } from 'convex/react'
 import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
-import { PencilIcon, PlusIcon } from 'lucide-react'
+import { ChevronRightIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { ALLERGEN_CODES, ALLERGEN_LABELS } from '../../../convex/lib/allergens'
-import type { AllergenCode } from '../../../convex/lib/allergens'
+import { toKey } from '../../../convex/lib/validation'
 import { FormError } from '#/components/form-error'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '#/components/ui/empty'
 import { Input } from '#/components/ui/input'
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '#/components/ui/sheet'
 import { Skeleton } from '#/components/ui/skeleton'
 import { Spinner } from '#/components/ui/spinner'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { useServerAction } from '#/lib/server-action'
+import { cn } from '#/lib/utils'
 import { useT } from '#/i18n/i18n'
+import { IngredientAllergenSheet } from './ingredient-allergen-sheet'
+import type { Ingredient } from './ingredient-allergen-sheet'
 
-type Ingredient = { _id: string; name: string; allergens?: Array<AllergenCode> }
+type Filter = 'all' | 'missing' | 'with'
+const statusOf = (i: Ingredient) =>
+  i.allergens === undefined ? 'missing' : i.allergens.length + (i.otherAllergens?.length ?? 0) > 0 ? 'with' : 'none'
 
-/** Statut lisible : jamais « aucun » par défaut, un ingrédient non déclaré reste « non renseigné ». */
-function AllergenStatus({ allergens }: { allergens?: Array<AllergenCode> }) {
-  const t = useT()
-  if (allergens === undefined) return <Badge variant="outline">{t('Non renseigné')}</Badge>
-  if (allergens.length === 0) return <Badge variant="secondary">{t('Aucun allergène')}</Badge>
-  return (
-    <span className="flex flex-wrap gap-1">
-      {ALLERGEN_CODES.filter((c) => allergens.includes(c)).map((c) => (
-        <Badge key={c}>{t(ALLERGEN_LABELS[c])}</Badge>
-      ))}
-    </span>
-  )
-}
-
-function EditAllergens({ ingredient }: { ingredient: Ingredient }) {
-  const t = useT()
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState<Array<AllergenCode>>(ingredient.allergens ?? [])
-  const { run, pending, error } = useServerAction(useMutation(api.catalog.setIngredientAllergens))
-  // À chaque ouverture, repartir de la déclaration enregistrée (pas d'un brouillon abandonné).
-  const onOpenChange = (next: boolean) => {
-    if (next) setValue(ingredient.allergens ?? [])
-    setOpen(next)
-  }
-  const save = async (allergens: Array<AllergenCode>) => {
-    if ((await run({ ingredientId: ingredient._id as Id<'ingredients'>, allergens })) === null) setOpen(false)
-  }
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label={t('Allergènes de {name}', { name: ingredient.name })}>
-          <PencilIcon />
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>{ingredient.name}</SheetTitle>
-          <SheetDescription>{t('Cochez les allergènes majeurs présents. Les plats les reprendront à leur prochain enregistrement.')}</SheetDescription>
-        </SheetHeader>
-        <div className="flex flex-col gap-4 px-4">
-          <ToggleGroup
-            type="multiple"
-            variant="outline"
-            spacing={2}
-            aria-label={t('Allergènes majeurs')}
-            value={value}
-            onValueChange={(next) => setValue(next as Array<AllergenCode>)}
-            className="grid w-full grid-cols-2"
-          >
-            {ALLERGEN_CODES.map((code) => (
-              <ToggleGroupItem key={code} value={code} className="justify-start data-[state=on]:border-primary">
-                {t(ALLERGEN_LABELS[code])}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          <FormError message={error} />
-        </div>
-        <SheetFooter>
-          <Button disabled={pending} onClick={() => save(value)}>
-            {pending && <Spinner data-icon="inline-start" />}
-            {t('Enregistrer')} {value.length ? `(${value.length})` : ''}
-          </Button>
-          <Button variant="outline" disabled={pending} onClick={() => save([])}>
-            {t('Déclarer « aucun allergène »')}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  )
-}
+const STEPS = [
+  'Déclarez les allergènes de chaque ingrédient, une seule fois.',
+  'Chaque plat les reprend automatiquement depuis sa fiche technique.',
+  'Les usagers sont alertés selon les allergies de leur profil.',
+]
 
 /** Ingrédients de l'établissement et leurs allergènes : la source unique de la déclaration des plats. */
 export function IngredientAllergens() {
   const t = useT()
   const { data: refs, isPending } = useQuery(convexQuery(api.catalog.references, {}))
   const { run, pending, error } = useServerAction(useMutation(api.catalog.createIngredient))
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<Filter>('all')
   const ingredients = [...(refs?.ingredients ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'fr'))
-  const missing = ingredients.filter((i) => i.allergens === undefined).length
+  const counts = {
+    all: ingredients.length,
+    missing: ingredients.filter((i) => statusOf(i) === 'missing').length,
+    with: ingredients.filter((i) => statusOf(i) === 'with').length,
+  }
+  const suggestions = [...new Set(ingredients.flatMap((i) => i.otherAllergens ?? []))]
+  const shown = ingredients.filter((i) => (filter === 'all' || statusOf(i) === filter) && toKey(i.name).includes(toKey(search)))
 
   async function onCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -109,43 +55,107 @@ export function IngredientAllergens() {
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-3xl border bg-card p-4 shadow-card md:p-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <p className="text-sm text-muted-foreground tabular-nums">
-          {t(ingredients.length > 1 ? '{n} ingrédients' : '{n} ingrédient', { n: ingredients.length })}
-          {missing > 0 && t(missing > 1 ? ', dont {m} non renseignés' : ', dont {m} non renseigné', { m: missing })}
-        </p>
-        <form onSubmit={onCreate} className="flex gap-2">
-          <Input name="ingredient" aria-label={t('Nouvel ingrédient')} placeholder={t('Nouvel ingrédient')} required maxLength={60} className="md:w-56" />
-          <Button type="submit" variant="outline" disabled={pending}>
-            {pending ? <Spinner data-icon="inline-start" /> : <PlusIcon data-icon="inline-start" />}
-            {t('Ajouter')}
-          </Button>
-        </form>
+    <section className="flex flex-col gap-5">
+      <ol className="grid gap-3 md:grid-cols-3">
+        {STEPS.map((step, i) => (
+          <li key={step} className="flex items-start gap-3 rounded-3xl border bg-card p-4 shadow-card">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{i + 1}</span>
+            <span className="text-sm leading-snug">{t(step)}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div className="flex flex-col gap-4 rounded-3xl border bg-card p-4 shadow-card md:p-6">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative lg:w-72">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label={t('Rechercher un ingrédient')}
+              placeholder={t('Rechercher un ingrédient')}
+              className="pl-9"
+            />
+          </div>
+          <form onSubmit={onCreate} className="flex gap-2">
+            <Input name="ingredient" aria-label={t('Nouvel ingrédient')} placeholder={t('Nouvel ingrédient')} required maxLength={60} className="lg:w-56" />
+            <Button type="submit" variant="outline" disabled={pending}>
+              {pending ? <Spinner data-icon="inline-start" /> : <PlusIcon data-icon="inline-start" />}
+              {t('Ajouter')}
+            </Button>
+          </form>
+        </div>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          spacing={2}
+          value={filter}
+          onValueChange={(next) => next && setFilter(next as Filter)}
+          aria-label={t('Filtrer')}
+          className="flex-wrap justify-start"
+        >
+          <ToggleGroupItem value="all">{t('Tous ({n})', { n: counts.all })}</ToggleGroupItem>
+          <ToggleGroupItem value="missing" className={cn(counts.missing > 0 && 'text-warning')}>
+            {t('À renseigner ({n})', { n: counts.missing })}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="with">{t('Avec allergènes ({n})', { n: counts.with })}</ToggleGroupItem>
+        </ToggleGroup>
+        <FormError message={error} />
+
+        {isPending ? (
+          <Skeleton className="h-24 rounded-2xl" />
+        ) : shown.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>{ingredients.length === 0 ? t('Aucun ingrédient') : t('Aucun ingrédient ne correspond')}</EmptyTitle>
+              <EmptyDescription>{t('Ajoutez-en ici ou directement depuis la fiche recette d’un plat.')}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <ul className="grid gap-2 lg:grid-cols-2">
+            {shown.map((ingredient) => (
+              <li key={ingredient._id}>
+                <IngredientAllergenSheet ingredient={ingredient} suggestions={suggestions}>
+                  <button
+                    type="button"
+                    className={cn(
+                      'flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                      statusOf(ingredient) === 'missing' && 'border-warning/40 bg-warning/5',
+                    )}
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                      <span className="truncate font-medium">{ingredient.name}</span>
+                      <IngredientStatus ingredient={ingredient} />
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
+                      {statusOf(ingredient) === 'missing' ? t('Renseigner') : t('Modifier')}
+                      <ChevronRightIcon className="size-4" />
+                    </span>
+                  </button>
+                </IngredientAllergenSheet>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      <FormError message={error} />
-      {isPending ? (
-        <Skeleton className="h-24 rounded-2xl" />
-      ) : ingredients.length === 0 ? (
-        <Empty>
-          <EmptyHeader>
-            <EmptyTitle>{t('Aucun ingrédient')}</EmptyTitle>
-            <EmptyDescription>{t('Ajoutez-en ici ou directement depuis la fiche recette d’un plat.')}</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <ul className="grid gap-2 lg:grid-cols-2">
-          {ingredients.map((ingredient) => (
-            <li key={ingredient._id} className="flex items-center gap-3 rounded-2xl border px-3 py-2">
-              <span className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="truncate font-medium">{ingredient.name}</span>
-                <AllergenStatus allergens={ingredient.allergens} />
-              </span>
-              <EditAllergens ingredient={ingredient} />
-            </li>
-          ))}
-        </ul>
-      )}
     </section>
+  )
+}
+
+/** Statut lisible : jamais « aucun » par défaut, un ingrédient non déclaré reste « à renseigner ». */
+function IngredientStatus({ ingredient }: { ingredient: Ingredient }) {
+  const t = useT()
+  const status = statusOf(ingredient)
+  if (status === 'missing') return <span className="text-xs font-medium text-warning">{t('Allergènes à renseigner')}</span>
+  if (status === 'none') return <span className="text-xs text-muted-foreground">{t('Aucun allergène')}</span>
+  return (
+    <span className="flex flex-wrap gap-1">
+      {ALLERGEN_CODES.filter((c) => ingredient.allergens?.includes(c)).map((c) => (
+        <Badge key={c}>{t(ALLERGEN_LABELS[c])}</Badge>
+      ))}
+      {ingredient.otherAllergens?.map((name) => (
+        <Badge key={name}>{name}</Badge>
+      ))}
+    </span>
   )
 }

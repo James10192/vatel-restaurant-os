@@ -1,6 +1,7 @@
 import { v } from 'convex/values'
 import { paginationResultValidator } from 'convex/server'
 import schema, { allergenInfoValidator, roleValidator, serviceValidator } from '../schema'
+import { allergyAlertValidator } from './allergies'
 
 /**
  * Validateurs de retour des requêtes publiques (règle AGENTS.md : args ET returns validés).
@@ -64,6 +65,7 @@ export const publishedWeekReturns = v.array(
     description: v.optional(v.string()),
     allergens: allergenInfoValidator,
     photoUrl: v.optional(v.string()),
+    allergyAlert: v.optional(allergyAlertValidator),
   }),
 )
 

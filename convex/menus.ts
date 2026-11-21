@@ -10,6 +10,7 @@ import { activeBookingsCount } from './lib/capacity'
 import { cutoffAt, policyOf } from './lib/policy'
 import { serviceValidator } from './schema'
 import { adminWeekReturns, publishedWeekReturns } from './lib/returns'
+import { allergyAlert } from './lib/allergies'
 
 async function itemsOfWeek(ctx: QueryCtx, canteenId: Doc<'canteens'>['_id'], weekStart: string) {
   const start = weekStartOf(assertIsoDate(weekStart))
@@ -25,6 +26,14 @@ async function withDishes(ctx: QueryCtx, items: Array<Doc<'menuItems'>>) {
     const dish = dishes[i]
     return dish ? [{ item, dish }] : []
   })
+}
+
+/** Noms des ingrédients de chaque plat (lus une fois chacun), pour retrouver les allergies libres d'une personne. */
+async function ingredientNamesOf(ctx: QueryCtx, dishes: Array<Doc<'dishes'>>) {
+  const ids = [...new Set(dishes.flatMap((dish) => dish.recipe.lines.map((line) => line.ingredientId)))]
+  const docs = await Promise.all(ids.map((id) => ctx.db.get(id)))
+  const names = new Map(docs.flatMap((doc) => (doc ? [[doc._id, doc.name] as const] : [])))
+  return new Map(dishes.map((dish) => [dish._id as string, dish.recipe.lines.flatMap((line) => names.get(line.ingredientId) ?? [])]))
 }
 
 /** Semaine complète (brouillons inclus) pour l'administration. */
@@ -44,12 +53,13 @@ export const publishedWeek = query({
   args: { weekStart: v.string() },
   returns: publishedWeekReturns,
   handler: async (ctx, { weekStart }) => {
-    const { canteenId } = await requireMember(ctx)
+    const { canteenId, allergies } = await requireMember(ctx)
     const canteen = await ctx.db.get(canteenId)
     if (!canteen) throw new ConvexError('Établissement introuvable.')
     const policy = policyOf(canteen)
     const items = (await itemsOfWeek(ctx, canteenId, weekStart)).filter((item) => item.status === 'published')
     const rows = await withDishes(ctx, items)
+    const ingredientNames = allergies ? await ingredientNamesOf(ctx, rows.map(({ dish }) => dish)) : new Map<string, Array<string>>()
     const booked = await Promise.all(rows.map(({ item }) => activeBookingsCount(ctx, item._id)))
     const photos = await Promise.all(rows.map(({ dish }) => (dish.photoId ? ctx.storage.getUrl(dish.photoId) : null)))
     return rows.map(({ item, dish }, i) => ({
@@ -64,6 +74,7 @@ export const publishedWeek = query({
       description: dish.description,
       allergens: dish.allergens,
       photoUrl: photos[i] ?? undefined,
+      allergyAlert: allergyAlert(allergies, dish.allergens, ingredientNames.get(dish._id) ?? []),
     }))
   },
 })
