@@ -200,7 +200,11 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
   variables conservées) ; typecheck, lint, 102 tests, build ; navigateur : 8 écrans étudiant et gestionnaire à 360 et
   1440 px en anglais puis en français, aucun texte de l'autre langue détecté (hors données : noms, établissement),
   pas de défilement horizontal ; bascule FR → EN sans rechargement, conservée après rechargement.
-- Limites : titres d'onglet du navigateur restés en français ; dates des e-mails ou exports : sans objet.
+- Titres d'onglet traduits (ajout suivant) : `pageTitle(locale, page)` dans le `head()` de chaque page, langue lue dans
+  le contexte du routeur (cookie) ; `setLocale` invalide le routeur, donc le titre suit la bascule sans rechargement.
+  Le titre de repli de `__root` reste « Vatel Restauration » (le typer sur la langue crée une référence circulaire).
+  Vérifié : 8 pages en FR et en EN (« Profil | Vatel Restauration » / « Profile | Vatel Dining »), bascule en direct.
+- Limite restante : messages serveur à valeur variable non répertoriés, affichés en français.
 
 ### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
 Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :

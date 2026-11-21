@@ -63,6 +63,7 @@ export const EN: Record<string, string> = {
   'Commandes du jour | Vatel Restauration': 'Today’s orders | Vatel Dining',
 
   // Connexion, inscription, accueil /auth
+  Connexion: 'Sign in',
   'Bon retour parmi nous': 'Welcome back',
   'Connectez-vous pour réserver vos repas.': 'Sign in to book your meals.',
   'Créer un compte': 'Create an account',

@@ -17,11 +17,11 @@ import { addDays, parseWeekSearch, resolveWeek } from '#/features/menus/week'
 import { WeekSwitcher } from '#/features/menus/week-switcher'
 import { BalanceSummary } from '#/features/wallet/balance-summary'
 import { UpcomingMeals } from '#/features/booking/upcoming-meals'
-import { useT } from '#/i18n/i18n'
+import { useT, pageTitle } from '#/i18n/i18n'
 
 export const Route = createFileRoute('/_authed/app/')({
   validateSearch: parseWeekSearch,
-  head: () => ({ meta: [{ title: 'Accueil | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Accueil') }] }),
   component: AppHome,
 })
 

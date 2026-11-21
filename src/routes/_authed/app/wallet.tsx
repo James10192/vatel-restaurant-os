@@ -5,10 +5,10 @@ import { api } from '../../../../convex/_generated/api'
 import { DemoTopUp } from '#/features/wallet/demo-top-up'
 import { WalletHistory } from '#/features/wallet/wallet-history'
 import { BalanceCard } from '#/features/wallet/balance-summary'
-import { useT } from '#/i18n/i18n'
+import { useT, pageTitle } from '#/i18n/i18n'
 
 export const Route = createFileRoute('/_authed/app/wallet')({
-  head: () => ({ meta: [{ title: 'Solde | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Solde') }] }),
   component: WalletPage,
 })
 

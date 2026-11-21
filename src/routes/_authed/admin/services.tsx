@@ -22,7 +22,7 @@ import { useServerAction } from '#/lib/server-action'
 import { DayNav, parseDateSearch, resolveDate } from '#/features/admin/day'
 import { ORDER_STATUS, OrderRows } from '#/features/admin/orders'
 import type { OrderStatus } from '#/features/admin/orders'
-import { useT } from '#/i18n/i18n'
+import { useT, pageTitle } from '#/i18n/i18n'
 
 const PAGE_SIZE = 25
 const summaryQuery = (date: string) => convexQuery(api.admin.daySummary, { date })
@@ -49,7 +49,7 @@ export const Route = createFileRoute('/_authed/admin/services')({
   validateSearch: parseSearch,
   loaderDeps: ({ search }) => ({ date: resolveDate(search.date) }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(summaryQuery(deps.date)),
-  head: () => ({ meta: [{ title: 'Commandes du jour | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Commandes du jour') }] }),
   component: DayOrders,
 })
 

@@ -11,7 +11,7 @@ import { SERVICE_LABELS, formatDayLong, formatXof, todayIso } from '#/lib/format
 import { useNow } from '#/lib/use-now'
 import { CancelBookingDialog } from '#/features/booking/cancel-booking-dialog'
 import type { MyBooking } from '#/features/menus/meal-card'
-import { useT , useLocale } from '#/i18n/i18n'
+import { useT , useLocale, pageTitle } from '#/i18n/i18n'
 
 const STATUS: Record<MyBooking['status'], { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
   confirmed: { label: 'Confirmée', variant: 'default' },
@@ -20,7 +20,7 @@ const STATUS: Record<MyBooking['status'], { label: string; variant: 'default' | 
 }
 
 export const Route = createFileRoute('/_authed/app/bookings')({
-  head: () => ({ meta: [{ title: 'Mes repas | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Mes repas') }] }),
   component: BookingsPage,
 })
 

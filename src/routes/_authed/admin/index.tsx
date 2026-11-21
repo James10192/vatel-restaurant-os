@@ -13,7 +13,7 @@ import { ServeQueue } from '#/features/admin/serve-queue'
 import { todayIso } from '#/lib/format'
 import { useMinWidth } from '#/lib/use-min-width'
 import { weekStartOf } from '../../../../convex/lib/dates'
-import { useT , useLocale } from '#/i18n/i18n'
+import { useT , useLocale, pageTitle } from '#/i18n/i18n'
 
 const summaryQuery = (date: string) => convexQuery(api.admin.daySummary, { date })
 
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/_authed/admin/')({
   validateSearch: parseDateSearch,
   loaderDeps: ({ search }) => ({ date: resolveDate(search.date) }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(summaryQuery(deps.date)),
-  head: () => ({ meta: [{ title: 'Vue d’ensemble | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Vue d’ensemble') }] }),
   component: Overview,
 })
 

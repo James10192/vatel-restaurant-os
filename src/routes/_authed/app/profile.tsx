@@ -12,10 +12,10 @@ import { PasswordSection } from '#/features/profile/password-section'
 import { SettingsSection } from '#/features/profile/settings-section'
 import { currentUserQuery, useSignOut } from '#/lib/session'
 import { THEME_LABELS, useTheme } from '#/lib/theme'
-import { useT } from '#/i18n/i18n'
+import { useT, pageTitle } from '#/i18n/i18n'
 
 export const Route = createFileRoute('/_authed/app/profile')({
-  head: () => ({ meta: [{ title: 'Profil | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Profil') }] }),
   component: ProfilePage,
 })
 

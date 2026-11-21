@@ -7,7 +7,7 @@ import { AuthForm } from '#/features/auth/auth-form'
 import { AuthIntro } from '#/features/auth/auth-intro'
 import { safeRedirectPath } from '#/lib/safe-redirect'
 import { cn } from '#/lib/utils'
-import { useT } from '#/i18n/i18n'
+import { useT, pageTitle } from '#/i18n/i18n'
 
 export const Route = createFileRoute('/auth')({
   validateSearch: (search: Record<string, unknown>): { redirect?: string; mode?: 'signup' } => ({
@@ -17,7 +17,7 @@ export const Route = createFileRoute('/auth')({
   beforeLoad: ({ context, search }) => {
     if (context.isAuthenticated) throw redirect({ to: search.redirect ?? '/' })
   },
-  head: () => ({ meta: [{ title: 'Connexion | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Connexion') }] }),
   component: AuthPage,
 })
 

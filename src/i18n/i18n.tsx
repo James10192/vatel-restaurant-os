@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react'
+import { useRouter } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { EN } from './en'
 
@@ -31,6 +32,10 @@ export function translate(locale: Locale, text: string, vars?: Vars): string {
 
 export type Translate = (text: string, vars?: Vars) => string
 
+/** Titre d'onglet du navigateur : « Page | Vatel Restauration », dans la langue de l'interface. */
+export const pageTitle = (locale: Locale, page: string) =>
+  `${translate(locale, page)} | ${translate(locale, 'Vatel Restauration')}`
+
 const LocaleContext = createContext<{
   locale: Locale
   setLocale: (locale: Locale) => void
@@ -47,11 +52,14 @@ export function LocaleProvider({
   children: ReactNode
 }) {
   const [locale, setState] = useState(initial)
+  const router = useRouter()
   const setLocale = useCallback((next: Locale) => {
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`
     document.documentElement.lang = next
     setState(next)
-  }, [])
+    // Relit le cookie dans `__root` et recalcule les `head()` : le titre de l'onglet suit la langue.
+    void router.invalidate()
+  }, [router])
   return (
     <LocaleContext.Provider value={{ locale, setLocale }}>
       {children}

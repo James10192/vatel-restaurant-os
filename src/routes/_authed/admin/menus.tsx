@@ -12,7 +12,7 @@ import { useServerAction } from '#/lib/server-action'
 import { DayBrowser, WeekPlanner } from '#/features/menus/week-planner'
 import { addDays, parseWeekSearch, resolveWeek } from '#/features/menus/week'
 import { WeekSwitcher } from '#/features/menus/week-switcher'
-import { useT } from '#/i18n/i18n'
+import { useT, pageTitle } from '#/i18n/i18n'
 
 const weekQuery = (weekStart: string) => convexQuery(api.menus.adminWeek, { weekStart })
 
@@ -20,7 +20,7 @@ export const Route = createFileRoute('/_authed/admin/menus')({
   validateSearch: parseWeekSearch,
   loaderDeps: ({ search }) => ({ week: resolveWeek(search.week) }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(weekQuery(deps.week)),
-  head: () => ({ meta: [{ title: 'Menus | Vatel Restauration' }] }),
+  head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Menus') }] }),
   component: AdminMenus,
 })
 

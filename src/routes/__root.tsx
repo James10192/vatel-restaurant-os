@@ -28,6 +28,7 @@ export const Route = createRootRouteWithContext<{
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      // Titre de repli : chaque page fixe le sien dans la langue choisie (`pageTitle`).
       { title: 'Vatel Restauration' },
       { name: 'theme-color', content: '#072a5d' },
       { name: 'apple-mobile-web-app-title', content: 'Vatel' },
