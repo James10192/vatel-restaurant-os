@@ -30,14 +30,8 @@ const dayNumber = new Intl.DateTimeFormat('fr-FR', {
   timeZone: 'UTC',
 })
 const toDate = (iso: string) => new Date(`${iso}T00:00:00Z`)
-const itemsOf = (
-  items: Array<AdminWeekItem>,
-  date: string,
-  service?: Service,
-) =>
-  items.filter(
-    (item) => item.date === date && (!service || item.service === service),
-  )
+const itemsOf = (items: Array<AdminWeekItem>, date: string, service?: Service) =>
+  items.filter((item) => item.date === date && (!service || item.service === service))
 
 /**
  * Bureau (≥ 1280 px) : planning de la semaine d'un seul regard, 7 colonnes × Déjeuner / Dîner.
@@ -58,27 +52,15 @@ export function WeekPlanner({ days, items, today }: WeekProps) {
             <div
               key={date}
               role="columnheader"
-              className={cn(
-                'flex flex-col gap-0.5 border-b border-l px-3 py-3',
-                date === today ? 'bg-secondary' : 'bg-muted/40',
-              )}
+              className={cn('flex flex-col gap-0.5 border-b border-l px-3 py-3', date === today ? 'bg-secondary' : 'bg-muted/40')}
             >
-              <span className="text-eyebrow text-muted-foreground">
-                {weekdayShort.format(toDate(date))}
-              </span>
+              <span className="text-eyebrow text-muted-foreground">{weekdayShort.format(toDate(date))}</span>
               <span className="flex items-baseline gap-2">
-                <span
-                  className={cn(
-                    'text-xl font-bold tracking-tight tabular-nums',
-                    date === today && 'text-primary',
-                  )}
-                >
+                <span className={cn('text-xl font-bold tracking-tight tabular-nums', date === today && 'text-primary')}>
                   {dayNumber.format(toDate(date))}
                 </span>
                 <span className="text-xs text-muted-foreground tabular-nums">
-                  {count === 0
-                    ? 'vide'
-                    : `${count} plat${count > 1 ? 's' : ''}`}
+                  {count === 0 ? 'vide' : `${count} plat${count > 1 ? 's' : ''}`}
                 </span>
               </span>
             </div>
@@ -89,10 +71,7 @@ export function WeekPlanner({ days, items, today }: WeekProps) {
         <div key={service} role="row" className="contents">
           <span
             role="rowheader"
-            className={cn(
-              'flex items-start gap-1.5 px-3 py-4 text-eyebrow text-muted-foreground',
-              row > 0 && 'border-t',
-            )}
+            className={cn('flex items-start gap-1.5 px-3 py-4 text-eyebrow text-muted-foreground', row > 0 && 'border-t')}
           >
             <Icon className="size-3.5" />
             {SERVICE_LABELS[service]}
@@ -101,11 +80,7 @@ export function WeekPlanner({ days, items, today }: WeekProps) {
             <div
               key={date}
               role="gridcell"
-              className={cn(
-                'flex min-h-36 flex-col gap-2 border-l p-2',
-                row > 0 && 'border-t',
-                date === today && 'bg-secondary/40',
-              )}
+              className={cn('flex min-h-36 flex-col gap-2 border-l p-2', row > 0 && 'border-t', date === today && 'bg-secondary/40')}
             >
               <ul className="flex flex-col gap-2">
                 {itemsOf(items, date, service).map((item) => (
@@ -131,31 +106,17 @@ export function WeekPlanner({ days, items, today }: WeekProps) {
  */
 export function DayBrowser({ days, items, today }: WeekProps) {
   const [picked, setPicked] = useState<string | null>(null)
-  const day =
-    picked && days.includes(picked)
-      ? picked
-      : (days.find((d) => d === today) ?? days[0])
+  const day = picked && days.includes(picked) ? picked : (days.find((d) => d === today) ?? days[0])
   const withMenu = new Set(items.map((item) => item.date))
   return (
     <div className="flex flex-col gap-4 md:grid md:grid-cols-[13rem_minmax(0,1fr)] md:items-start md:gap-6 xl:hidden">
       <div className="md:hidden">
-        <DayPicker
-          days={days}
-          withMenu={withMenu}
-          value={day}
-          onChange={setPicked}
-          today={today}
-        />
+        <DayPicker days={days} withMenu={withMenu} value={day} onChange={setPicked} today={today} />
       </div>
-      <nav
-        aria-label="Jours de la semaine"
-        className="hidden flex-col gap-1 md:sticky md:top-6 md:flex"
-      >
+      <nav aria-label="Jours de la semaine" className="hidden flex-col gap-1 md:sticky md:top-6 md:flex">
         {days.map((date) => {
           const count = itemsOf(items, date).length
-          const drafts = itemsOf(items, date).filter(
-            (item) => item.status === 'draft',
-          ).length
+          const drafts = itemsOf(items, date).filter((item) => item.status === 'draft').length
           return (
             <button
               key={date}
@@ -166,29 +127,19 @@ export function DayBrowser({ days, items, today }: WeekProps) {
             >
               <span className="flex flex-col">
                 <span className="text-sm font-semibold capitalize">
-                  {weekdayShort.format(toDate(date))}{' '}
-                  {dayNumber.format(toDate(date))}
+                  {weekdayShort.format(toDate(date))} {dayNumber.format(toDate(date))}
                 </span>
                 <span className="text-xs opacity-70">
-                  {count === 0
-                    ? 'Aucun plat'
-                    : `${count} plat${count > 1 ? 's' : ''}`}
-                  {drafts > 0 &&
-                    `, ${drafts} brouillon${drafts > 1 ? 's' : ''}`}
+                  {count === 0 ? 'Aucun plat' : `${count} plat${count > 1 ? 's' : ''}`}
+                  {drafts > 0 && `, ${drafts} brouillon${drafts > 1 ? 's' : ''}`}
                 </span>
               </span>
-              {date === today && (
-                <span className="text-eyebrow opacity-80">Auj.</span>
-              )}
+              {date === today && <span className="text-eyebrow opacity-80">Auj.</span>}
             </button>
           )
         })}
       </nav>
-      <AdminDayCard
-        date={day}
-        isToday={day === today}
-        items={itemsOf(items, day)}
-      />
+      <AdminDayCard date={day} isToday={day === today} items={itemsOf(items, day)} />
     </div>
   )
 }

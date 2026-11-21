@@ -13,14 +13,12 @@ import { DayBrowser, WeekPlanner } from '#/features/menus/week-planner'
 import { addDays, parseWeekSearch, resolveWeek } from '#/features/menus/week'
 import { WeekSwitcher } from '#/features/menus/week-switcher'
 
-const weekQuery = (weekStart: string) =>
-  convexQuery(api.menus.adminWeek, { weekStart })
+const weekQuery = (weekStart: string) => convexQuery(api.menus.adminWeek, { weekStart })
 
 export const Route = createFileRoute('/_authed/admin/menus')({
   validateSearch: parseWeekSearch,
   loaderDeps: ({ search }) => ({ week: resolveWeek(search.week) }),
-  loader: ({ context, deps }) =>
-    context.queryClient.ensureQueryData(weekQuery(deps.week)),
+  loader: ({ context, deps }) => context.queryClient.ensureQueryData(weekQuery(deps.week)),
   head: () => ({ meta: [{ title: 'Menus | Vatel Restauration' }] }),
   component: AdminMenus,
 })
@@ -45,26 +43,18 @@ function AdminMenus() {
     <main className="workspace flex flex-col gap-6 pt-6 pb-10 md:pt-8">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div className="flex flex-col gap-1.5">
-          <p className="text-eyebrow text-muted-foreground">
-            Carte de la semaine
-          </p>
+          <p className="text-eyebrow text-muted-foreground">Carte de la semaine</p>
           <h1 className="text-display">Menus</h1>
           <p className="max-w-md text-sm text-muted-foreground">
-            Composez les services, puis publiez : les brouillons restent
-            invisibles des usagers.
+            Composez les services, puis publiez : les brouillons restent invisibles des usagers.
           </p>
         </div>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between xl:gap-6">
-          <dl className="grid grid-cols-3 divide-x rounded-2xl border bg-card shadow-card md:min-w-md">
+        <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-between xl:flex-nowrap xl:gap-6">
+          <dl className="grid grid-cols-3 divide-x rounded-2xl border bg-card shadow-card lg:min-w-md">
             {stats.map(({ label, value }) => (
-              <div
-                key={label}
-                className="flex flex-col gap-0.5 px-3 py-2.5 sm:px-4"
-              >
+              <div key={label} className="flex flex-col gap-0.5 px-3 py-2.5 sm:px-4">
                 <dt className="text-xs text-muted-foreground">{label}</dt>
-                <dd className="text-xl font-bold tracking-tight tabular-nums">
-                  {value}
-                </dd>
+                <dd className="text-xl font-bold tracking-tight tabular-nums">{value}</dd>
               </div>
             ))}
           </dl>
@@ -82,9 +72,7 @@ function AdminMenus() {
 
 /** Action principale de l'écran, toujours à portée : collée en bas tant qu'il reste des brouillons. */
 function PublishBar({ week, drafts }: { week: string; drafts: number }) {
-  const { run, pending, error } = useServerAction(
-    useMutation(api.menus.publishWeek),
-  )
+  const { run, pending, error } = useServerAction(useMutation(api.menus.publishWeek))
   if (drafts === 0 && !error) return null
   return (
     // Mobile : au-dessus de la barre de navigation du bas (fixe, ~4 rem + zone sûre), sinon le bouton est masqué.
@@ -94,20 +82,10 @@ function PublishBar({ week, drafts }: { week: string; drafts: number }) {
           <span className="font-semibold tabular-nums">
             {drafts} brouillon{drafts > 1 ? 's' : ''}
           </span>{' '}
-          <span className="text-muted-foreground">
-            non visible{drafts > 1 ? 's' : ''} des usagers
-          </span>
+          <span className="text-muted-foreground">non visible{drafts > 1 ? 's' : ''} des usagers</span>
         </p>
-        <Button
-          size="lg"
-          disabled={pending || drafts === 0}
-          onClick={() => run({ weekStart: week })}
-        >
-          {pending ? (
-            <Spinner data-icon="inline-start" />
-          ) : (
-            <SendIcon data-icon="inline-start" />
-          )}
+        <Button size="lg" disabled={pending || drafts === 0} onClick={() => run({ weekStart: week })}>
+          {pending ? <Spinner data-icon="inline-start" /> : <SendIcon data-icon="inline-start" />}
           Publier la semaine
         </Button>
         <FormError message={error} />

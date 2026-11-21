@@ -17,13 +17,13 @@ const weekday = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', timeZone: 'U
 const dayMonth = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', timeZone: 'UTC' })
 const toDate = (iso: string) => new Date(`${iso}T00:00:00Z`)
 
-/** Une journée de la carte : en-tête daté, puis Déjeuner et Dîner côte à côte dès la tablette. */
+/** Une journée de la carte : en-tête daté, puis Déjeuner et Dîner côte à côte dès que la carte fait 36 rem (container query). */
 export function AdminDayCard({ date, items, isToday }: { date: string; items: Array<AdminWeekItem>; isToday: boolean }) {
   const drafts = items.filter((item) => item.status === 'draft').length
   return (
     <section
       aria-labelledby={`day-${date}`}
-      className={cn('rounded-3xl border bg-card/60 p-3 shadow-card sm:p-4', isToday && 'border-ring/40')}
+      className={cn('@container rounded-3xl border bg-card/60 p-3 shadow-card sm:p-4', isToday && 'border-ring/40')}
     >
       <header className="flex items-baseline justify-between gap-3 px-1 pb-3">
         <h2 id={`day-${date}`} className="flex items-baseline gap-2">
@@ -36,7 +36,7 @@ export function AdminDayCard({ date, items, isToday }: { date: string; items: Ar
           {drafts > 0 && `, ${drafts} brouillon${drafts > 1 ? 's' : ''}`}
         </span>
       </header>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-3 @xl:grid-cols-2">
         {SERVICES.map(({ service, icon: Icon }) => {
           const rows = items.filter((item) => item.service === service)
           return (

@@ -13,9 +13,7 @@ const LIMIT = 4
 /** Repas réservés à venir (panneau latéral du bureau) : la suite de la semaine sans quitter le catalogue. */
 export function UpcomingMeals() {
   const { data: bookings, isPending } = useQuery(convexQuery(api.bookings.mine, { from: todayIso() }))
-  const upcoming = (bookings ?? [])
-    .filter((b) => b.status === 'confirmed')
-    .sort((a, b) => a.cancellableUntil - b.cancellableUntil)
+  const upcoming = (bookings ?? []).filter((b) => b.status === 'confirmed').sort((a, b) => a.cancellableUntil - b.cancellableUntil)
   return (
     <Card className="gap-3 rounded-3xl py-5">
       <CardHeader className="px-5">

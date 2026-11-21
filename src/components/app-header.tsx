@@ -60,7 +60,7 @@ export function MobileBrand() {
 export function AdminMobileTabs() {
   return (
     <nav aria-label="Gestion" className="flex gap-2 overflow-x-auto px-4 pt-4 [scrollbar-width:none] md:hidden">
-      {ADMIN_NAV.map(({ to, label, icon: Icon }) => (
+      {ADMIN_NAV.map(({ to, short, icon: Icon }) => (
         <Link
           key={to}
           to={to}
@@ -68,7 +68,7 @@ export function AdminMobileTabs() {
           className="flex shrink-0 items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-medium text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[status=active]:border-primary data-[status=active]:bg-primary data-[status=active]:text-primary-foreground"
         >
           <Icon className="size-4" />
-          {label}
+          {short}
         </Link>
       ))}
     </nav>

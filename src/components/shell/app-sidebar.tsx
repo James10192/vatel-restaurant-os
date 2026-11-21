@@ -84,4 +84,3 @@ function NavSection({ title, items }: { title: string; items: Array<NavItem> }) 
     </div>
   )
 }
-

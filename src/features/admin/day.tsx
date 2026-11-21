@@ -5,7 +5,9 @@ import { Button } from '#/components/ui/button'
 import { formatDayLong, todayIso } from '#/lib/format'
 
 /** Paramètre d'URL `date` optionnel et validé ; absent = aujourd'hui. */
-export function parseDateSearch(search: Record<string, unknown>): { date?: string } {
+export function parseDateSearch(search: Record<string, unknown>): {
+  date?: string
+} {
   return isIsoDate(search.date) ? { date: search.date } : {}
 }
 

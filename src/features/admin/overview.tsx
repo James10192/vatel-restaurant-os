@@ -22,10 +22,13 @@ const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`
  * Jauge segmentée d'une capacité : remis, à servir, libres. Une seule lecture, de gauche à droite,
  * au lieu de trois chiffres à additionner. `onBrand` : posée sur la surface bleu Vatel.
  */
-function CapacityBar({ offer, onBrand = false }: { offer: Pick<Offer, 'pickedUp' | 'confirmed' | 'capacity'>; onBrand?: boolean }) {
+export function CapacityBar({ offer, onBrand = false }: { offer: Pick<Offer, 'pickedUp' | 'confirmed' | 'capacity'>; onBrand?: boolean }) {
   const segments = [
     { value: offer.pickedUp, className: onBrand ? 'bg-white' : 'bg-success' },
-    { value: offer.confirmed, className: onBrand ? 'bg-vatel-sky' : 'bg-primary' },
+    {
+      value: offer.confirmed,
+      className: onBrand ? 'bg-vatel-sky' : 'bg-primary',
+    },
   ]
   return (
     <div
@@ -83,7 +86,13 @@ export function ServiceHero({ date, dayLabel, totals }: { date: string; dayLabel
             {formatXof(totals.demoAmountXof)} en crédits démo
           </Badge>
           <Button variant="secondary" size="lg" asChild>
-            <Link to="/admin/services" search={{ date, status: totals.confirmed > 0 ? 'confirmed' : undefined }}>
+            <Link
+              to="/admin/services"
+              search={{
+                date,
+                status: totals.confirmed > 0 ? 'confirmed' : undefined,
+              }}
+            >
               {totals.confirmed > 0 ? `Servir ${totals.confirmed} repas` : 'Voir les commandes'}
               <ArrowRightIcon data-icon="inline-end" />
             </Link>
@@ -102,10 +111,25 @@ export function ServiceHero({ date, dayLabel, totals }: { date: string; dayLabel
   )
 }
 
-const STATS: { key: 'confirmed' | 'pickedUp' | 'cancelled' | 'remaining'; label: string; icon: LucideIcon; status?: OrderStatus }[] = [
+const STATS: {
+  key: 'confirmed' | 'pickedUp' | 'cancelled' | 'remaining'
+  label: string
+  icon: LucideIcon
+  status?: OrderStatus
+}[] = [
   { key: 'confirmed', label: 'À servir', icon: ClockIcon, status: 'confirmed' },
-  { key: 'pickedUp', label: 'Remis', icon: HandPlatterIcon, status: 'picked_up' },
-  { key: 'cancelled', label: 'Annulés', icon: CircleSlashIcon, status: 'cancelled' },
+  {
+    key: 'pickedUp',
+    label: 'Remis',
+    icon: HandPlatterIcon,
+    status: 'picked_up',
+  },
+  {
+    key: 'cancelled',
+    label: 'Annulés',
+    icon: CircleSlashIcon,
+    status: 'cancelled',
+  },
   { key: 'remaining', label: 'Libres', icon: SoupIcon },
 ]
 
@@ -131,7 +155,10 @@ export function StatTiles({ date, totals }: { date: string; totals: Summary['tot
             key={key}
             to="/admin/services"
             search={{ date, status }}
-            className={cn(tile, 'press transition-colors hover:border-ring/40 hover:bg-accent/40 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none')}
+            className={cn(
+              tile,
+              'press transition-colors hover:border-ring/40 hover:bg-accent/40 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
+            )}
           >
             {body}
           </Link>
@@ -178,7 +205,10 @@ function OfferRow({ date, offer }: { date: string; offer: Offer }) {
 /** Plats du jour regroupés par service, dans l'ordre de la journée. */
 export function OffersByService({ date, offers }: { date: string; offers: Offer[] }) {
   const services = (Object.keys(SERVICE_LABELS) as Service[])
-    .map((service) => ({ service, offers: offers.filter((offer) => offer.service === service) }))
+    .map((service) => ({
+      service,
+      offers: offers.filter((offer) => offer.service === service),
+    }))
     .filter((group) => group.offers.length > 0)
   return (
     <div className={cn('grid gap-4', services.length > 1 && 'lg:grid-cols-2')}>

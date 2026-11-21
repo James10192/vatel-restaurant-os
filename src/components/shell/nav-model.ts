@@ -1,11 +1,4 @@
-import {
-  CalendarCheckIcon,
-  ClipboardListIcon,
-  HouseIcon,
-  LayoutDashboardIcon,
-  ListChecksIcon,
-  WalletIcon,
-} from 'lucide-react'
+import { CalendarCheckIcon, ClipboardListIcon, HouseIcon, LayoutDashboardIcon, ListChecksIcon, WalletIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type NavTo = '/app' | '/app/bookings' | '/app/wallet' | '/admin' | '/admin/menus' | '/admin/services'

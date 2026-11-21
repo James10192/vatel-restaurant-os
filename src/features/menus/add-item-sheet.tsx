@@ -11,14 +11,7 @@ import { Button } from '#/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '#/components/ui/native-select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '#/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '#/components/ui/sheet'
 import { Spinner } from '#/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { SERVICE_LABELS, formatDayLong, formatXof } from '#/lib/format'
@@ -28,15 +21,7 @@ import { cn } from '#/lib/utils'
 import { DishForm } from './dish-form'
 
 /** Programme un plat (existant ou créé sur place) pour un jour et un service, en brouillon. */
-export function AddItemSheet({
-  date,
-  service,
-  className,
-}: {
-  date: string
-  service: Service
-  className?: string
-}) {
+export function AddItemSheet({ date, service, className }: { date: string; service: Service; className?: string }) {
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'existing' | 'new'>('existing')
   const [dishId, setDishId] = useState<string>('')
@@ -44,9 +29,7 @@ export function AddItemSheet({
     ...convexQuery(api.dishes.list, {}),
     enabled: open,
   })
-  const { run, pending, error } = useServerAction(
-    useMutation(api.menus.addItem),
-  )
+  const { run, pending, error } = useServerAction(useMutation(api.menus.addItem))
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -79,15 +62,10 @@ export function AddItemSheet({
         <SheetHeader>
           <SheetTitle>Ajouter un plat</SheetTitle>
           <SheetDescription>
-            {SERVICE_LABELS[service]}, {formatDayLong(date)}. Ajouté en
-            brouillon.
+            {SERVICE_LABELS[service]}, {formatDayLong(date)}. Ajouté en brouillon.
           </SheetDescription>
         </SheetHeader>
-        <Tabs
-          value={tab}
-          onValueChange={(v) => setTab(v as 'existing' | 'new')}
-          className="px-4 pb-6"
-        >
+        <Tabs value={tab} onValueChange={(v) => setTab(v as 'existing' | 'new')} className="px-4 pb-6">
           <TabsList className="w-full">
             <TabsTrigger value="existing">Plat du catalogue</TabsTrigger>
             <TabsTrigger value="new">Nouveau plat</TabsTrigger>
@@ -97,12 +75,7 @@ export function AddItemSheet({
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="dish">Plat</FieldLabel>
-                  <NativeSelect
-                    id="dish"
-                    required
-                    value={dishId}
-                    onChange={(e) => setDishId(e.target.value)}
-                  >
+                  <NativeSelect id="dish" required value={dishId} onChange={(e) => setDishId(e.target.value)}>
                     <NativeSelectOption value="" disabled>
                       {dishes ? 'Choisir un plat' : 'Chargement…'}
                     </NativeSelectOption>
@@ -114,17 +87,8 @@ export function AddItemSheet({
                   </NativeSelect>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="capacity">
-                    Portions disponibles
-                  </FieldLabel>
-                  <Input
-                    id="capacity"
-                    name="capacity"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    required
-                    placeholder="80"
-                  />
+                  <FieldLabel htmlFor="capacity">Portions disponibles</FieldLabel>
+                  <Input id="capacity" name="capacity" inputMode="numeric" pattern="[0-9]*" required placeholder="80" />
                 </Field>
               </FieldGroup>
               <FormError message={error} />
