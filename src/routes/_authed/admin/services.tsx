@@ -185,7 +185,7 @@ function DayOrders() {
             </div>
           )}
           {status === 'Exhausted' && results.length > 0 && (
-            <p className="p-2 text-center text-xs text-muted-foreground">Fin de la liste ({results.length} commandes).</p>
+            <p className="p-2 text-center text-xs text-muted-foreground">Fin de la liste ({results.length} commande{results.length > 1 ? 's' : ''}).</p>
           )}
         </CardContent>
       </Card>

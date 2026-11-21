@@ -76,7 +76,8 @@ function PublishBar({ week, drafts }: { week: string; drafts: number }) {
   const { run, pending, error } = useServerAction(useMutation(api.menus.publishWeek))
   if (drafts === 0 && !error) return null
   return (
-    <div className="sticky bottom-4 z-10">
+    // Mobile : au-dessus de la barre de navigation du bas (fixe, ~4 rem + zone sûre), sinon le bouton est masqué.
+    <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-10 md:bottom-4">
       <div className="mx-auto flex max-w-xl flex-col gap-2 rounded-2xl border bg-card p-3 shadow-raised sm:flex-row sm:items-center">
         <p className="flex-1 px-1 text-sm">
           <span className="font-semibold tabular-nums">
