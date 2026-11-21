@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { ClockIcon, UtensilsIcon } from 'lucide-react'
-import { api } from '../../../convex/_generated/api'
+import { api } from '../../../../convex/_generated/api'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '#/components/ui/empty'
 import { Skeleton } from '#/components/ui/skeleton'
 import { formatDayLong } from '#/lib/format'
@@ -10,8 +10,11 @@ import { currentUserQuery } from '#/lib/session'
 import { MealCard } from '#/features/menus/meal-card'
 import { parseWeekSearch, resolveWeek } from '#/features/menus/week'
 import { WeekSwitcher } from '#/features/menus/week-switcher'
+import { BalanceSummary } from '#/features/wallet/balance-summary'
+import { NextMeal } from '#/features/booking/next-meal'
+import { useNow } from '#/lib/use-now'
 
-export const Route = createFileRoute('/_authed/app')({
+export const Route = createFileRoute('/_authed/app/')({
   validateSearch: parseWeekSearch,
   head: () => ({ meta: [{ title: 'Repas | Vatel Restauration' }] }),
   component: AppHome,
@@ -33,9 +36,15 @@ function AppHome() {
 function WeekMenu() {
   const week = resolveWeek(Route.useSearch().week)
   const { data: items, isPending } = useQuery(convexQuery(api.menus.publishedWeek, { weekStart: week }))
+  const { data: bookings = [] } = useQuery(convexQuery(api.bookings.mine, { from: week }))
+  const { data: balanceXof = 0 } = useQuery(convexQuery(api.wallet.balance, {}))
+  const now = useNow()
   const days = [...new Set(items?.map((item) => item.date))].sort()
+  const active = bookings.filter((b) => b.status !== 'cancelled')
   return (
     <section className="flex flex-col gap-4">
+      <BalanceSummary balanceXof={balanceXof} />
+      <NextMeal />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">Menu de la semaine</h2>
         <WeekSwitcher week={week} to="/app" />
@@ -61,7 +70,16 @@ function WeekMenu() {
             <h3 className="text-sm font-semibold text-muted-foreground first-letter:uppercase">{formatDayLong(date)}</h3>
             {items
               ?.filter((item) => item.date === date)
-              .map((item) => <MealCard key={item._id} item={item} />)}
+              .map((item) => (
+                <MealCard
+                  key={item._id}
+                  item={item}
+                  booking={active.find((b) => b.menuItemId === item._id)}
+                  bookedThisService={active.some((b) => b.date === item.date && b.service === item.service)}
+                  balanceXof={balanceXof}
+                  now={now}
+                />
+              ))}
           </div>
         ))
       )}

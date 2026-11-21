@@ -9,14 +9,19 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as bookings from "../bookings.js";
 import type * as catalog from "../catalog.js";
 import type * as dishes from "../dishes.js";
 import type * as http from "../http.js";
 import type * as lib_access from "../lib/access.js";
+import type * as lib_capacity from "../lib/capacity.js";
 import type * as lib_dates from "../lib/dates.js";
+import type * as lib_ledger from "../lib/ledger.js";
+import type * as lib_policy from "../lib/policy.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as menus from "../menus.js";
 import type * as setup from "../setup.js";
+import type * as wallet from "../wallet.js";
 
 import type {
   ApiFromModules,
@@ -26,14 +31,19 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  bookings: typeof bookings;
   catalog: typeof catalog;
   dishes: typeof dishes;
   http: typeof http;
   "lib/access": typeof lib_access;
+  "lib/capacity": typeof lib_capacity;
   "lib/dates": typeof lib_dates;
+  "lib/ledger": typeof lib_ledger;
+  "lib/policy": typeof lib_policy;
   "lib/validation": typeof lib_validation;
   menus: typeof menus;
   setup: typeof setup;
+  wallet: typeof wallet;
 }>;
 
 /**

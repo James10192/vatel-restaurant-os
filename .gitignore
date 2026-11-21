@@ -14,3 +14,4 @@ test-results/
 .nitro/
 *.local
 .claude/.review-stamp
+.claude/.issues-stamp

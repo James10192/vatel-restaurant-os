@@ -1,43 +1,6 @@
-/// <reference types="vite/client" />
-import { convexTest } from 'convex-test'
 import { describe, expect, test } from 'vitest'
 import { api } from './_generated/api'
-import schema from './schema'
-
-const modules = import.meta.glob('./**/*.ts')
-const WEEK = '2026-11-23' // lundi
-
-type Role = 'admin' | 'student'
-
-async function setup() {
-  const t = convexTest(schema, modules)
-  const ids = await t.run(async (ctx) => {
-    const a = await ctx.db.insert('canteens', { name: 'Cantine A', slug: 'a' })
-    const b = await ctx.db.insert('canteens', { name: 'Cantine B', slug: 'b' })
-    const members: Array<[string, typeof a, Role]> = [
-      ['admin-a', a, 'admin'],
-      ['student-a', a, 'student'],
-      ['admin-b', b, 'admin'],
-    ]
-    for (const [authUserId, canteenId, role] of members) {
-      await ctx.db.insert('profiles', { authUserId, canteenId, role })
-    }
-    return { a, b }
-  })
-  const as = (subject: string) => t.withIdentity({ subject })
-  return { t, ids, adminA: as('admin-a'), studentA: as('student-a'), adminB: as('admin-b'), stranger: as('nobody') }
-}
-
-async function createDish(user: Awaited<ReturnType<typeof setup>>['adminA'], name = 'Attiéké poisson') {
-  return await user.mutation(api.dishes.save, {
-    dish: {
-      name,
-      defaultPriceXof: 1500,
-      allergens: { status: 'declared', present: ['Poisson'], traces: [] },
-      recipe: { portions: 1, lines: [] },
-    },
-  })
-}
+import { WEEK, createDish, setupCanteens as setup } from '../tests/convex-fixture'
 
 describe('menus', () => {
   test('brouillon invisible pour les usagers, visible après publication', async () => {
@@ -50,7 +13,7 @@ describe('menus', () => {
 
     const week = await studentA.query(api.menus.publishedWeek, { weekStart: WEEK })
     expect(week).toHaveLength(1)
-    expect(week[0]).toMatchObject({ dishName: 'Attiéké poisson', priceXof: 1500, capacity: 50 })
+    expect(week[0]).toMatchObject({ dishName: "Attiéké poisson", priceXof: 1500, remaining: 50 })
     expect(week[0]).not.toHaveProperty('recipe')
   })
 

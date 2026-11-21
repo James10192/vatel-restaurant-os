@@ -28,12 +28,66 @@ export const recipeLineValidator = v.object({
   unitId: v.id('units'),
 })
 
+/** Politique de réservation propre à l'établissement (voir convex/lib/policy.ts pour les valeurs par défaut). */
+export const policyValidator = v.object({
+  /** Heure de début de chaque service, « HH:MM » heure d'Abidjan (UTC+0). */
+  serviceStart: v.object({ lunch: v.string(), dinner: v.string() }),
+  /** Réservation et annulation fermées N minutes avant le début du service. */
+  cutoffMinutes: v.number(),
+  /** Montant maximal d'une recharge de démonstration. */
+  demoTopUpMaxXof: v.number(),
+})
+
+export const walletEntryKindValidator = v.union(
+  v.literal('demo_top_up'),
+  v.literal('booking_debit'),
+  v.literal('booking_refund'),
+)
+
 export default defineSchema({
   /** Établissement (tenant). Toute donnée métier y est rattachée. */
   canteens: defineTable({
     name: v.string(),
     slug: v.string(),
+    policy: v.optional(policyValidator),
   }).index('by_slug', ['slug']),
+
+  /** Solde courant d'un membre ; toujours égal à la somme de ses écritures. */
+  wallets: defineTable({
+    canteenId: v.id('canteens'),
+    profileId: v.id('profiles'),
+    balanceXof: v.number(),
+  }).index('by_profile', ['profileId']),
+
+  /** Journal en ajout seul : aucune écriture n'est modifiée ni supprimée. */
+  walletEntries: defineTable({
+    canteenId: v.id('canteens'),
+    walletId: v.id('wallets'),
+    kind: walletEntryKindValidator,
+    amountXof: v.number(),
+    balanceAfterXof: v.number(),
+    bookingId: v.optional(v.id('bookings')),
+    label: v.string(),
+    idempotencyKey: v.optional(v.string()),
+  })
+    .index('by_wallet', ['walletId'])
+    .index('by_wallet_key', ['walletId', 'idempotencyKey']),
+
+  bookings: defineTable({
+    canteenId: v.id('canteens'),
+    profileId: v.id('profiles'),
+    menuItemId: v.id('menuItems'),
+    date: v.string(),
+    service: serviceValidator,
+    dishName: v.string(),
+    priceXof: v.number(),
+    status: v.union(v.literal('confirmed'), v.literal('cancelled'), v.literal('picked_up')),
+    idempotencyKey: v.string(),
+  })
+    .index('by_profile_date', ['profileId', 'date'])
+    .index('by_profile_key', ['profileId', 'idempotencyKey'])
+    .index('by_menu_item_status', ['menuItemId', 'status'])
+    .index('by_canteen_date', ['canteenId', 'date']),
 
   /**
    * Projection métier d'un compte Better Auth. Absente = compte inscrit mais non rattaché :

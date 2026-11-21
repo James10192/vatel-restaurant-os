@@ -1,0 +1,71 @@
+import { useState } from 'react'
+import { useMutation } from 'convex/react'
+import { FlaskConicalIcon } from 'lucide-react'
+import { api } from '../../../convex/_generated/api'
+import { FormError } from '#/components/form-error'
+import { Alert, AlertDescription, AlertTitle } from '#/components/ui/alert'
+import { Button } from '#/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card'
+import { Spinner } from '#/components/ui/spinner'
+import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import { formatXof } from '#/lib/format'
+import { useServerAction } from '#/lib/server-action'
+
+/** Montants proposés à l'écran ; le plafond réel est appliqué par le serveur (politique de l'établissement). */
+const AMOUNTS = [1000, 2500, 5000, 10000]
+
+/** Recharge FICTIVE pour la démonstration : aucun paiement réel n'est effectué. */
+export function DemoTopUp() {
+  const [amount, setAmount] = useState(String(AMOUNTS[1]))
+  const [requestKey, setRequestKey] = useState(() => crypto.randomUUID())
+  const [done, setDone] = useState<number | null>(null)
+  const { run, pending, error } = useServerAction(useMutation(api.wallet.topUpDemo))
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Recharger</CardTitle>
+        <CardDescription>Choisissez un montant.</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <Alert>
+          <FlaskConicalIcon />
+          <AlertTitle>Mode démonstration</AlertTitle>
+          <AlertDescription>Crédits fictifs, non convertibles. Aucun paiement Mobile Money réel.</AlertDescription>
+        </Alert>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={amount}
+          onValueChange={(value) => value && setAmount(value)}
+          className="grid w-full grid-cols-2 sm:grid-cols-4"
+        >
+          {AMOUNTS.map((value) => (
+            <ToggleGroupItem key={value} value={String(value)}>
+              {formatXof(value)}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        <FormError message={error} />
+        {done !== null && !error && (
+          <p className="text-sm text-primary" role="status">
+            Recharge confirmée par le serveur. Nouveau solde : {formatXof(done)}.
+          </p>
+        )}
+        <Button
+          disabled={pending}
+          onClick={async () => {
+            setDone(null)
+            const result = await run({ amountXof: Number(amount), idempotencyKey: requestKey })
+            if (!result) return
+            setDone(result.balanceXof)
+            setRequestKey(crypto.randomUUID())
+          }}
+        >
+          {pending && <Spinner data-icon="inline-start" />}
+          Recharger {formatXof(Number(amount))} (démo)
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}

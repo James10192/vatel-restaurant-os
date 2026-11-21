@@ -5,6 +5,8 @@ import { mutation, query } from './_generated/server'
 import { getOwned, requireAdmin, requireMember } from './lib/access'
 import { addDays, weekStartOf } from './lib/dates'
 import { assertCapacity, assertIsoDate, assertPriceXof } from './lib/validation'
+import { activeBookingsCount } from './lib/capacity'
+import { cutoffAt, policyOf } from './lib/policy'
 import { serviceValidator } from './schema'
 
 async function itemsOfWeek(ctx: QueryCtx, canteenId: Doc<'canteens'>['_id'], weekStart: string) {
@@ -38,14 +40,19 @@ export const publishedWeek = query({
   args: { weekStart: v.string() },
   handler: async (ctx, { weekStart }) => {
     const { canteenId } = await requireMember(ctx)
+    const canteen = await ctx.db.get(canteenId)
+    if (!canteen) throw new ConvexError('Établissement introuvable.')
+    const policy = policyOf(canteen)
     const items = (await itemsOfWeek(ctx, canteenId, weekStart)).filter((item) => item.status === 'published')
     const rows = await withDishes(ctx, items)
-    return rows.map(({ item, dish }) => ({
+    const booked = await Promise.all(rows.map(({ item }) => activeBookingsCount(ctx, item._id)))
+    return rows.map(({ item, dish }, i) => ({
       _id: item._id,
       date: item.date,
       service: item.service,
       priceXof: item.priceXof,
-      capacity: item.capacity,
+      remaining: Math.max(item.capacity - booked[i], 0),
+      bookableUntil: cutoffAt(policy, item.date, item.service),
       dishName: dish.name,
       description: dish.description,
       allergens: dish.allergens,
@@ -78,6 +85,8 @@ export const updateItem = mutation({
   handler: async (ctx, args) => {
     const membership = await requireAdmin(ctx)
     await getOwned(ctx, membership, args.itemId)
+    const booked = await activeBookingsCount(ctx, args.itemId)
+    if (args.capacity < booked) throw new ConvexError(`Déjà ${booked} portions réservées : capacité trop basse.`)
     await ctx.db.patch(args.itemId, { priceXof: assertPriceXof(args.priceXof), capacity: assertCapacity(args.capacity) })
     return null
   },
