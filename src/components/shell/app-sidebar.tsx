@@ -5,7 +5,7 @@ import { BrandLogo } from '#/components/brand-logo'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { ROLE_LABELS, currentUserQuery } from '#/lib/session'
 import { AccountMenu } from './account-menu'
-import { ACTIVE_OPTIONS, MEAL_NAV, initials, staffNav } from './nav-model'
+import { ACTIVE_OPTIONS, homeOf, initials, isStaff, navFor } from './nav-model'
 import type { NavItem } from './nav-model'
 import { useT } from '#/i18n/i18n'
 
@@ -18,14 +18,14 @@ import { useT } from '#/i18n/i18n'
 export function AppSidebar() {
   const t = useT()
   const { data: user } = useSuspenseQuery(currentUserQuery)
-  const staff = staffNav(user?.membership?.role)
-  const isStaff = staff.length > 0
+  const role = user?.membership?.role
+  const staff = isStaff(role)
   return (
     <aside
       aria-label={t('Navigation principale')}
       className="fixed inset-y-0 left-0 z-30 hidden w-19 flex-col gap-4 border-r bg-sidebar py-4 text-sidebar-foreground md:flex xl:w-64 xl:px-3"
     >
-      <Link to={isStaff ? staff[0].to : '/app'} aria-label={t('Accueil')} className="flex items-center justify-center gap-3 xl:justify-start xl:px-2">
+      <Link to={homeOf(role)} aria-label={t('Accueil')} className="flex items-center justify-center gap-3 xl:justify-start xl:px-2">
         <BrandLogo className="h-10 shrink-0" />
         <span className="hidden flex-col leading-tight xl:flex">
           <span className="text-sm font-semibold">{t('Restauration')}</span>
@@ -34,9 +34,8 @@ export function AppSidebar() {
       </Link>
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-2 xl:px-0">
-        {/* Administrateur : la gestion est son travail, l'espace repas reste accessible (il peut aussi réserver). */}
-        {isStaff && <NavSection title={t('Gestion')} items={staff} />}
-        <NavSection title={isStaff ? 'Mon espace repas' : 'Espace repas'} items={MEAL_NAV} divider={isStaff} />
+        {/* Un seul espace par rôle : la gestion pour le personnel, l'espace repas pour les usagers. */}
+        <NavSection title={staff ? 'Gestion' : 'Espace repas'} items={navFor(role)} />
       </nav>
 
       <AccountMenu
@@ -64,12 +63,11 @@ export function AppSidebar() {
   )
 }
 
-function NavSection({ title, items, divider = false }: { title: string; items: Array<NavItem>; divider?: boolean }) {
+function NavSection({ title, items }: { title: string; items: Array<NavItem> }) {
   const t = useT()
   return (
     <div className="flex flex-col gap-1">
       <p className="hidden px-3 pb-1 text-eyebrow text-muted-foreground xl:block">{t(title)}</p>
-      {divider && <span aria-hidden className="mx-auto mb-1 h-px w-8 bg-border xl:hidden" />}
       <ul className="flex flex-col gap-1">
         {items.map(({ to, label, short, icon: Icon }) => (
           <li key={to}>

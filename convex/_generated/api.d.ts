@@ -32,6 +32,7 @@ import type * as lib_copilot_facts from "../lib/copilot/facts.js";
 import type * as lib_copilot_llm from "../lib/copilot/llm.js";
 import type * as lib_csv from "../lib/csv.js";
 import type * as lib_dates from "../lib/dates.js";
+import type * as lib_dishSheet from "../lib/dishSheet.js";
 import type * as lib_ledger from "../lib/ledger.js";
 import type * as lib_locale from "../lib/locale.js";
 import type * as lib_lowBalance from "../lib/lowBalance.js";
@@ -102,6 +103,7 @@ declare const fullApi: ApiFromModules<{
   "lib/copilot/llm": typeof lib_copilot_llm;
   "lib/csv": typeof lib_csv;
   "lib/dates": typeof lib_dates;
+  "lib/dishSheet": typeof lib_dishSheet;
   "lib/ledger": typeof lib_ledger;
   "lib/locale": typeof lib_locale;
   "lib/lowBalance": typeof lib_lowBalance;

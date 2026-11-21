@@ -16,6 +16,7 @@ export const EN: Record<string, string> = {
   'Commandes du jour': 'Today’s orders',
   Service: 'Service',
   Gestion: 'Management',
+  'Autres pages': 'More pages',
   'Espace repas': 'Meals',
   'Mon espace repas': 'My meals area',
   'Vatel Restauration': 'Vatel Dining',

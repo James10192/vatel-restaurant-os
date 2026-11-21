@@ -235,3 +235,50 @@
     grid-template-columns: repeat(auto-fill, minmax(17rem, 22rem));
   }
 }
+
+/*
+ * Barre du bas « verre » (mobile) : capsule translucide flottante, le contenu reste visible dessous.
+ * Arête claire en haut (la lumière accroche le matériau), ombre douce, indicateur qui glisse avec un ressort.
+ */
+.glass-tab-bar > div {
+  background: color-mix(in oklab, var(--background) 62%, transparent);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid color-mix(in oklab, white 55%, transparent);
+  box-shadow:
+    0 10px 30px -12px rgb(7 42 93 / 35%),
+    inset 0 1px 0 rgb(255 255 255 / 55%);
+}
+.dark .glass-tab-bar > div {
+  border-color: rgb(255 255 255 / 12%);
+  box-shadow:
+    0 10px 30px -12px rgb(0 0 0 / 70%),
+    inset 0 1px 0 rgb(255 255 255 / 10%);
+}
+.glass-tab-indicator {
+  background: color-mix(in oklab, var(--primary) 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent);
+  /* Ressort critiquement amorti (~0,4 s), repris depuis la position courante si on change d'avis en route. */
+  transition: transform 420ms linear(0, 0.157, 0.438, 0.66, 0.8, 0.885, 0.935, 0.964, 0.98, 0.99, 0.995, 1);
+}
+.glass-tab-indicator[data-dragging] {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-tab-indicator {
+    transition: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-tab-bar > div {
+    background: var(--background);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more) {
+  .glass-tab-bar > div {
+    background: var(--background);
+    border-color: var(--foreground);
+  }
+}

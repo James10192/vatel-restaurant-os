@@ -42,6 +42,18 @@ export const ADMIN_NAV: Array<StaffItem> = [
 /** Pages de gestion visibles pour un rôle (vide pour un usager ou un compte non rattaché). */
 export const staffNav = (role: string | undefined): Array<NavItem> => ADMIN_NAV.filter((item) => item.roles.some((r) => r === role))
 
+/** Pages du rôle affichées dans la barre du bas (mobile) ; les suivantes restent accessibles en haut de page. */
+export const TAB_BAR_PAGES = 4
+
+/**
+ * Espaces séparés par rôle : le personnel (administration, cuisine, distribution) travaille dans la gestion et
+ * ne voit pas l'espace repas des usagers ; un usager ne voit que l'espace repas. Le profil est commun.
+ */
+export const isStaff = (role: string | undefined) => staffNav(role).length > 0
+export const navFor = (role: string | undefined): Array<NavItem> => (isStaff(role) ? staffNav(role) : MEAL_NAV)
+/** Page d'accueil d'un rôle (après connexion, logo, redirections). */
+export const homeOf = (role: string | undefined): NavTo => navFor(role)[0].to
+
 /** Liens actifs sur le chemin seul : `?date=` ou `?week=` ne doivent pas éteindre l'onglet. */
 export const ACTIVE_OPTIONS = { exact: true, includeSearch: false } as const
 
