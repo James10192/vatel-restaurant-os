@@ -778,6 +778,13 @@ export const EN: Record<string, string> = {
   'Limite quotidienne de l’aide IA atteinte : points calculés sans IA.': 'Daily AI help limit reached: points computed without AI.',
   'Aide IA indisponible pour le moment : points calculés sans IA.': 'AI help unavailable right now: points computed without AI.',
   'Le résumé de l’IA citait des chiffres non vérifiés : points calculés sans IA.': 'The AI summary quoted unchecked figures: points computed without AI.',
+  // Réservation groupée (#3)
+  'Réserver ces {n} repas': 'Book these {n} meals',
+  'Confirmer {n} réservations': 'Confirm {n} bookings',
+  'Tout est réservé, ou rien : si un repas n’est plus disponible, aucun débit n’est fait.': 'Everything is booked, or nothing: if a meal is no longer available, nothing is charged.',
+  'Solde insuffisant pour tout réserver.': 'Balance too low to book everything.',
+  'Le même repas apparaît deux fois.': 'The same meal appears twice.',
+  'Demande déjà traitée pour d’autres repas.': 'Request already processed for other meals.',
 }
 
 /**
@@ -786,6 +793,8 @@ export const EN: Record<string, string> = {
  * `src/i18n/catalog.test.ts` vérifie que chaque message variable de `convex/` correspond à un modèle.
  */
 export const EN_PATTERNS: Record<string, string> = {
+  'Entre 1 et {max} repas par réservation groupée.': 'Between 1 and {max} meals per group booking.',
+  'Repas du {date} : {reason}': 'Meal on {date}: {reason}',
   'Correction refusée : {n} portions déjà déclarées perdues.':
     'Correction refused: {n} portions already recorded as wasted.',
   'Au plus {max} portions peuvent encore être déclarées perdues.':

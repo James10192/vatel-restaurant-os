@@ -1,20 +1,12 @@
 import { ConvexError, v } from 'convex/values'
-import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
-import { getOwned, requireMember } from './lib/access'
+import { requireMember } from './lib/access'
 import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
 import { appendEntry, getOrCreateWallet } from './lib/ledger'
+import { bookMeal, requirePolicy } from './lib/booking'
 import { alertIfLowBalance } from './lib/lowBalance'
-import { cutoffAt, policyOf } from './lib/policy'
-import { activeBookingsCount } from './lib/capacity'
-import type { Membership } from './lib/access'
+import { cutoffAt } from './lib/policy'
 import { myBookingsReturns } from './lib/returns'
-
-async function requirePolicy(ctx: QueryCtx, membership: Membership) {
-  const canteen = await ctx.db.get(membership.canteenId)
-  if (!canteen) throw new ConvexError('Établissement introuvable.')
-  return policyOf(canteen)
-}
 
 /**
  * Réserve un repas : vérifie publication, échéance, doublon, capacité et solde, puis débite et
@@ -37,44 +29,60 @@ export const book = mutation({
       return { bookingId: previous._id, balanceXof: wallet.balanceXof, replayed: true }
     }
 
-    const item = await getOwned(ctx, membership, menuItemId)
-    if (item.status !== 'published') throw new ConvexError('Ce repas n’est pas encore publié.')
-    if (Date.now() >= cutoffAt(await requirePolicy(ctx, membership), item.date, item.service)) {
-      throw new ConvexError('Les réservations sont closes pour ce service.')
-    }
-    const sameService = await ctx.db
-      .query('bookings')
-      .withIndex('by_profile_date', (q) => q.eq('profileId', membership._id).eq('date', item.date))
-      .collect()
-    if (sameService.some((b) => b.service === item.service && b.status !== 'cancelled')) {
-      throw new ConvexError('Vous avez déjà un repas réservé pour ce service.')
-    }
-    if ((await activeBookingsCount(ctx, menuItemId)) >= item.capacity) {
-      throw new ConvexError('Plus de portions disponibles pour ce plat.')
-    }
-    const dish = await ctx.db.get(item.dishId)
-    if (!dish) throw new ConvexError('Plat introuvable.')
-    if (wallet.balanceXof < item.priceXof) throw new ConvexError('Solde insuffisant. Rechargez votre compte.')
-
-    const bookingId = await ctx.db.insert('bookings', {
-      canteenId: membership.canteenId,
-      profileId: membership._id,
-      menuItemId,
-      date: item.date,
-      service: item.service,
-      dishName: dish.name,
-      priceXof: item.priceXof,
-      status: 'confirmed',
-      idempotencyKey,
-    })
-    const balanceXof = await appendEntry(ctx, wallet, {
-      kind: 'booking_debit',
-      amountXof: -item.priceXof,
-      label: `Réservation : ${dish.name}`,
-      bookingId,
-    })
+    const { bookingId, balanceXof } = await bookMeal(ctx, membership, menuItemId, idempotencyKey)
     await alertIfLowBalance(ctx, membership._id, wallet.balanceXof, balanceXof)
     return { bookingId, balanceXof, replayed: false }
+  },
+})
+
+/** Plafond d'un lot : une semaine de repas (#16 SEC-07). */
+export const MAX_BATCH = 7
+
+/**
+ * Réserve plusieurs repas en une confirmation (« Réserver ces repas » de l'Aide au choix). Tout ou rien :
+ * chaque repas passe par les contrôles de `bookMeal` dans la même transaction ; un seul refus annule le lot
+ * (aucun débit partiel) et le message nomme le jour concerné. Idempotent : un renvoi avec la même clé et les
+ * mêmes repas rend le résultat d'origine ; la même clé avec d'autres repas est refusée.
+ */
+export const bookMany = mutation({
+  args: { menuItemIds: v.array(v.id('menuItems')), idempotencyKey: v.string() },
+  returns: v.object({ bookingIds: v.array(v.id('bookings')), balanceXof: v.number(), replayed: v.boolean() }),
+  handler: async (ctx, { menuItemIds, idempotencyKey }) => {
+    assertIdempotencyKey(idempotencyKey)
+    if (menuItemIds.length === 0 || menuItemIds.length > MAX_BATCH) throw new ConvexError(`Entre 1 et ${MAX_BATCH} repas par réservation groupée.`)
+    if (new Set(menuItemIds).size !== menuItemIds.length) throw new ConvexError('Le même repas apparaît deux fois.')
+    const membership = await requireMember(ctx)
+    const wallet = await getOrCreateWallet(ctx, membership)
+
+    // Chaque réservation du lot porte la clé « clé:index » : un renvoi les retrouve toutes par plage d'index.
+    const previous = await ctx.db
+      .query('bookings')
+      .withIndex('by_profile_key', (q) => q.eq('profileId', membership._id).gte('idempotencyKey', `${idempotencyKey}:`).lt('idempotencyKey', `${idempotencyKey};`))
+      .collect()
+    if (previous.length > 0) {
+      const same = previous.length === menuItemIds.length && previous.every((b) => menuItemIds.includes(b.menuItemId))
+      if (!same) throw new ConvexError('Demande déjà traitée pour d’autres repas.')
+      return { bookingIds: previous.map((b) => b._id), balanceXof: wallet.balanceXof, replayed: true }
+    }
+
+    const bookingIds = []
+    let balanceXof = wallet.balanceXof
+    for (const [index, menuItemId] of menuItemIds.entries()) {
+      const item = await ctx.db.get(menuItemId)
+      try {
+        const booked = await bookMeal(ctx, membership, menuItemId, `${idempotencyKey}:${index}`)
+        bookingIds.push(booked.bookingId)
+        balanceXof = booked.balanceXof
+      } catch (error) {
+        // Le lot entier est annulé par la transaction ; on précise seulement quel repas bloque.
+        if (error instanceof ConvexError && typeof error.data === 'string' && item?.canteenId === membership.canteenId) {
+          throw new ConvexError(`Repas du ${item.date} : ${error.data}`)
+        }
+        throw error
+      }
+    }
+    await alertIfLowBalance(ctx, membership._id, wallet.balanceXof, balanceXof)
+    return { bookingIds, balanceXof, replayed: false }
   },
 })
 
