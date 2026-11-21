@@ -169,6 +169,18 @@ Le porteur a choisi « push réel maintenant » et une vraie page Profil. Cela t
 - Tests (3) : défaut, couper/réactiver idempotent ; non rattaché refusé ; à l'envoi, famille coupée exclue, autres
   familles et test conservés. Navigateur : « Rappel avant la clôture » coupé, conservé après rechargement, réactivé.
 
+### Modification du nom (ajout du 21/11, ~15h45)
+- Carte d'identité du Profil : bouton crayon « Modifier le nom », formulaire en place (Enregistrer / Annuler), fermé
+  seulement après confirmation du serveur ; le nouveau nom s'affiche par la requête temps réel (profil, menu compte).
+- Serveur : `convex/account.ts` `rename`. **Une seule transaction** : nom Better Auth (`auth.api.updateUser` via
+  `authComponent.getAuth`) et copie montrée au personnel (`profiles.displayName`, commandes du jour). Identité lue dans
+  la session, jamais fournie par le client. Ouvert aussi à un compte non rattaché (c'est son propre compte).
+- Validation partagée `cleanName` : 1 à 80 caractères, espaces normalisés. E-mail, rôle et établissement non modifiables.
+- Pas de test `convex-test` (le composant Better Auth n'y est pas simulé, comme pour l'amorçage) ; vérifié en navigateur
+  sur le backend local : nom vide refusé par le serveur (« Nom : 1 à 80 caractères. »), « ␣␣Awa␣␣␣Koné␣ » enregistré
+  en « Awa Koné » (initiales AK), conservé après rechargement, `displayName` vu par le personnel = « Awa Koné », puis
+  nom d'origine restauré.
+
 ### À faire par le lead (sinon : « pas encore ouvertes par votre établissement », rien n'est envoyé)
 Générer une paire de clés une fois, puis la poser sur CHAQUE déploiement Convex (dev, prod) :
 ```bash
