@@ -342,37 +342,127 @@ export const EN: Record<string, string> = {
   'Budget total (FCFA)': 'Total budget (FCFA)',
   Indifférent: 'No preference',
   'Allergènes à éviter (facultatif)': 'Allergens to avoid (optional)',
-  'Filtre appliqué par le serveur, jamais transmis à l’IA.': 'Filter applied by the server, never sent to the AI.',
+  'Filtre appliqué par le serveur, jamais transmis à l’IA.':
+    'Filter applied by the server, never sent to the AI.',
   'Vos envies (facultatif)': 'Your preferences (optional)',
-  'Par exemple : plutôt du poisson, un plat copieux': 'For example: fish rather, a hearty dish',
-  'N’indiquez aucune information personnelle ou médicale.': 'Do not enter any personal or medical information.',
+  'Par exemple : plutôt du poisson, un plat copieux':
+    'For example: fish rather, a hearty dish',
+  'N’indiquez aucune information personnelle ou médicale.':
+    'Do not enter any personal or medical information.',
   'Proposer des repas': 'Suggest meals',
   Suggestions: 'Suggestions',
   'Choix IA vérifié': 'AI pick, checked',
   Total: 'Total',
   'pour un budget de': 'for a budget of',
-  '· solde actuel insuffisant pour tout réserver': '· current balance not enough to book everything',
+  '· solde actuel insuffisant pour tout réserver':
+    '· current balance not enough to book everything',
   'Aucun repas ne correspond': 'No meal matches',
-  'Essayez d’autres jours ou un budget plus élevé, ou parcourez le menu.': 'Try other days or a higher budget, or browse the menu.',
+  'Essayez d’autres jours ou un budget plus élevé, ou parcourez le menu.':
+    'Try other days or a higher budget, or browse the menu.',
   'Pourquoi :': 'Why:',
   'Les allergènes affichés viennent de la fiche du plat. Un allergène non renseigné n’est pas vérifié : en cas de doute, demandez au service restauration.':
     'Allergens shown come from the dish sheet. An allergen not provided is not checked: if in doubt, ask the dining service.',
   'aucun menu publié': 'no menu published',
-  'complet, réservations closes ou repas déjà réservé': 'full, bookings closed or meal already booked',
-  'aucun plat compatible avec les allergènes à éviter': 'no dish compatible with the allergens to avoid',
+  'complet, réservations closes ou repas déjà réservé':
+    'full, bookings closed or meal already booked',
+  'aucun plat compatible avec les allergènes à éviter':
+    'no dish compatible with the allergens to avoid',
   'hors budget': 'over budget',
-  'Aide IA non configurée : suggestion calculée sans IA.': 'AI helper not configured: suggestion calculated without AI.',
-  'Limite quotidienne de l’aide IA atteinte : suggestion calculée sans IA.': 'Daily AI helper limit reached: suggestion calculated without AI.',
-  'Aide IA indisponible pour le moment : suggestion calculée sans IA.': 'AI helper unavailable right now: suggestion calculated without AI.',
-  'La proposition de l’IA ne respectait pas vos critères : suggestion calculée sans IA.': 'The AI proposal did not meet your criteria: suggestion calculated without AI.',
+  'Aide IA non configurée : suggestion calculée sans IA.':
+    'AI helper not configured: suggestion calculated without AI.',
+  'Limite quotidienne de l’aide IA atteinte : suggestion calculée sans IA.':
+    'Daily AI helper limit reached: suggestion calculated without AI.',
+  'Aide IA indisponible pour le moment : suggestion calculée sans IA.':
+    'AI helper unavailable right now: suggestion calculated without AI.',
+  'La proposition de l’IA ne respectait pas vos critères : suggestion calculée sans IA.':
+    'The AI proposal did not meet your criteria: suggestion calculated without AI.',
   'Choisissez de 1 à 7 jours.': 'Choose 1 to 7 days.',
-  'Choisissez des jours à venir, dans les deux prochaines semaines.': 'Choose upcoming days, within the next two weeks.',
-  'Budget invalide : entier positif en FCFA, 100 000 au plus.': 'Invalid budget: positive whole number in FCFA, 100,000 at most.',
-  'Liste d’allergènes à éviter trop longue.': 'List of allergens to avoid is too long.',
+  'Choisissez des jours à venir, dans les deux prochaines semaines.':
+    'Choose upcoming days, within the next two weeks.',
+  'Budget invalide : entier positif en FCFA, 100 000 au plus.':
+    'Invalid budget: positive whole number in FCFA, 100,000 at most.',
+  'Liste d’allergènes à éviter trop longue.':
+    'List of allergens to avoid is too long.',
   'Souhait trop long.': 'Preferences text too long.',
   'Aide au choix réservée aux usagers.': 'Meal helper reserved for diners.',
-  '{n} plats écartés : allergènes non renseignés, donc non vérifiés.': '{n} dishes left out: allergens not provided, so not checked.',
-  '{n} plat écarté : allergènes non renseignés, donc non vérifiés.': '{n} dish left out: allergens not provided, so not checked.',
+  '{n} plats écartés : allergènes non renseignés, donc non vérifiés.':
+    '{n} dishes left out: allergens not provided, so not checked.',
+  '{n} plat écarté : allergènes non renseignés, donc non vérifiés.':
+    '{n} dish left out: allergens not provided, so not checked.',
+
+  // Allergènes majeurs (convex/lib/allergens.ts) : traduits à l'affichage, mentions libres inchangées
+  Crustacés: 'Crustaceans',
+  Œufs: 'Eggs',
+  Poissons: 'Fish',
+  Arachides: 'Peanuts',
+  Soja: 'Soy',
+  Lait: 'Milk',
+  'Fruits à coque': 'Tree nuts',
+  Céleri: 'Celery',
+  Moutarde: 'Mustard',
+  Sésame: 'Sesame',
+  Sulfites: 'Sulphites',
+  Lupin: 'Lupin',
+  Mollusques: 'Molluscs',
+
+  // Fiches techniques
+  'Fiches techniques': 'Recipe sheets',
+  Fiches: 'Sheets',
+  'Fiches techniques | Vatel Restauration': 'Recipe sheets | Vatel Dining',
+  'Composition exacte de chaque plat, quantités brutes et pertes à la préparation ; les allergènes du plat sont déduits de ceux de ses ingrédients.':
+    'Exact composition of each dish, gross quantities and preparation losses; the dish’s allergens are derived from its ingredients.',
+  Plats: 'Dishes',
+  'Ingrédients et allergènes': 'Ingredients and allergens',
+  'Aucun plat pour l’instant.': 'No dish yet.',
+  'Fiche vide': 'Empty sheet',
+  'À compléter': 'To complete',
+  Fiche: 'Sheet',
+  'Choisissez un plat': 'Choose a dish',
+  'Sa fiche s’affiche ici : composition, pertes et allergènes.':
+    'Its sheet appears here: composition, losses and allergens.',
+  '{n} ingrédients': '{n} ingredients',
+  '{n} ingrédient': '{n} ingredient',
+  'pour {p} portions': 'for {p} portions',
+  'pour {p} portion': 'for {p} portion',
+  'Jamais publié': 'Never published',
+  'Nouvelle version': 'New version',
+  'Fiche verrouillée : ce plat est publié':
+    'Sheet locked: this dish is published',
+  'Les usagers l’ont vu et ont pu le réserver. Modifiez une nouvelle version, puis programmez-la dans Menus.':
+    'Diners have seen it and may have booked it. Edit a new version, then schedule it in Menus.',
+  'Créer la nouvelle version': 'Create the new version',
+  'Enregistrer la fiche': 'Save the sheet',
+  'Ajoutez les ingrédients : les allergènes du plat seront déduits de leurs fiches.':
+    'Add the ingredients: the dish’s allergens will be derived from their sheets.',
+  'Plat affiché « allergènes non renseignés »':
+    'Dish shown as “allergens not provided”',
+  'À compléter dans l’onglet Ingrédients :':
+    'To complete in the Ingredients tab:',
+  'Déduits des ingrédients :': 'Derived from ingredients:',
+  'Aucun allergène majeur': 'No major allergen',
+  'Mentions complémentaires': 'Additional mentions',
+  'Garniture hors fiche': 'Garnish not on the sheet',
+  'Séparez par des virgules. Ces mentions s’ajoutent à la déduction, elles ne la remplacent pas.':
+    'Separate with commas. These mentions add to the derived list, they do not replace it.',
+  'Quantité brute': 'Gross quantity',
+  'Perte à la préparation en pourcentage': 'Preparation loss as a percentage',
+  Perte: 'Loss',
+  'Net par portion :': 'Net per portion:',
+  'Quantité brute (avant épluchage ou cuisson) et perte à la préparation : le net par portion est calculé. Ingrédient ou unité absent : tapez son nom puis « Créer », la fiche reste intacte.':
+    'Gross quantity (before peeling or cooking) and preparation loss: the net per portion is calculated. Ingredient or unit missing: type its name then “Create”, the form keeps your input.',
+  'Non renseigné': 'Not provided',
+  'Aucun allergène': 'No allergen',
+  'Allergènes de {name}': 'Allergens of {name}',
+  'Cochez les allergènes majeurs présents. Les plats les reprendront à leur prochain enregistrement.':
+    'Tick the major allergens present. Dishes will pick them up the next time they are saved.',
+  'Allergènes majeurs': 'Major allergens',
+  'Déclarer « aucun allergène »': 'Declare “no allergen”',
+  'Nouvel ingrédient': 'New ingredient',
+  'Aucun ingrédient': 'No ingredient',
+  'Ajoutez-en ici ou directement depuis la fiche recette d’un plat.':
+    'Add some here or directly from a dish’s recipe sheet.',
+  ', dont {m} non renseignés': ', {m} of them not provided',
+  ', dont {m} non renseigné': ', {m} of them not provided',
 
   // Profil et réglages
   'Modifier le nom': 'Edit name',
@@ -498,6 +588,9 @@ export const EN: Record<string, string> = {
   'Vous avez déjà un repas réservé pour ce service.':
     'You already have a meal booked for this service.',
   'Élément introuvable.': 'Item not found.',
+  'Établissement introuvable.': 'School not found.',
+  'Perte à la préparation : entre 0 et 99 %.':
+    'Preparation loss: between 0 and 99%.',
   'Nom : 1 à 80 caractères.': 'Name: 1 to 80 characters.',
 }
 

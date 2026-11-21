@@ -22,12 +22,12 @@ export function AllergenBadges({ allergens }: { allergens: Doc<'dishes'>['allerg
       {allergens.present.map((name) => (
         <Badge key={name} variant="secondary">
           <TriangleAlertIcon />
-          {name}
+          {t(name)}
         </Badge>
       ))}
       {allergens.traces.map((name) => (
         <Badge key={name} variant="outline">
-          {t('Traces :')} {name}
+          {t('Traces :')} {t(name)}
         </Badge>
       ))}
     </div>
