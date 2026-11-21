@@ -19,10 +19,14 @@ export const Route = createRootRouteWithContext<{
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Vatel Restauration' },
+      { name: 'theme-color', content: '#072a5d' },
+      { name: 'apple-mobile-web-app-title', content: 'Vatel' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
       { rel: 'icon', type: 'image/svg+xml', href: '/logo-vatel.svg' },
+      { rel: 'manifest', href: '/manifest.webmanifest' },
+      { rel: 'apple-touch-icon', sizes: '180x180', href: '/icons/vatel-apple-touch-180.png' },
     ],
   }),
   beforeLoad: async (ctx) => {

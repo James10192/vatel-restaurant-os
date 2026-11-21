@@ -3,9 +3,9 @@
 _21/11/2026, agent PWA (session isolée). Référence : issue #10, sections « PWA-A » et « PWA-1 »._
 
 **Statut : PWA installable SANS mode hors ligne. Aucun service worker.**
-Assets livrés et vérifiés. Le lien dans le `<head>` dépend d'un patch de `src/routes/__root.tsx` (fichier
-partagé du lead) : **non appliqué dans cette branche**, à valider par le lead (voir « Patch à appliquer »).
-Tant qu'il n'est pas appliqué, le navigateur ne découvre pas le manifeste : l'application n'est pas installable.
+Assets livrés et vérifiés. Patch de `src/routes/__root.tsx` (fichier partagé) **validé par le lead et appliqué**
+dans cette branche. La meta `application-name` initialement proposée a été retirée en revue : redondante avec le
+`short_name` du manifeste pour les navigateurs ciblés.
 
 ## Fichiers livrés (uniquement ceux attribués)
 | Fichier | Rôle |
@@ -37,12 +37,11 @@ les variables d'environnement ou le déploiement. Aucune dépendance ajoutée (l
   (limite 204,8 = 40 %) et 75,0 px pour 192 (limite 76,8). Les icônes `any` débordent du cercle, c'est attendu :
   elles ne sont pas déclarées `maskable`.
 
-## Patch à appliquer (lead, `src/routes/__root.tsx`)
-Insérer dans `head()` ; ne touche ni `ScriptOnce`, ni Better Auth, ni Convex, ni le SSR :
+## Patch appliqué (validé par le lead, `src/routes/__root.tsx`)
+Insertion dans `head()` ; ne touche ni `ScriptOnce`, ni Better Auth, ni Convex, ni le SSR :
 ```diff
        { title: 'Vatel Restauration' },
 +      { name: 'theme-color', content: '#072a5d' },
-+      { name: 'application-name', content: 'Vatel' },
 +      { name: 'apple-mobile-web-app-title', content: 'Vatel' },
      ],
      links: [
@@ -56,7 +55,7 @@ Valeurs statiques, aucune lecture de `window` au rendu serveur, donc aucun risqu
 `theme-color` unique (pas de variante clair/sombre) : la barre système reste bleu Vatel dans les deux thèmes,
 sans changement de couleur à l'hydratation.
 
-## Vérifications réellement exécutées (patch appliqué localement, puis retiré)
+## Vérifications réellement exécutées (patch appliqué ; refaites après application définitive)
 Environnement : conteneur cloud Linux, Chromium headless (Playwright), build de production Nitro `node-server`
 servi sur `localhost:3100`. **Aucun backend Convex contacté** : un bouchon local répondait « pas de session » sur
 `/api/auth/convex/token` (le conteneur n'a pas de `.env.local`, et il ne faut pas brancher un second client sur le dev du lead).
@@ -68,7 +67,7 @@ servi sur `localhost:3100`. **Aucun backend Convex contacté** : un bouchon loca
 | `pnpm build` | OK ; `manifest.webmanifest` et `icons/` copiés dans `.output/public` |
 | `GET /manifest.webmanifest` | 200, `Content-Type: application/manifest+json`, JSON valide |
 | Icônes 192, 512, maskable 512, apple-touch 180, `logo-vatel.svg` | 200 `image/png` (svg : `image/svg+xml`) ; dimensions exactes (`identify`), PNG RGB opaques |
-| `<head>` SSR de `/auth` | `link rel=manifest`, `apple-touch-icon`, `meta theme-color`, `application-name`, `apple-mobile-web-app-title` présents |
+| `<head>` SSR de `/auth` | `link rel=manifest`, `apple-touch-icon`, `meta theme-color`, `apple-mobile-web-app-title` présents |
 | `/app` sans session | 307 vers `/auth?redirect=%2Fapp` |
 | Chromium `Page.getInstallabilityErrors` | `[]` (aucune erreur d'installabilité) |
 | Chromium `Page.getAppManifest` | manifeste trouvé, `errors: []` |
@@ -85,7 +84,7 @@ servi sur `localhost:3100`. **Aucun backend Convex contacté** : un bouchon loca
 - Comportement sur Vercel : le préréglage Vercel n'a pas été construit ici (build local en `node-server`). Les fichiers
   de `public/` y sont servis en statique ; vérifier le `Content-Type` du manifeste après déploiement.
 
-## Recette à faire après application du patch
+## Recette restante (appareils réels)
 1. `pnpm build` puis déploiement de prévisualisation HTTPS (ou `localhost`).
 2. Android Chrome : menu, puis « Installer l'application » ; lancer depuis l'icône : fenêtre autonome, `/app` ou `/auth`.
 3. iOS Safari : Partager, puis « Sur l'écran d'accueil » (aucune invite automatique sur iOS, l'événement
