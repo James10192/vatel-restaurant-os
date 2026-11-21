@@ -28,8 +28,10 @@ Ne jamais écrire de nom de déploiement, d'URL Convex ni de secret dans le dép
 ## Procédure (une étape à la fois, preuve, puis la suivante)
 Légende : **[P]** porteur (compte ou décision personnelle), **[A]** agent après accord explicite.
 
-1. **[A] Rotation des comptes démo dev** : supprimer `gerant@demo.test`, `awa.etudiant@demo.test` et `admin@demo.test`
-   (composant `betterAuth` : tables `user`, `account`, `session` ; profils associés). Irréversible, sur dev uniquement.
+1. **[A] Rotation des comptes démo dev : FAITE le 21/11 vers 14h.** `gerant@demo.test`, `awa.etudiante@demo.test` et
+   `admin@demo.test` supprimés du composant `betterAuth` (`user`, `account`, `session`) par identifiant exact, via
+   `convex run --component betterAuth adapter:deleteMany / deleteOne`. Vérifié : aucune ligne restante liée à ces comptes.
+   Les profils applicatifs restent orphelins et inutilisables (une nouvelle inscription crée un autre identifiant).
 2. **[P] Clé de déploiement** : Convex dashboard > projet > déploiement **prod** > Settings > Deploy keys > générer.
    La coller directement dans Vercel (étape 4), jamais dans un chat ni un fichier.
 3. **[A] Projet Vercel** : `vercel link` (nouveau projet, équipe personnelle), commande de build :
