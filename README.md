@@ -25,6 +25,22 @@ Toutes vérifiées le 21/11 **sur l'URL de production**, dans une session réell
 Temps réel natif (Convex) : une réservation apparaît chez le gérant **0,4 s** après, sans rechargement (test à deux
 navigateurs).
 
+## Au-delà des 7 obligations (livré et déployé)
+- **Aide au choix** (Smart Menu, issue #3) : l'étudiant donne ses jours, son budget, un service, les allergènes à
+  éviter et une envie ; il reçoit une sélection de repas publiés qui respecte ces contraintes. Les règles serveur
+  décident (prix, budget, portions, échéance, allergènes) ; un modèle de langage facultatif choisit seulement parmi
+  des offres déjà vérifiées et explique son choix, puis le serveur revalide tout. Sans modèle, quota atteint ou
+  erreur : même calcul sans IA, signalé « Calcul sans IA ». Aucune réservation automatique : « Réserver » ouvre la
+  confirmation habituelle. Vérifié en production le 21/11 (issue #3). Détails : `docs/ai/b1/SMART-MENU.md`.
+- **Fiches techniques** (issue #13, page Gestion > Fiches techniques) : ingrédients, quantités et unités par plat,
+  modification d'un plat jamais publié, nouvelle version pré-remplie pour un plat publié (verrouillé), allergènes par
+  ingrédient parmi les 14 allergènes majeurs, allergènes du plat déduits côté serveur (un seul ingrédient non
+  renseigné rend le plat « non renseigné »), perte à la préparation et net par portion.
+- **Application installable** (PWA) et page **Profil** : installation sur l'écran d'accueil, modification du nom et du
+  mot de passe, apparence. Notifications push prêtes côté serveur (publication du menu), actives quand
+  l'établissement a configuré ses clés. **Pas de mode hors ligne** : le service worker ne met rien en cache
+  (`docs/pwa.md`).
+
 ## Une interface pensée pour chaque écran
 Même produit et mêmes données, trois compositions (captures avant/après : `docs/design/adaptive/`) :
 - **Mobile** : barre de navigation au pouce, cartes verticales, filtres en panneau, actions principales à portée.
@@ -72,20 +88,29 @@ Rattacher d'autres comptes : `pnpm exec convex run setup:attachAccount '{"cantee
 ```bash
 pnpm typecheck && pnpm lint && pnpm test && pnpm build
 ```
-70 tests (Vitest et convex-test) : isolation entre établissements, droits par rôle, idempotence des recharges et des
+133 tests (Vitest et convex-test) : isolation entre établissements, droits par rôle, idempotence des recharges et des
 réservations, réservations simultanées sur la dernière place, solde insuffisant sans écriture partielle, plafond de
-démonstration, remboursement unique, échéances, dates invalides, redirections externes refusées.
+démonstration, remboursement unique, échéances, dates invalides, redirections externes refusées, règles de l'Aide au
+choix (budget, allergènes, revalidation des propositions du modèle), fiches techniques et allergènes déduits.
+
+Intégration continue GitHub Actions à chaque PR et sur `main` : installation au lockfile figé, typecheck, lint, tests,
+build et analyse gitleaks de tout l'historique.
 
 ## Déploiement
 Vercel et Convex, procédure pas à pas et état vérifié : `docs/DEPLOYMENT.md`.
 
 ## Limites connues
 - Rattachement des comptes par commande opérateur (écran de gestion des usagers prévu).
-- Fiche recette créée avec le plat mais pas encore modifiable ensuite ; allergènes saisis au niveau du plat ; pas encore
-  de suivi des pertes ni du gaspillage (issues #13 et #6).
+- Pas encore de calcul des besoins matière à partir des réservations (Smart Production, #5), ni de suivi des stocks et
+  du gaspillage réel (#6).
+- Pas d'espace parent (#8), pas de remise par QR code (#4), pas de mode hors ligne.
+- Interface en français ; la version anglaise est en cours de revue (PR #39), non livrée.
 - Après déconnexion, l'accès serveur prend fin à l'expiration du jeton de session (quelques minutes).
 - Recharge uniquement en crédits de démonstration : aucun prestataire de paiement réel n'est branché.
 
 ## Développement assisté par IA
 Code écrit pendant le hackathon avec l'assistance de Claude Code, sous la direction de l'équipe. Règles de travail :
 `AGENTS.md` ; journal de développement : `docs/ai/HANDOFF.md`.
+
+## Soutenance
+Scénario de démo live et plan de secours : `docs/jury/SCENARIO-DEMO.md` ; contenu du pitch : `docs/jury/PITCH.md`.
