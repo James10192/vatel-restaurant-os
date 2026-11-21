@@ -1,4 +1,5 @@
 import { ConvexError, v } from 'convex/values'
+import { internal } from './_generated/api'
 import type { Doc } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { mutation, query } from './_generated/server'
@@ -117,6 +118,10 @@ export const publishWeek = mutation({
     const { canteenId } = await requireAdmin(ctx)
     const drafts = (await itemsOfWeek(ctx, canteenId, weekStart)).filter((item) => item.status === 'draft')
     await Promise.all(drafts.map((item) => ctx.db.patch(item._id, { status: 'published' })))
+    // Planifié dans la même transaction : la notification ne part que si la publication est validée.
+    if (drafts.length > 0) {
+      await ctx.scheduler.runAfter(0, internal.pushSend.deliver, { target: { canteenId }, kind: 'menuPublished' })
+    }
     return { published: drafts.length }
   },
 })

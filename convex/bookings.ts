@@ -4,6 +4,7 @@ import { mutation, query } from './_generated/server'
 import { getOwned, requireMember } from './lib/access'
 import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
 import { appendEntry, getOrCreateWallet } from './lib/ledger'
+import { alertIfLowBalance } from './lib/lowBalance'
 import { cutoffAt, policyOf } from './lib/policy'
 import { activeBookingsCount } from './lib/capacity'
 import type { Membership } from './lib/access'
@@ -72,6 +73,7 @@ export const book = mutation({
       label: `Réservation : ${dish.name}`,
       bookingId,
     })
+    await alertIfLowBalance(ctx, membership._id, wallet.balanceXof, balanceXof)
     return { bookingId, balanceXof, replayed: false }
   },
 })
