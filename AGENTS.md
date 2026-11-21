@@ -1,7 +1,7 @@
 # AGENTS.md — Vatel Restauration (hackathon Vatel × Epitech, 21/11/2026)
 
 Contrat permanent pour tout agent (Claude Code, Codex, OpenCode). Court par design.
-Identifiant interne historique : idj.AI (jamais visible dans l'UI).
+Identité produit unique : Vatel — Restauration. Aucun autre nom de marque ne doit apparaître dans le dépôt, l'UI ou les issues.
 
 ## Avant chaque tâche
 1. Lire ce fichier + `docs/ai/HANDOFF.md` (lot actif). Le dépôt prévaut sur le HANDOFF.
@@ -23,7 +23,7 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
 - Création contextuelle des références (unités, ingrédients) dans le formulaire, sans perte de saisie.
 - Recherche/tri/pagination côté serveur avec index Convex ; temps réel Convex natif, pas de polling.
 - Français simple, prix XOF entiers, mobile 360px, réseau lent, états loading/empty/error.
-- Branding : Vatel uniquement, via tokens de `docs/DESIGN.md`. Ne pas utiliser `branding/idj-ai-*`.
+- Branding : Vatel uniquement, via tokens de `docs/DESIGN.md` et uniquement des ressources officielles autorisées. Aucune ancienne ressource de marque.
 
 ## Règles serveur (non négociables)
 - Auth + rôle + tenant + ownership vérifiés dans CHAQUE fonction publique Convex ; tenant jamais fourni par le client.
@@ -35,6 +35,11 @@ Lire la doc de la version réellement installée (node_modules, `--help`). Ne ja
 - Pas de god file (>250 lignes = revue), pas de hardcoding métier, pas de `any`/`@ts-ignore`, pas de faux bouton,
   de mock caché ou de succès non confirmé par le serveur. Aucun code KLASSCI/Joliba/projet préexistant.
 - Après tâche : typecheck + lint + test ciblé + vérif navigateur si UI. Ne jamais déclarer testé ce qui ne l'est pas.
+
+## Travail parallèle isolé
+- Le lead reste seul propriétaire de `convex/**`, `src/lib/auth*`, `src/router.tsx`, `src/routes/__root.tsx`, manifests/lockfile et déploiement ; pas de modifications simultanées de ces fichiers.
+- Toute autre session IA de code utilise une branche + un Git worktree indépendant, des fichiers exclusivement attribués, une PR vers `main` et un HANDOFF propre à sa tâche ; jamais de cherry-pick/merge/push sur `main` sans validation.
+- Une seule session utilise `convex dev` sur un déploiement donné ; worktrees UI secondaires n'écrivent pas dans les données/variables/schéma Convex du lead, et ne lisent jamais les secrets.
 
 ## Git et secrets
 - Hooks : `git config core.hooksPath .githooks` (gitleaks staged, .env bloqué, conventional commits).
