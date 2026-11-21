@@ -10,6 +10,7 @@ import { Spinner } from '#/components/ui/spinner'
 import { cn } from '#/lib/utils'
 import { PasswordInput } from './password-input'
 import { useEmailAuth } from './use-email-auth'
+import { useT } from '#/i18n/i18n'
 
 export type AuthMode = 'login' | 'signup'
 
@@ -34,16 +35,17 @@ const FIELD = 'h-12 rounded-xl bg-muted/60'
 
 /** Champ plein avec icône en tête ; le libellé reste lisible par les lecteurs d'écran. */
 function IconField({ id, label, icon: Icon, ...props }: { id: string; label: string; icon: LucideIcon } & ComponentProps<typeof InputGroupInput>) {
+  const t = useT()
   return (
     <Field>
       <FieldLabel htmlFor={id} className="text-xs font-medium text-muted-foreground">
-        {label}
+        {t(label)}
       </FieldLabel>
       <InputGroup className={FIELD}>
         <InputGroupAddon>
           <Icon />
         </InputGroupAddon>
-        <InputGroupInput id={id} name={id} placeholder={label} {...props} />
+        <InputGroupInput id={id} name={id} placeholder={t(label)} {...props} />
       </InputGroup>
     </Field>
   )
@@ -51,6 +53,7 @@ function IconField({ id, label, icon: Icon, ...props }: { id: string; label: str
 
 /** Sélecteur Inscription / Connexion en pastilles : deux liens, l'URL reste la source de vérité. */
 function ModeSwitch({ mode, redirectTo }: { mode: AuthMode; redirectTo: string }) {
+  const t = useT()
   const tab = (target: AuthMode, label: string) => (
     <Link
       to="/auth"
@@ -61,11 +64,11 @@ function ModeSwitch({ mode, redirectTo }: { mode: AuthMode; redirectTo: string }
         mode === target ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30' : 'text-muted-foreground hover:text-foreground',
       )}
     >
-      {label}
+      {t(label)}
     </Link>
   )
   return (
-    <nav aria-label="Choisir l’action" className="mx-auto flex w-full max-w-xs rounded-full bg-muted p-1">
+    <nav aria-label={t('Choisir l’action')} className="mx-auto flex w-full max-w-xs rounded-full bg-muted p-1">
       {tab('signup', 'Inscription')}
       {tab('login', 'Connexion')}
     </nav>
@@ -74,32 +77,33 @@ function ModeSwitch({ mode, redirectTo }: { mode: AuthMode; redirectTo: string }
 
 // Composition inspirée des blocs officiels @shadcn/login-03 et @shadcn/signup-03.
 export function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirectTo: string }) {
+  const t = useT()
   const copy = MODES[mode]
   const { pending, error, onSubmit } = useEmailAuth(copy.action, redirectTo)
   return (
     <div className="flex w-full flex-col gap-8">
       <ModeSwitch mode={mode} redirectTo={redirectTo} />
       <div className="flex flex-col gap-2 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">{copy.title}</h1>
-        <p className="text-muted-foreground">{copy.description}</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t(copy.title)}</h1>
+        <p className="text-muted-foreground">{t(copy.description)}</p>
       </div>
       <form onSubmit={onSubmit}>
         <FieldGroup className="gap-4">
           {mode === 'signup' && (
             <div className="grid grid-cols-2 gap-3">
-              <IconField id="firstName" label="Prénom" icon={UserIcon} autoComplete="given-name" required />
-              <IconField id="lastName" label="Nom" icon={UserIcon} autoComplete="family-name" required />
+              <IconField id="firstName" label={t('Prénom')} icon={UserIcon} autoComplete="given-name" required />
+              <IconField id="lastName" label={t('Nom')} icon={UserIcon} autoComplete="family-name" required />
             </div>
           )}
-          <IconField id="email" label="Adresse e-mail" icon={MailIcon} type="email" autoComplete="email" required />
+          <IconField id="email" label={t('Adresse e-mail')} icon={MailIcon} type="email" autoComplete="email" required />
           <Field>
             <FieldLabel htmlFor="password" className="text-xs font-medium text-muted-foreground">
-              Mot de passe
+              {t('Mot de passe')}
             </FieldLabel>
             <PasswordInput
               id="password"
               name="password"
-              placeholder="Mot de passe"
+              placeholder={t('Mot de passe')}
               className={FIELD}
               autoComplete={copy.passwordAutoComplete}
               required
@@ -109,18 +113,18 @@ export function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirectTo: str
           {mode === 'signup' && (
             <Field>
               <FieldLabel htmlFor="confirmPassword" className="text-xs font-medium text-muted-foreground">
-                Confirmer le mot de passe
+                {t('Confirmer le mot de passe')}
               </FieldLabel>
               <PasswordInput
                 id="confirmPassword"
                 name="confirmPassword"
-                placeholder="Confirmer le mot de passe"
+                placeholder={t('Confirmer le mot de passe')}
                 className={FIELD}
                 autoComplete="new-password"
                 required
                 minLength={8}
               />
-              <FieldDescription>Au moins 8 caractères.</FieldDescription>
+              <FieldDescription>{t('Au moins 8 caractères.')}</FieldDescription>
             </Field>
           )}
           <FormError message={error} />
@@ -131,7 +135,7 @@ export function AuthForm({ mode, redirectTo }: { mode: AuthMode; redirectTo: str
             disabled={pending}
           >
             {pending && <Spinner data-icon="inline-start" />}
-            {copy.submit}
+            {t(copy.submit)}
           </Button>
         </FieldGroup>
       </form>

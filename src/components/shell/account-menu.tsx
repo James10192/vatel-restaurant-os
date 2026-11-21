@@ -15,6 +15,7 @@ import { ThemeSubmenu } from '#/components/theme-submenu'
 import { PROFILE_NAV } from '#/components/shell/nav-model'
 import { useInstall } from '#/lib/install'
 import { ROLE_LABELS, currentUserQuery, useSignOut } from '#/lib/session'
+import { useT } from '#/i18n/i18n'
 
 const ProfileIcon = PROFILE_NAV.icon
 
@@ -29,6 +30,7 @@ export function AccountMenu({
   trigger: ReactNode
   side?: 'top' | 'right'
 }) {
+  const t = useT()
   const { data: user } = useSuspenseQuery(currentUserQuery)
   const { state: install, promptInstall } = useInstall()
   const signOut = useSignOut()
@@ -41,7 +43,7 @@ export function AccountMenu({
           <span className="truncate text-xs font-normal text-muted-foreground">
             {user?.membership
               ? `${ROLE_LABELS[user.membership.role]}, ${user.membership.canteenName}`
-              : 'Compte non rattaché'}
+              : t('Compte non rattaché')}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -49,14 +51,14 @@ export function AccountMenu({
           <DropdownMenuItem asChild>
             <Link to={PROFILE_NAV.to}>
               <ProfileIcon />
-              {PROFILE_NAV.label}
+              {t(PROFILE_NAV.label)}
             </Link>
           </DropdownMenuItem>
           {/* Seulement quand le navigateur propose réellement l'installation (jamais de faux bouton). */}
           {install === 'available' && (
             <DropdownMenuItem onSelect={() => void promptInstall()}>
               <DownloadIcon />
-              Installer l’application
+              {t('Installer l’application')}
             </DropdownMenuItem>
           )}
           <ThemeSubmenu />
@@ -65,7 +67,7 @@ export function AccountMenu({
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={() => void signOut()}>
             <LogOutIcon />
-            Se déconnecter
+            {t('Se déconnecter')}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

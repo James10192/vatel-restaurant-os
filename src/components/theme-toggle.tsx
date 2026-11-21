@@ -2,6 +2,7 @@ import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { THEMES, THEME_LABELS, useTheme } from '#/lib/theme'
 import { cn } from '#/lib/utils'
+import { useT } from '#/i18n/i18n'
 
 export const THEME_ICONS = { light: SunIcon, dark: MoonIcon, system: MonitorIcon } as const
 
@@ -10,13 +11,14 @@ export const THEME_ICONS = { light: SunIcon, dark: MoonIcon, system: MonitorIcon
  * `onImage` : posé sur la photo bleu Vatel, donc toujours en blanc translucide.
  */
 export function ThemeToggle({ onImage = false, className }: { onImage?: boolean; className?: string }) {
+  const t = useT()
   const { preference, choose } = useTheme()
   return (
     <ToggleGroup
       type="single"
       value={preference}
       onValueChange={choose}
-      aria-label="Apparence"
+      aria-label={t('Apparence')}
       spacing={0}
       className={cn(
         'rounded-full border p-0.5 backdrop-blur-md',
@@ -30,8 +32,8 @@ export function ThemeToggle({ onImage = false, className }: { onImage?: boolean;
           <ToggleGroupItem
             key={theme}
             value={theme}
-            aria-label={THEME_LABELS[theme]}
-            title={THEME_LABELS[theme]}
+            aria-label={t(THEME_LABELS[theme])}
+            title={t(THEME_LABELS[theme])}
             className={cn(
               'size-9 min-w-9 rounded-full! p-0',
               onImage

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { convexQuery } from '@convex-dev/react-query'
 import { api } from '../../convex/_generated/api'
 import { isIos, isStandalone } from '#/lib/install'
+import { useLocale } from '#/i18n/i18n'
 
 /**
  * Notifications push de cet appareil. Le service worker (`public/sw.js`) n'est enregistré qu'à l'activation
@@ -71,7 +72,10 @@ export function usePushNotifications() {
   const { data: publicKey, isPending } = useQuery(
     convexQuery(api.push.publicKey, {}),
   )
-  const save = useMutation(api.push.subscribe)
+  const subscribe = useMutation(api.push.subscribe)
+  const { locale } = useLocale()
+  // L'abonnement porte la langue de l'application : les notifications arrivent dans cette langue.
+  const save = useCallback((keys: ReturnType<typeof keysOf>) => subscribe({ ...keys, locale }), [subscribe, locale])
   const remove = useMutation(api.push.unsubscribe)
   const [subscribed, setSubscribed] = useState<boolean | null>(null)
 

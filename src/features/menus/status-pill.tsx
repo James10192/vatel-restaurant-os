@@ -1,4 +1,5 @@
 import { cn } from '#/lib/utils'
+import { useT } from '#/i18n/i18n'
 
 const STATUS = {
   published: { label: 'Publié', className: 'bg-success-soft text-success' },
@@ -7,11 +8,12 @@ const STATUS = {
 
 /** Statut d'une offre : pastille douce + point, lisible sans dépendre de la seule couleur. */
 export function StatusPill({ status }: { status: keyof typeof STATUS }) {
+  const t = useT()
   const { label, className } = STATUS[status]
   return (
     <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold', className)}>
       <span aria-hidden className="size-1.5 rounded-full bg-current" />
-      {label}
+      {t(label)}
     </span>
   )
 }

@@ -21,6 +21,7 @@ import type * as lib_allergens from "../lib/allergens.js";
 import type * as lib_capacity from "../lib/capacity.js";
 import type * as lib_dates from "../lib/dates.js";
 import type * as lib_ledger from "../lib/ledger.js";
+import type * as lib_locale from "../lib/locale.js";
 import type * as lib_lowBalance from "../lib/lowBalance.js";
 import type * as lib_notifications from "../lib/notifications.js";
 import type * as lib_policy from "../lib/policy.js";
@@ -59,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   "lib/capacity": typeof lib_capacity;
   "lib/dates": typeof lib_dates;
   "lib/ledger": typeof lib_ledger;
+  "lib/locale": typeof lib_locale;
   "lib/lowBalance": typeof lib_lowBalance;
   "lib/notifications": typeof lib_notifications;
   "lib/policy": typeof lib_policy;

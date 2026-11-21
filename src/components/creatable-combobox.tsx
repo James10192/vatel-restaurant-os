@@ -5,6 +5,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '#/components/ui/popover'
 import { Spinner } from '#/components/ui/spinner'
 import { cn } from '#/lib/utils'
+import { useT } from '#/i18n/i18n'
 
 export type Option = { _id: string; name: string }
 
@@ -32,6 +33,7 @@ export function CreatableCombobox({
   label: string
   invalid?: boolean
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [creating, setCreating] = useState(false)
@@ -48,7 +50,7 @@ export function CreatableCombobox({
       setSearch('')
       setOpen(false)
     } catch {
-      setError('Création impossible. Vérifiez la connexion et réessayez.')
+      setError(t('Création impossible. Vérifiez la connexion et réessayez.'))
     } finally {
       setCreating(false)
     }
@@ -61,7 +63,7 @@ export function CreatableCombobox({
           type="button"
           variant="outline"
           role="combobox"
-          aria-label={label}
+          aria-label={t(label)}
           aria-expanded={open}
           aria-invalid={invalid}
           className={cn('w-full justify-between font-normal', !selected && 'text-muted-foreground')}
@@ -72,9 +74,9 @@ export function CreatableCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) min-w-56 p-0" align="start">
         <Command>
-          <CommandInput placeholder="Rechercher…" value={search} onValueChange={setSearch} />
+          <CommandInput placeholder={t('Rechercher…')} value={search} onValueChange={setSearch} />
           <CommandList>
-            <CommandEmpty>Aucun résultat.</CommandEmpty>
+            <CommandEmpty>{t('Aucun résultat.')}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
@@ -94,7 +96,7 @@ export function CreatableCombobox({
               <CommandGroup forceMount>
                 <CommandItem forceMount value={`__create__${search}`} disabled={creating} onSelect={create}>
                   {creating ? <Spinner /> : <PlusIcon />}
-                  Créer « {search.trim()} »
+                  {t('Créer «')} {search.trim()} »
                 </CommandItem>
               </CommandGroup>
             )}

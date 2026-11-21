@@ -16,6 +16,7 @@ import type { PushStatus } from '#/lib/push'
 import { useServerAction } from '#/lib/server-action'
 import { NotificationPreferences } from './notification-preferences'
 import { SettingsSection, StatusLine } from './settings-section'
+import { useT } from '#/i18n/i18n'
 
 /** Explication de chaque état où l'activation n'est pas possible ici (aucun bouton factice). */
 const BLOCKED: Partial<Record<PushStatus, string>> = {
@@ -31,6 +32,7 @@ const BLOCKED: Partial<Record<PushStatus, string>> = {
 
 /** Notifications push de CET appareil : activer, tester, désactiver. Textes génériques, rien de personnel. */
 export function NotificationsSection() {
+  const t = useT()
   const { status, enable, disable } = usePushNotifications()
   const toggle = useServerAction(async (on: boolean) =>
     on ? enable() : disable(),
@@ -42,11 +44,11 @@ export function NotificationsSection() {
   return (
     <SettingsSection
       icon={BellIcon}
-      title="Notifications"
-      description="Menus publiés, rappel avant la clôture des réservations, solde bas. Aucun détail personnel ne s’affiche sur l’écran verrouillé."
+      title={t('Notifications')}
+      description={t('Menus publiés, rappel avant la clôture des réservations, solde bas. Aucun détail personnel ne s’affiche sur l’écran verrouillé.')}
     >
       {status === 'loading' && <Spinner />}
-      {blocked && <StatusLine icon={InfoIcon}>{blocked}</StatusLine>}
+      {blocked && <StatusLine icon={InfoIcon}>{t(blocked)}</StatusLine>}
 
       {status === 'off' && (
         <Button
@@ -60,14 +62,14 @@ export function NotificationsSection() {
           ) : (
             <BellIcon data-icon="inline-start" />
           )}
-          Activer sur cet appareil
+          {t('Activer sur cet appareil')}
         </Button>
       )}
 
       {status === 'on' && (
         <>
           <StatusLine icon={CheckCircle2Icon} tone="success">
-            Activées sur cet appareil.
+            {t('Activées sur cet appareil.')}
           </StatusLine>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -84,7 +86,7 @@ export function NotificationsSection() {
               ) : (
                 <SendIcon data-icon="inline-start" />
               )}
-              Envoyer un test
+              {t('Envoyer un test')}
             </Button>
             <Button
               variant="outline"
@@ -92,14 +94,17 @@ export function NotificationsSection() {
               onClick={() => void toggle.run(false)}
             >
               <BellOffIcon data-icon="inline-start" />
-              Désactiver
+              {t('Désactiver')}
             </Button>
           </div>
           {sentTo !== null && (
             <StatusLine icon={SendIcon}>
-              Envoi accepté par le serveur pour {sentTo} appareil
-              {sentTo > 1 ? 's' : ''}. La notification arrive en général en
-              quelques secondes.
+              {t(
+                sentTo > 1
+                  ? 'Envoi accepté par le serveur pour {n} appareils. La notification arrive en général en quelques secondes.'
+                  : 'Envoi accepté par le serveur pour {n} appareil. La notification arrive en général en quelques secondes.',
+                { n: sentTo },
+              )}
             </StatusLine>
           )}
         </>

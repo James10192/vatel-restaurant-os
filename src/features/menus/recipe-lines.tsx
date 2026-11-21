@@ -8,6 +8,7 @@ import { CreatableCombobox } from '#/components/creatable-combobox'
 import { Button } from '#/components/ui/button'
 import { Field, FieldDescription, FieldLabel, FieldLegend, FieldSet } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
+import { useT } from '#/i18n/i18n'
 
 export type RecipeLineDraft = {
   key: string
@@ -47,6 +48,7 @@ export function RecipeLines({
   lines: Array<RecipeLineDraft>
   onLinesChange: (lines: Array<RecipeLineDraft>) => void
 }) {
+  const t = useT()
   const { data: refs } = useQuery(convexQuery(api.catalog.references, {}))
   const createIngredient = useMutation(api.catalog.createIngredient)
   const createUnit = useMutation(api.catalog.createUnit)
@@ -56,11 +58,11 @@ export function RecipeLines({
 
   return (
     <FieldSet className="@container">
-      <FieldLegend>Fiche recette</FieldLegend>
+      <FieldLegend>{t('Fiche recette')}</FieldLegend>
       <Field orientation="horizontal" className="w-fit">
-        <FieldLabel htmlFor="portions">Pour</FieldLabel>
+        <FieldLabel htmlFor="portions">{t('Pour')}</FieldLabel>
         <Input id="portions" inputMode="numeric" className="w-20" value={portions} onChange={(e) => onPortionsChange(e.target.value)} />
-        <span className="text-sm text-muted-foreground">portions</span>
+        <span className="text-sm text-muted-foreground">{t('portions')}</span>
       </Field>
       <div className="flex flex-col gap-3">
         {lines.map((line) => {
@@ -70,8 +72,8 @@ export function RecipeLines({
               <div className="grid grid-cols-[1fr_auto] gap-2 @xl:grid-cols-[minmax(0,1fr)_5rem_minmax(0,9rem)_5.5rem_auto] @xl:items-center">
                 <div className="@xl:contents">
                   <CreatableCombobox
-                    label="Ingrédient"
-                    placeholder="Ingrédient"
+                    label={t('Ingrédient')}
+                    placeholder={t('Ingrédient')}
                     options={refs?.ingredients ?? []}
                     value={line.ingredientId}
                     onChange={(id) => update(line.key, { ingredientId: id as Id<'ingredients'> })}
@@ -82,7 +84,7 @@ export function RecipeLines({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label="Retirer la ligne"
+                  aria-label={t('Retirer la ligne')}
                   className="@xl:order-last"
                   onClick={() => onLinesChange(lines.filter((l) => l.key !== line.key))}
                 >
@@ -90,15 +92,15 @@ export function RecipeLines({
                 </Button>
                 <div className="col-span-2 grid grid-cols-[5rem_minmax(0,1fr)_5.5rem] gap-2 @xl:contents">
                   <Input
-                    aria-label="Quantité brute"
+                    aria-label={t('Quantité brute')}
                     inputMode="decimal"
-                    placeholder="Qté"
+                    placeholder={t('Qté')}
                     value={line.quantity}
                     onChange={(e) => update(line.key, { quantity: e.target.value })}
                   />
                   <CreatableCombobox
-                    label="Unité"
-                    placeholder="Unité"
+                    label={t('Unité')}
+                    placeholder={t('Unité')}
                     options={refs?.units ?? []}
                     value={line.unitId}
                     onChange={(id) => update(line.key, { unitId: id as Id<'units'> })}
@@ -106,9 +108,9 @@ export function RecipeLines({
                   />
                   <div className="relative">
                     <Input
-                      aria-label="Perte à la préparation en pourcentage"
+                      aria-label={t('Perte à la préparation en pourcentage')}
                       inputMode="decimal"
-                      placeholder="Perte"
+                      placeholder={t('Perte')}
                       className="pr-7"
                       value={line.lossPct}
                       onChange={(e) => update(line.key, { lossPct: e.target.value })}
@@ -121,7 +123,7 @@ export function RecipeLines({
               </div>
               {net && (
                 <p className="px-1 text-xs text-muted-foreground tabular-nums">
-                  Net par portion : {net} {unitName(line.unitId)}
+                  {t('Net par portion :')} {net} {unitName(line.unitId)}
                 </p>
               )}
             </div>
@@ -130,11 +132,10 @@ export function RecipeLines({
       </div>
       <Button type="button" variant="outline" size="sm" className="w-fit" onClick={() => onLinesChange([...lines, newLine()])}>
         <PlusIcon data-icon="inline-start" />
-        Ajouter un ingrédient
+        {t('Ajouter un ingrédient')}
       </Button>
       <FieldDescription>
-        Quantité brute (avant épluchage ou cuisson) et perte à la préparation : le net par portion est calculé. Ingrédient ou
-        unité absent : tapez son nom puis « Créer », la fiche reste intacte.
+        {t('Quantité brute (avant épluchage ou cuisson) et perte à la préparation : le net par portion est calculé. Ingrédient ou unité absent : tapez son nom puis « Créer », la fiche reste intacte.')}
       </FieldDescription>
     </FieldSet>
   )

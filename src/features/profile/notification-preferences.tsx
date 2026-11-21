@@ -21,6 +21,7 @@ import { Skeleton } from '#/components/ui/skeleton'
 import { Switch } from '#/components/ui/switch'
 import { formatXof } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
+import { useT } from '#/i18n/i18n'
 
 const LABELS: Record<
   NotificationCategory,
@@ -37,7 +38,7 @@ const LABELS: Record<
   },
   lowBalance: {
     title: 'Solde bas',
-    description: `Quand votre solde passe sous ${formatXof(LOW_BALANCE_XOF)}.`,
+    description: 'Quand votre solde passe sous {amount}.',
   },
 }
 
@@ -46,6 +47,7 @@ const LABELS: Record<
  * sur le serveur (temps réel Convex) : aucun changement n'est montré avant confirmation.
  */
 export function NotificationPreferences() {
+  const t = useT()
   const { data: enabled } = useQuery(
     convexQuery(api.notificationPreferences.mine, {}),
   )
@@ -53,19 +55,19 @@ export function NotificationPreferences() {
 
   return (
     <FieldSet>
-      <FieldLegend variant="label">Recevoir</FieldLegend>
+      <FieldLegend variant="label">{t('Recevoir')}</FieldLegend>
       <FieldDescription>
-        Ces choix valent pour tous vos appareils.
+        {t('Ces choix valent pour tous vos appareils.')}
       </FieldDescription>
       <FieldGroup className="gap-4">
         {NOTIFICATION_CATEGORIES.map((category) => (
           <Field key={category} orientation="horizontal">
             <FieldContent>
               <FieldLabel htmlFor={`notif-${category}`}>
-                {LABELS[category].title}
+                {t(LABELS[category].title)}
               </FieldLabel>
               <FieldDescription>
-                {LABELS[category].description}
+                {t(LABELS[category].description, { amount: formatXof(LOW_BALANCE_XOF) })}
               </FieldDescription>
             </FieldContent>
             {enabled ? (

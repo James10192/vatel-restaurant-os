@@ -8,6 +8,7 @@ import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
 import { formatXof } from '#/lib/format'
 import { DishForm } from '#/features/menus/dish-form'
+import { useT } from '#/i18n/i18n'
 
 export type CatalogDish = FunctionReturnType<typeof api.dishes.list>[number]
 
@@ -16,6 +17,7 @@ export type CatalogDish = FunctionReturnType<typeof api.dishes.list>[number]
  * peut-être réservé), on crée une nouvelle version pré-remplie, à programmer ensuite dans Menus.
  */
 export function DishDetail({ dish, onSaved }: { dish: CatalogDish; onSaved: (id: Id<'dishes'>) => void }) {
+  const t = useT()
   const [mode, setMode] = useState<'edit' | 'version'>('edit')
   const versionOf = { ...dish, name: `${dish.name} (nouvelle version)` }
   return (
@@ -25,17 +27,17 @@ export function DishDetail({ dish, onSaved }: { dish: CatalogDish; onSaved: (id:
           <h2 className="text-xl font-semibold tracking-tight">{dish.name}</h2>
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span className="tabular-nums">{formatXof(dish.defaultPriceXof)}</span>
-            {dish.published ? <Badge variant="secondary">Publié</Badge> : <Badge variant="outline">Jamais publié</Badge>}
+            {dish.published ? <Badge variant="secondary">{t('Publié')}</Badge> : <Badge variant="outline">{t('Jamais publié')}</Badge>}
             <span className="tabular-nums">
-              {dish.recipe.lines.length} ingrédient{dish.recipe.lines.length > 1 ? 's' : ''} pour {dish.recipe.portions} portion
-              {dish.recipe.portions > 1 ? 's' : ''}
+              {t(dish.recipe.lines.length > 1 ? '{n} ingrédients' : '{n} ingrédient', { n: dish.recipe.lines.length })}{' '}
+              {t(dish.recipe.portions > 1 ? 'pour {p} portions' : 'pour {p} portion', { p: dish.recipe.portions })}
             </span>
           </p>
         </div>
         {!dish.published && mode === 'edit' && (
           <Button variant="outline" onClick={() => setMode('version')}>
             <CopyPlusIcon data-icon="inline-start" />
-            Nouvelle version
+            {t('Nouvelle version')}
           </Button>
         )}
       </header>
@@ -43,17 +45,17 @@ export function DishDetail({ dish, onSaved }: { dish: CatalogDish; onSaved: (id:
       {dish.published && (
         <Alert>
           <LockIcon />
-          <AlertTitle>Fiche verrouillée : ce plat est publié</AlertTitle>
+          <AlertTitle>{t('Fiche verrouillée : ce plat est publié')}</AlertTitle>
           <AlertDescription>
-            Les usagers l’ont vu et ont pu le réserver. Modifiez une nouvelle version, puis programmez-la dans Menus.
+            {t('Les usagers l’ont vu et ont pu le réserver. Modifiez une nouvelle version, puis programmez-la dans Menus.')}
           </AlertDescription>
         </Alert>
       )}
 
       {dish.published || mode === 'version' ? (
-        <DishForm key={`version-${dish._id}`} initial={versionOf} onSaved={onSaved} submitLabel="Créer la nouvelle version" />
+        <DishForm key={`version-${dish._id}`} initial={versionOf} onSaved={onSaved} submitLabel={t('Créer la nouvelle version')} />
       ) : (
-        <DishForm key={`edit-${dish._id}`} initial={dish} dishId={dish._id} onSaved={onSaved} submitLabel="Enregistrer la fiche" />
+        <DishForm key={`edit-${dish._id}`} initial={dish} dishId={dish._id} onSaved={onSaved} submitLabel={t('Enregistrer la fiche')} />
       )}
     </div>
   )

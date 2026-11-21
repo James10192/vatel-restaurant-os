@@ -18,6 +18,7 @@ import { Textarea } from '#/components/ui/textarea'
 import { useServerAction } from '#/lib/server-action'
 import { RecipeLines, newLine, parseNumber } from './recipe-lines'
 import type { RecipeLineDraft } from './recipe-lines'
+import { useT } from '#/i18n/i18n'
 
 const splitList = (value: string) =>
   value
@@ -51,6 +52,7 @@ export function DishForm({
   dishId?: Id<'dishes'>
   submitLabel?: string
 }) {
+  const t = useT()
   const { run, pending, error, setError } = useServerAction(useMutation(api.dishes.save))
   const { data: refs } = useQuery(convexQuery(api.catalog.references, {}))
   const [portions, setPortions] = useState(String(initial?.recipe.portions ?? 1))
@@ -61,7 +63,7 @@ export function DishForm({
   const used = lines.flatMap((l) => (l.ingredientId ? [refs?.ingredients.find((i) => i._id === l.ingredientId)] : []))
   const missing = used.filter((i) => i && i.allergens === undefined).map((i) => i?.name)
   const codes = new Set(used.flatMap((i) => i?.allergens ?? []))
-  const derived = ALLERGEN_CODES.filter((c) => codes.has(c)).map((c) => ALLERGEN_LABELS[c])
+  const derived = ALLERGEN_CODES.filter((c) => codes.has(c)).map((c) => t(ALLERGEN_LABELS[c]))
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -74,7 +76,7 @@ export function DishForm({
       return ingredientId && unitId && value > 0 ? [{ ingredientId, unitId, quantity: value, lossPct: loss }] : []
     })
     if (recipeLines.length !== filled.length) {
-      setError('Chaque ligne de recette doit avoir un ingrédient, une quantité positive et une unité.')
+      setError(t('Chaque ligne de recette doit avoir un ingrédient, une quantité positive et une unité.'))
       return
     }
     const present = splitList(text('present'))
@@ -97,15 +99,15 @@ export function DishForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <FieldGroup className="@container">
         <Field>
-          <FieldLabel htmlFor="name">Nom du plat</FieldLabel>
-          <Input id="name" name="name" required maxLength={80} defaultValue={initial?.name} placeholder="Attiéké poisson braisé" />
+          <FieldLabel htmlFor="name">{t('Nom du plat')}</FieldLabel>
+          <Input id="name" name="name" required maxLength={80} defaultValue={initial?.name} placeholder={t('Attiéké poisson braisé')} />
         </Field>
         <Field>
-          <FieldLabel htmlFor="description">Description</FieldLabel>
+          <FieldLabel htmlFor="description">{t('Description')}</FieldLabel>
           <Textarea id="description" name="description" rows={2} maxLength={300} defaultValue={initial?.description} />
         </Field>
         <Field className="@md:max-w-56">
-          <FieldLabel htmlFor="price">Prix par défaut (FCFA)</FieldLabel>
+          <FieldLabel htmlFor="price">{t('Prix par défaut (FCFA)')}</FieldLabel>
           <Input id="price" name="price" inputMode="numeric" pattern="[0-9]*" required defaultValue={initial?.defaultPriceXof} placeholder="1500" />
         </Field>
       </FieldGroup>
@@ -113,38 +115,38 @@ export function DishForm({
       <RecipeLines portions={portions} onPortionsChange={setPortions} lines={lines} onLinesChange={setLines} />
 
       <FieldSet>
-        <FieldLegend>Allergènes</FieldLegend>
+        <FieldLegend>{t('Allergènes')}</FieldLegend>
         {used.length === 0 ? (
-          <FieldDescription>Ajoutez les ingrédients : les allergènes du plat seront déduits de leurs fiches.</FieldDescription>
+          <FieldDescription>{t('Ajoutez les ingrédients : les allergènes du plat seront déduits de leurs fiches.')}</FieldDescription>
         ) : missing.length > 0 ? (
           <Alert>
             <ShieldAlertIcon />
-            <AlertTitle>Plat affiché « allergènes non renseignés »</AlertTitle>
-            <AlertDescription>À compléter dans l’onglet Ingrédients : {missing.join(', ')}.</AlertDescription>
+            <AlertTitle>{t('Plat affiché « allergènes non renseignés »')}</AlertTitle>
+            <AlertDescription>{t('À compléter dans l’onglet Ingrédients :')} {missing.join(', ')}.</AlertDescription>
           </Alert>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted-foreground">Déduits des ingrédients :</span>
-            {derived.length ? derived.map((label) => <Badge key={label}>{label}</Badge>) : <Badge variant="outline">Aucun allergène majeur</Badge>}
+            <span className="text-sm text-muted-foreground">{t('Déduits des ingrédients :')}</span>
+            {derived.length ? derived.map((label) => <Badge key={label}>{t(label)}</Badge>) : <Badge variant="outline">{t('Aucun allergène majeur')}</Badge>}
           </div>
         )}
         <FieldGroup className="grid gap-4 @md:grid-cols-2">
           <Field>
-            <FieldLabel htmlFor="present">Mentions complémentaires</FieldLabel>
-            <Input id="present" name="present" defaultValue={manual?.present.join(', ')} placeholder="Garniture hors fiche" />
+            <FieldLabel htmlFor="present">{t('Mentions complémentaires')}</FieldLabel>
+            <Input id="present" name="present" defaultValue={manual?.present.join(', ')} placeholder={t('Garniture hors fiche')} />
           </Field>
           <Field>
-            <FieldLabel htmlFor="traces">Traces possibles</FieldLabel>
-            <Input id="traces" name="traces" defaultValue={manual?.traces.join(', ')} placeholder="Sésame" />
+            <FieldLabel htmlFor="traces">{t('Traces possibles')}</FieldLabel>
+            <Input id="traces" name="traces" defaultValue={manual?.traces.join(', ')} placeholder={t('Sésame')} />
           </Field>
         </FieldGroup>
-        <FieldDescription>Séparez par des virgules. Ces mentions s’ajoutent à la déduction, elles ne la remplacent pas.</FieldDescription>
+        <FieldDescription>{t('Séparez par des virgules. Ces mentions s’ajoutent à la déduction, elles ne la remplacent pas.')}</FieldDescription>
       </FieldSet>
 
       <FormError message={error} />
       <Button type="submit" disabled={pending} className="@md:self-start">
         {pending && <Spinner data-icon="inline-start" />}
-        {submitLabel}
+        {t(submitLabel)}
       </Button>
     </form>
   )

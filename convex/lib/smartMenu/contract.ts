@@ -4,6 +4,7 @@ import type { Infer } from 'convex/values'
 import { allergenInfoValidator, serviceValidator } from '../../schema'
 import { isIsoDate } from '../dates'
 import type { SmartRequest } from './rules'
+import { localeValidator } from '../locale'
 
 /** Quotas serveur (SEC-05, #16) : jamais uniquement côté interface. */
 export const QUOTAS = { perStudentPerDay: 8, perCanteenPerDay: 150 } as const
@@ -17,6 +18,8 @@ export const requestArgs = {
   avoid: v.array(v.string()),
   wish: v.optional(v.string()),
   useAi: v.boolean(),
+  /** Langue des explications rédigées par l'IA ; absente = français. */
+  locale: v.optional(localeValidator),
 }
 
 /** Valide la demande : jours réels, à venir, bornés ; budget entier ; listes et texte bornés. */
