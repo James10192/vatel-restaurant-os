@@ -34,7 +34,8 @@ export const adminWeek = query({
   handler: async (ctx, { weekStart }) => {
     const { canteenId } = await requireAdmin(ctx)
     const rows = await withDishes(ctx, await itemsOfWeek(ctx, canteenId, weekStart))
-    return rows.map(({ item, dish }) => ({ ...item, dishName: dish.name, allergens: dish.allergens }))
+    const photos = await Promise.all(rows.map(({ dish }) => (dish.photoId ? ctx.storage.getUrl(dish.photoId) : null)))
+    return rows.map(({ item, dish }, i) => ({ ...item, dishName: dish.name, allergens: dish.allergens, photoUrl: photos[i] ?? undefined }))
   },
 })
 
@@ -50,6 +51,7 @@ export const publishedWeek = query({
     const items = (await itemsOfWeek(ctx, canteenId, weekStart)).filter((item) => item.status === 'published')
     const rows = await withDishes(ctx, items)
     const booked = await Promise.all(rows.map(({ item }) => activeBookingsCount(ctx, item._id)))
+    const photos = await Promise.all(rows.map(({ dish }) => (dish.photoId ? ctx.storage.getUrl(dish.photoId) : null)))
     return rows.map(({ item, dish }, i) => ({
       _id: item._id,
       date: item.date,
@@ -61,6 +63,7 @@ export const publishedWeek = query({
       dishName: dish.name,
       description: dish.description,
       allergens: dish.allergens,
+      photoUrl: photos[i] ?? undefined,
     }))
   },
 })

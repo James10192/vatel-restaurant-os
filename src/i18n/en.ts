@@ -349,6 +349,12 @@ export const EN: Record<string, string> = {
 
   // Aide au choix (menu intelligent)
   'Aide au choix': 'Meal helper',
+  Retirer: 'Remove',
+  'Photo du plat': 'Dish photo',
+  'La photo n’a pas pu être enregistrée. Réessayez avec une image JPEG ou PNG.': 'The photo could not be saved. Try again with a JPEG or PNG image.',
+  'Changer la photo': 'Change photo',
+  'Ajouter une photo': 'Add a photo',
+  'Photo réelle du plat servi, jamais une image d’illustration.': 'A real photo of the dish served, never a stock image.',
   'Calcul sans IA': 'Computed without AI',
   'Vos propositions': 'Your suggestions',
   'Vérifiées sur le menu publié. Réservez celles qui vous conviennent.': 'Checked against the published menu. Book the ones you like.',
