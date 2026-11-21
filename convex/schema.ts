@@ -135,5 +135,6 @@ export default defineSchema({
     status: menuStatusValidator,
   })
     .index('by_canteen_date', ['canteenId', 'date'])
-    .index('by_canteen_status_date', ['canteenId', 'status', 'date']),
+    .index('by_canteen_status_date', ['canteenId', 'status', 'date'])
+    .index('by_dish_status', ['dishId', 'status']),
 })

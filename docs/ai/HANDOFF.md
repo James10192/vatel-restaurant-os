@@ -1,9 +1,9 @@
 # HANDOFF : état du développement
 
-_Mis à jour : 21/11/2026 ~10h10 (Abidjan)_
+_Mis à jour : 21/11/2026 ~10h35 (Abidjan)_
 
 ## Lot actuel
-**A1 terminé (menus + admin + recette légère), en attente de validation avant A2.**
+**A2 terminé + audit externe corrigé, en attente de validation humaine avant A3.**
 
 ## Fait en A0
 - Scaffold officiel `@tanstack/cli@0.72.16` (React, pnpm, add-ons convex + shadcn, ESLint, adaptateur Vercel), copié dans le dépôt.
@@ -44,12 +44,30 @@ _Mis à jour : 21/11/2026 ~10h10 (Abidjan)_
 - Tests `pnpm test` : 8 convex-test (brouillon invisible, usager sans droit admin, non rattaché refusé, isolation A/B, prix entier, publié non supprimable, unité sans doublon, référence d'un autre tenant refusée).
 - Navigateur : gérant crée « Riz sauce arachide » 1 200 FCFA, Arachide, Riz 0,8 kg pour 10 portions (Riz et kg créés sur place, nom et prix conservés), ajoute 80 portions lundi midi, publie ; Awa (étudiante) le voit ; Awa redirigée hors /admin/menus.
 
+## Fait en A2
+- Schéma : wallets (solde), walletEntries (journal en ajout seul, clé d'idempotence), bookings (prix et nom figés, statut), canteens.policy optionnelle (défauts `convex/lib/policy.ts` : déjeuner 12:00, dîner 19:00, échéance 120 min, recharge démo max 50 000).
+- `convex/lib/ledger.ts` `appendEntry` : seule écriture de solde, refuse solde négatif et montant non entier. `wallet.balance/history(paginé)/topUpDemo`, `bookings.book/cancel/mine`, capacité `lib/capacity.ts`.
+- UI : solde + prochain repas sur l'accueil, carte repas (portions restantes, Réserver avec confirmation prix/solde après, Annuler), `/app/wallet` (recharge démo signalée, historique « Charger plus »), `/app/bookings`.
+- Navigation #11 : barre du bas mobile Accueil/Repas/Solde/Profil (+ Menus admin), pas d'en-tête mobile, logo intégré à la page ; en-tête seulement sur ordinateur.
+
+## Audit externe (commit dddfe3c) : corrections
+1. Redirection /auth : `src/lib/safe-redirect.ts` (refuse //, /\, antislash, encodages, contrôles, schémas) + revalidation avant `location.assign`. 13 vecteurs testés ; navigateur : `?redirect=/\example.com` reste sur localhost.
+2. Boutons de recette `type="button"` (+ combobox). Test SSR `dish-form.test.tsx` : un seul bouton submit ; le test échoue si le correctif est retiré (vérifié). Navigateur : « Ajouter un ingrédient » ne soumet pas.
+3. Dates : `isIsoDate` strict partagé serveur/URL (refuse 2026-02-31, mois 13, formats partiels, années hors 2000-2100). Tests unitaires + serveur.
+4. Identifiants : mots de passe retirés de `tests/fixtures/demo-accounts.md` ; historique gitleaks propre ; mot de passe démo présent dans `ef1b2f5`, `3f74952` → considéré public, rotation documentée (`docs/DEPLOYMENT.md`) AVANT publication du dépôt.
+5. Plat publié verrouillé (`dishes.save` refuse si une offre publiée l'utilise ; index by_dish_status). Test.
+6. Amorçage : plus aucun mot de passe généré. `setup:bootstrap` promeut un compte DÉJÀ inscrit (unique, renvoie nom/date pour vérification) ; `setup:attachAccount` exige le slug, refuse doublon/inconnu. Refus vérifiés sur dev par CLI (pas de convex-test : composant Better Auth non simulé).
+- README et `docs/DEPLOYMENT.md` écrits (aucun secret). Options CLI vérifiées dans la version installée.
+- Résultats : typecheck OK, lint OK, 60 tests OK, build OK.
+
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).
 - Révocation : accès serveur basé sur le JWT, effectif à son expiration.
-- Connexion admin non testée dans le navigateur (mot de passe affiché uniquement au porteur). Rattachement d'un inscrit par l'admin : A1/admin users.
+- `admin@demo.test` (ancien amorçage, mot de passe temporaire dans un fichier local hors dépôt) : à supprimer sur dev, voir DEPLOYMENT.
+- Style shadcn `new-york` (hérité du générateur) ; CLI 4.23.0 à jour. Passage à un style v4 récent : décision du porteur.
+- Admin : barre latérale #11 (Vue d'ensemble / Menus / Usagers / Services) à construire en A3.
 - Pas de déploiement Vercel (après P0, cf. #14) ; `vercel whoami` non vérifié.
 - Charte PDF Vatel non reçue ; logo, couleurs et police relevés sur vatel.ci. Photo Unsplash (licence Unsplash), auteur à créditer si exigé.
 
 ## Prochaine action
-A2 : wallet (ledger append-only, recharge démo étiquetée), réservation atomique (débit + capacité, idempotence, pas de survente), annulation avant échéance (#1, #12, #7, #23, #16 PAY).
+A3 : commandes du jour (filtres service/plat/statut, compte portions, statut retrait) et dashboard (réservés, annulés, retirés, restants ; réel vs simulation), barre latérale admin (#1, #21, #22, #23, #11).

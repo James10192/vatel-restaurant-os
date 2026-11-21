@@ -1,4 +1,5 @@
 import { ConvexError } from 'convex/values'
+import { isIsoDate } from './dates'
 
 /** Plafond de sécurité d'un prix unitaire en FCFA (entier). */
 export const MAX_PRICE_XOF = 1_000_000
@@ -31,11 +32,7 @@ export function cleanName(value: string, label: string): { name: string; key: st
   return { name, key }
 }
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
-
 export function assertIsoDate(value: string): string {
-  if (!ISO_DATE.test(value) || Number.isNaN(Date.parse(`${value}T00:00:00Z`))) {
-    throw new ConvexError('Date invalide.')
-  }
+  if (!isIsoDate(value)) throw new ConvexError('Date invalide.')
   return value
 }

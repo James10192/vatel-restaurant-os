@@ -82,3 +82,41 @@ describe('références créées au point d’usage', () => {
     ).rejects.toThrow(/introuvable/)
   })
 })
+
+describe('dates côté serveur', () => {
+  test('date impossible ou malformée refusée à la programmation et à la lecture', async () => {
+    const { adminA } = await setup()
+    const dishId = await createDish(adminA)
+    for (const date of ['2026-02-31', '2026-13-01', '2026-11-23T08:00', 'demain']) {
+      await expect(adminA.mutation(api.menus.addItem, { date, service: 'lunch', dishId, capacity: 5 })).rejects.toThrow(
+        /Date invalide/,
+      )
+      await expect(adminA.query(api.menus.adminWeek, { weekStart: date })).rejects.toThrow(/Date invalide/)
+    }
+  })
+})
+
+describe('plat publié', () => {
+  const update = (dishId: Awaited<ReturnType<typeof createDish>>) => ({
+    dishId,
+    dish: {
+      name: 'Attiéké poisson',
+      defaultPriceXof: 1500,
+      allergens: { status: 'declared' as const, present: [], traces: [] },
+      recipe: { portions: 1, lines: [] },
+    },
+  })
+
+  test('brouillon : modifiable ; publié : allergènes et recette verrouillés', async () => {
+    const { adminA, studentA } = await setup()
+    const dishId = await createDish(adminA)
+    await adminA.mutation(api.menus.addItem, { date: WEEK, service: 'lunch', dishId, capacity: 5 })
+    await expect(adminA.mutation(api.dishes.save, update(dishId))).resolves.toBe(dishId)
+    const poisson = { status: 'declared' as const, present: ['Poisson'], traces: [] }
+    await adminA.mutation(api.dishes.save, { dishId, dish: { ...update(dishId).dish, allergens: poisson } })
+    await adminA.mutation(api.menus.publishWeek, { weekStart: WEEK })
+    await expect(adminA.mutation(api.dishes.save, update(dishId))).rejects.toThrow(/déjà publié/)
+    const [item] = await studentA.query(api.menus.publishedWeek, { weekStart: WEEK })
+    expect(item.allergens).toEqual({ status: 'declared', present: ['Poisson'], traces: [] })
+  })
+})

@@ -3,14 +3,12 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { BrandLogo } from '#/components/brand-logo'
 import { AuthForm } from '#/features/auth/auth-form'
 import { AuthIntro } from '#/features/auth/auth-intro'
+import { safeRedirectPath } from '#/lib/safe-redirect'
 import { cn } from '#/lib/utils'
-
-const isInternalPath = (value: unknown): value is string =>
-  typeof value === 'string' && value.startsWith('/') && !value.startsWith('//')
 
 export const Route = createFileRoute('/auth')({
   validateSearch: (search: Record<string, unknown>): { redirect?: string; mode?: 'signup' } => ({
-    redirect: isInternalPath(search.redirect) ? search.redirect : undefined,
+    redirect: safeRedirectPath(search.redirect),
     mode: search.mode === 'signup' ? 'signup' : undefined,
   }),
   beforeLoad: ({ context, search }) => {

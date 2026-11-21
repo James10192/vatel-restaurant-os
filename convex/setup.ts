@@ -1,66 +1,81 @@
 import { ConvexError, v } from 'convex/values'
 import { components } from './_generated/api'
+import type { MutationCtx } from './_generated/server'
 import { internalMutation } from './_generated/server'
-import { createAuth } from './auth'
 import { roleValidator } from './schema'
+import { cleanName } from './lib/validation'
 
-// Alphabet sans caractères ambigus (0/O, 1/l/I) : ce n'est pas un secret.
-const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789' // gitleaks:allow
+/*
+ * Procédures OPÉRATEUR, internes : jamais appelables depuis le navigateur, seulement via
+ * `pnpm exec convex run setup:<fonction>` par un détenteur de l'accès au déploiement (SEC-02, #16).
+ * Aucune ne crée ni ne transmet de mot de passe : la personne s'inscrit elle-même sur /auth (sans droit),
+ * puis l'opérateur la rattache.
+ */
 
-function generatePassword(length = 16): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(length))
-  return Array.from(bytes, (b) => PASSWORD_ALPHABET[b % PASSWORD_ALPHABET.length]).join('')
+const accountSummary = v.object({ email: v.string(), name: v.string(), registeredAt: v.string() })
+
+/** Compte Better Auth existant pour cet e-mail, sinon erreur explicite. */
+async function findRegisteredAccount(ctx: MutationCtx, email: string) {
+  const found = await ctx.runQuery(components.betterAuth.adapter.findOne, {
+    model: 'user',
+    where: [{ field: 'email', value: email.trim().toLowerCase() }],
+  })
+  if (!found) throw new ConvexError('Aucun compte inscrit avec cet e-mail : la personne doit d’abord s’inscrire sur /auth.')
+  return {
+    authUserId: String(found._id),
+    summary: {
+      email: String(found.email),
+      name: String(found.name),
+      registeredAt: new Date(Number(found.createdAt)).toISOString(),
+    },
+  }
+}
+
+async function assertNotAttached(ctx: MutationCtx, authUserId: string) {
+  const existing = await ctx.db
+    .query('profiles')
+    .withIndex('by_auth_user', (q) => q.eq('authUserId', authUserId))
+    .unique()
+  if (existing) throw new ConvexError('Compte déjà rattaché.')
 }
 
 /**
- * Amorçage unique : crée le premier établissement et son administrateur.
- * Interne (jamais exposé au client) : `pnpm exec convex run setup:bootstrap '{...}'`.
- * Refuse de s'exécuter dès qu'un établissement existe (SEC-02, #16).
+ * Amorçage unique : crée le premier établissement et en fait administrateur un compte DÉJÀ inscrit.
+ * Refuse dès qu'un établissement existe. Renvoie l'identité promue pour vérification par l'opérateur
+ * (nom et date d'inscription), afin de détecter une inscription usurpant l'e-mail prévu.
  */
 export const bootstrap = internalMutation({
-  args: {
-    canteenName: v.string(),
-    canteenSlug: v.string(),
-    adminName: v.string(),
-    adminEmail: v.string(),
-  },
-  returns: v.object({ adminEmail: v.string(), temporaryPassword: v.string() }),
+  args: { canteenName: v.string(), canteenSlug: v.string(), adminEmail: v.string() },
+  returns: accountSummary,
   handler: async (ctx, args) => {
     if (await ctx.db.query('canteens').first()) {
       throw new ConvexError('Amorçage déjà effectué : un établissement existe.')
     }
-    const temporaryPassword = generatePassword()
-    const { user } = await createAuth(ctx).api.signUpEmail({
-      body: { name: args.adminName, email: args.adminEmail, password: temporaryPassword },
-    })
-    const canteenId = await ctx.db.insert('canteens', { name: args.canteenName, slug: args.canteenSlug })
-    await ctx.db.insert('profiles', { authUserId: user.id, canteenId, role: 'admin' })
-    return { adminEmail: args.adminEmail, temporaryPassword }
+    const { authUserId, summary } = await findRegisteredAccount(ctx, args.adminEmail)
+    await assertNotAttached(ctx, authUserId)
+    const { name } = cleanName(args.canteenName, 'Nom de l’établissement')
+    const canteenId = await ctx.db.insert('canteens', { name, slug: args.canteenSlug.trim().toLowerCase() })
+    await ctx.db.insert('profiles', { authUserId, canteenId, role: 'admin' })
+    return summary
   },
 })
 
 /**
- * Rattache un compte déjà inscrit à l'établissement unique de démo (CLI uniquement,
- * en attendant l'écran /admin/users P1). Refuse un compte déjà rattaché.
+ * Rattache un compte inscrit à un établissement nommé, avec un rôle (en attendant l'écran /admin/users P1).
+ * Refuse un compte déjà rattaché : un changement de rôle n'est jamais implicite.
  */
 export const attachAccount = internalMutation({
-  args: { email: v.string(), role: roleValidator },
-  returns: v.null(),
-  handler: async (ctx, { email, role }) => {
-    const canteen = await ctx.db.query('canteens').first()
-    if (!canteen) throw new ConvexError('Aucun établissement : lancer setup:bootstrap.')
-    const found = await ctx.runQuery(components.betterAuth.adapter.findOne, {
-      model: 'user',
-      where: [{ field: 'email', value: email.trim().toLowerCase() }],
-    })
-    if (!found) throw new ConvexError('Aucun compte inscrit avec cet e-mail.')
-    const authUserId = String(found._id)
-    const existing = await ctx.db
-      .query('profiles')
-      .withIndex('by_auth_user', (q) => q.eq('authUserId', authUserId))
+  args: { canteenSlug: v.string(), email: v.string(), role: roleValidator },
+  returns: accountSummary,
+  handler: async (ctx, { canteenSlug, email, role }) => {
+    const canteen = await ctx.db
+      .query('canteens')
+      .withIndex('by_slug', (q) => q.eq('slug', canteenSlug.trim().toLowerCase()))
       .unique()
-    if (existing) throw new ConvexError('Compte déjà rattaché.')
+    if (!canteen) throw new ConvexError('Établissement introuvable pour ce slug.')
+    const { authUserId, summary } = await findRegisteredAccount(ctx, email)
+    await assertNotAttached(ctx, authUserId)
     await ctx.db.insert('profiles', { authUserId, canteenId: canteen._id, role })
-    return null
+    return summary
   },
 })

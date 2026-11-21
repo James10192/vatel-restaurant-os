@@ -37,7 +37,7 @@ function WeekMenu() {
   const week = resolveWeek(Route.useSearch().week)
   const { data: items, isPending } = useQuery(convexQuery(api.menus.publishedWeek, { weekStart: week }))
   const { data: bookings = [] } = useQuery(convexQuery(api.bookings.mine, { from: week }))
-  const { data: balanceXof = 0 } = useQuery(convexQuery(api.wallet.balance, {}))
+  const { data: balanceXof } = useQuery(convexQuery(api.wallet.balance, {}))
   const now = useNow()
   const days = [...new Set(items?.map((item) => item.date))].sort()
   const active = bookings.filter((b) => b.status !== 'cancelled')
@@ -76,7 +76,7 @@ function WeekMenu() {
                   item={item}
                   booking={active.find((b) => b.menuItemId === item._id)}
                   bookedThisService={active.some((b) => b.date === item.date && b.service === item.service)}
-                  balanceXof={balanceXof}
+                  balanceXof={balanceXof ?? 0}
                   now={now}
                 />
               ))}

@@ -65,17 +65,17 @@ function AccountMenu({ trigger }: { trigger: React.ReactNode }) {
   )
 }
 
-/** En-tête : logo partout ; liens et avatar seulement sur ordinateur (le mobile a la barre du bas). */
+/** En-tête ordinateur uniquement : sur mobile, la barre du bas le remplace et le logo est dans la page. */
 export function AppHeader() {
   const { data: user } = useSuspenseQuery(currentUserQuery)
   const items = useNavItems()
   return (
-    <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-4 px-4 md:h-16">
+    <header className="sticky top-0 z-20 hidden border-b bg-background/90 backdrop-blur md:block">
+      <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-4 px-4">
         <Link to="/app" aria-label="Accueil">
-          <BrandLogo className="h-9 md:h-10" />
+          <BrandLogo className="h-10" />
         </Link>
-        <nav className="hidden items-center gap-1 text-sm md:flex">
+        <nav className="flex items-center gap-1 text-sm">
           {items.map(({ to, label }) => (
             <Button key={to} variant="ghost" size="sm" asChild>
               <Link to={to} activeOptions={{ exact: true }} activeProps={{ className: 'bg-accent' }}>
@@ -84,7 +84,7 @@ export function AppHeader() {
             </Button>
           ))}
         </nav>
-        <div className="ml-auto hidden md:block">
+        <div className="ml-auto">
           <AccountMenu
             trigger={
               <Button variant="ghost" size="icon" className="rounded-full" aria-label="Mon compte">
@@ -131,5 +131,14 @@ export function MobileTabBar() {
         }
       />
     </nav>
+  )
+}
+
+/** Logo intégré au contenu sur mobile, sans bandeau : il défile avec la page. */
+export function MobileBrand() {
+  return (
+    <Link to="/app" aria-label="Accueil" className="mx-auto flex w-full max-w-2xl px-4 pt-5 md:hidden">
+      <BrandLogo className="h-12" />
+    </Link>
   )
 }

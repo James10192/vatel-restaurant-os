@@ -56,6 +56,14 @@ export const save = mutation({
     }
     if (!dishId) return await ctx.db.insert('dishes', doc)
     await getOwned(ctx, membership, dishId)
+    // Une offre publiée a été vue (et peut-être réservée) avec ces informations : pas de réécriture silencieuse.
+    const published = await ctx.db
+      .query('menuItems')
+      .withIndex('by_dish_status', (q) => q.eq('dishId', dishId).eq('status', 'published'))
+      .first()
+    if (published) {
+      throw new ConvexError('Ce plat est déjà publié : créez une nouvelle version au lieu de le modifier.')
+    }
     await ctx.db.replace(dishId, doc)
     return dishId
   },

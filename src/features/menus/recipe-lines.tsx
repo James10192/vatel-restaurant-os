@@ -72,6 +72,7 @@ export function RecipeLines({
               onCreate={(name) => createUnit({ name })}
             />
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               aria-label="Retirer la ligne"
@@ -82,7 +83,7 @@ export function RecipeLines({
           </div>
         ))}
       </div>
-      <Button variant="outline" size="sm" className="w-fit" onClick={() => onLinesChange([...lines, newLine()])}>
+      <Button type="button" variant="outline" size="sm" className="w-fit" onClick={() => onLinesChange([...lines, newLine()])}>
         <PlusIcon data-icon="inline-start" />
         Ajouter un ingrédient
       </Button>

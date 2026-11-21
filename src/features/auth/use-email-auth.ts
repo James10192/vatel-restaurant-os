@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { authClient } from '#/lib/auth-client'
+import { safeRedirectPath } from '#/lib/safe-redirect'
 import { authErrorMessage } from './auth-errors'
 
 type Credentials = { email: string; password: string; name: string }
@@ -33,7 +34,7 @@ export function useEmailAuth(action: keyof typeof ACTIONS, redirectTo: string) {
       return
     }
     // Rechargement complet : le serveur doit relire le cookie de session pour le SSR.
-    window.location.assign(redirectTo)
+    window.location.assign(safeRedirectPath(redirectTo) ?? '/app')
   }
 
   return { pending, error, onSubmit }

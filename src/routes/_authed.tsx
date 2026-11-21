@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
-import { AppHeader, MobileTabBar } from '#/components/app-header'
+import { AppHeader, MobileBrand, MobileTabBar } from '#/components/app-header'
 import { currentUserQuery } from '#/lib/session'
 
 /** Layout protégé : toute route enfant exige une session valide (vérifiée côté serveur au SSR). */
@@ -17,6 +17,7 @@ function AuthedLayout() {
   return (
     <div className="flex min-h-svh flex-col bg-muted/40 pb-20 md:pb-0">
       <AppHeader />
+      <MobileBrand />
       <Outlet />
       <MobileTabBar />
     </div>
