@@ -24,7 +24,7 @@ export function serviceDayLabel(date: string, t: Translate, locale: Locale): str
   return t('du {day}', { day: formatDayLong(date, locale) })
 }
 
-type DayRoute = '/admin' | '/admin/services'
+type DayRoute = '/admin' | '/admin/services' | '/admin/production'
 
 /** Jour précédent / suivant / aujourd'hui ; les autres filtres de la page sont conservés. */
 export function DayNav({ date, to }: { date: string; to: DayRoute }) {

@@ -1,4 +1,4 @@
-import { BookOpenTextIcon, CalendarCheckIcon, ClipboardListIcon, HouseIcon, LayoutDashboardIcon, ListChecksIcon, UserIcon, WalletIcon } from 'lucide-react'
+import { BookOpenTextIcon, ChefHatIcon, CalendarCheckIcon, ClipboardListIcon, HouseIcon, LayoutDashboardIcon, ListChecksIcon, UserIcon, WalletIcon } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type NavTo =
@@ -10,6 +10,7 @@ export type NavTo =
   | '/admin/menus'
   | '/admin/services'
   | '/admin/recettes'
+  | '/admin/production'
 export type NavItem = { to: NavTo; label: string; short: string; icon: LucideIcon }
 
 /** Espace repas (#11) : Accueil / Repas / Solde. `short` sert au rail tablette et à la barre du bas. */
@@ -27,6 +28,7 @@ export const ADMIN_NAV: Array<NavItem> = [
   { to: '/admin', label: 'Vue d’ensemble', short: 'Pilotage', icon: LayoutDashboardIcon },
   { to: '/admin/menus', label: 'Menus', short: 'Menus', icon: ClipboardListIcon },
   { to: '/admin/services', label: 'Commandes du jour', short: 'Service', icon: ListChecksIcon },
+  { to: '/admin/production', label: 'Production', short: 'Production', icon: ChefHatIcon },
   { to: '/admin/recettes', label: 'Fiches techniques', short: 'Fiches', icon: BookOpenTextIcon },
 ]
 

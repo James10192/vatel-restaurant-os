@@ -44,6 +44,13 @@ export const policyValidator = v.object({
   demoTopUpMaxXof: v.number(),
 })
 
+export const wasteReasonValidator = v.union(
+  v.literal('surplus'),
+  v.literal('not_picked_up'),
+  v.literal('kitchen'),
+  v.literal('quality'),
+)
+
 export const walletEntryKindValidator = v.union(
   v.literal('demo_top_up'),
   v.literal('booking_debit'),
@@ -179,6 +186,24 @@ export default defineSchema({
     .index('by_canteen_date', ['canteenId', 'date'])
     .index('by_canteen_status_date', ['canteenId', 'status', 'date'])
     .index('by_dish_status', ['dishId', 'status']),
+
+  /**
+   * Journal de production en ajout seul (#5, #6) : portions préparées (une correction est une ligne négative)
+   * et pertes réelles avec motif. Jamais modifié ni supprimé ; la simulation n'écrit rien ici.
+   */
+  productionEvents: defineTable({
+    canteenId: v.id('canteens'),
+    menuItemId: v.id('menuItems'),
+    date: v.string(),
+    service: serviceValidator,
+    kind: v.union(v.literal('prepared'), v.literal('waste')),
+    portions: v.number(),
+    reason: v.optional(wasteReasonValidator),
+    profileId: v.id('profiles'),
+    idempotencyKey: v.string(),
+  })
+    .index('by_menu_item', ['menuItemId'])
+    .index('by_canteen_date', ['canteenId', 'date']),
 
   /** Smart Menu (B1) : quotas et coût IA par usager et par jour. Aucun texte de requête conservé. */
   aiUsage: defineTable({
