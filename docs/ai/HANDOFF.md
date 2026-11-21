@@ -97,7 +97,8 @@ _Mis à jour : 21/11/2026 ~11h30 (Abidjan)_
 - Tests : 98 (30 B1 : règles, modèle simulé, fournisseurs, serveur). Typecheck, lint, build OK. Navigateur 375/768/1440 : captures `docs/ai/b1/captures/`.
 - Fichiers du lead touchés dans la branche : `convex/schema.ts` (table `aiUsage`, ajout seul), `package.json`/`pnpm-lock.yaml` (`ai`, `zod`, `@openrouter/ai-sdk-provider`), `src/routes/_authed/app/index.tsx` (montage du bouton). Fusion à arbitrer par le lead.
 - Détails, coût/latence, limites : `docs/ai/b1/SMART-MENU.md`. Contrat B2 (sans code) : `docs/ai/b2/CONTRACT.md`.
-- **Gate humain** : (1) accepter Haiku 5.5 / OpenRouter comme modèle B1 ou garder le mode sans IA ; (2) fusion après la livraison P0 ; (3) limite de dépense et rotation de la clé OpenRouter, révocation de `vatel-b1-local`.
+- **Décision porteur (21/11 ~14h50)** : modèle B1 retenu = `anthropic/claude-haiku-5.5` via OpenRouter.
+- **Gate humain restant** : (1) fusion après la livraison P0 ; (2) variables prod (`SMART_MENU_PROVIDER=openrouter`, `SMART_MENU_MODEL`, `OPENROUTER_API_KEY`) seulement après fusion ; (3) limite de dépense et rotation de la clé OpenRouter, révocation de `vatel-b1-local`.
 
 ## Non fait / risques
 - Pas de Playwright E2E. Pas d'édition d'un plat existant (création seulement) ni de versioning recette (#13 P1).

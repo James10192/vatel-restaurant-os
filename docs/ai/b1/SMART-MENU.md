@@ -15,6 +15,7 @@ Aucune réservation automatique : chaque suggestion ouvre la confirmation habitu
 | Routage OpenRouter | `provider: { data_collection: 'deny', require_parameters: true }` : refuse les fournisseurs qui conservent ou réutilisent les requêtes ; exige le support des outils |
 | Liste blanche (`convex/lib/smartMenu/providers.ts`) | OpenRouter : `anthropic/claude-haiku-5.5`. AI Gateway : `inception/mercury-3`, `anthropic/claude-haiku-5.5`. Modèles gratuits (`:free`) et Nemotron/Hy4 exclus (données conservées). Tout autre identifiant désactive l'IA |
 | **Modèle validé sur données fictives** | **`anthropic/claude-haiku-5.5` via OpenRouter** (0,10 $/M entrée, 0,50 $/M sortie) |
+| Décision | Retenu par le porteur le 21/11/2026 (~14h50) comme modèle B1 |
 | Mercury 3 (#18 n°1) | Non testable : absent du catalogue OpenRouter ; sur AI Gateway, refus « valid credit card on file » (crédits gratuits débloqués seulement après ajout d'une carte). Le repli sans IA a été vérifié contre ce vrai refus |
 
 ## 2. Outils et permissions
