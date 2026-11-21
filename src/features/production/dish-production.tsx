@@ -1,4 +1,5 @@
-import { FlaskConicalIcon, PlusIcon } from 'lucide-react'
+import { FlaskConicalIcon, PlusIcon, TargetIcon } from 'lucide-react'
+import { PlanDialog } from './plan-dialog'
 import { ProductionRail } from './production-rail'
 import { RecordPreparedDialog } from './record-dialogs'
 import { SimulateSheet } from './simulate-sheet'
@@ -13,10 +14,10 @@ import { useLocale, useT } from '#/i18n/i18n'
  * Un plat sur le passe : le chiffre qui compte (reste à préparer), la piste demande / préparé,
  * puis les deux gestes du chef : saisir ce qui sort, simuler un imprévu.
  */
-export function DishProduction({ offer, canRecord }: { offer: ProductionOffer; canRecord: boolean }) {
+export function DishProduction({ offer, canRecord, canPlan }: { offer: ProductionOffer; canRecord: boolean; canPlan: boolean }) {
   const t = useT()
   const { locale } = useLocale()
-  const situation = situationOf(baselineOf(offer))
+  const situation = situationOf(baselineOf(offer), offer.plan)
   const missing = situation?.missing ?? null
   const surplus = situation?.surplus ?? 0
   const time = dateFormat(locale, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
@@ -40,7 +41,14 @@ export function DishProduction({ offer, canRecord }: { offer: ProductionOffer; c
         </div>
       </header>
 
-      <ProductionRail pickedUp={offer.pickedUp} confirmed={offer.confirmed} prepared={offer.prepared} capacity={offer.capacity} />
+      <ProductionRail
+        pickedUp={offer.pickedUp}
+        confirmed={offer.confirmed}
+        assumed={offer.plan ? offer.plan.walkIns + offer.plan.margin : 0}
+        prepared={offer.prepared}
+        capacity={offer.capacity}
+      />
+      <PlanLine offer={offer} />
 
       <dl className="grid grid-cols-3 gap-2 text-xs">
         <Figure dot="bg-success" label={t('Remis')} value={offer.pickedUp} />
@@ -53,6 +61,19 @@ export function DishProduction({ offer, canRecord }: { offer: ProductionOffer; c
         />
       </dl>
 
+      {offer.lots.length > 0 && (
+        <details className="text-xs text-muted-foreground">
+          <summary className="cursor-pointer">{t(offer.lots.length > 1 ? '{n} saisies de cuisine' : '{n} saisie de cuisine', { n: offer.lots.length })}</summary>
+          <ol className="mt-1 flex flex-col gap-0.5 tabular-nums">
+            {offer.lots.map((lot) => (
+              <li key={lot.at}>
+                {t('{time} : {portions} portions, {by}', { time: time.format(lot.at), portions: lot.portions > 0 ? `+${lot.portions}` : lot.portions, by: lot.by })}
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
+
       <footer className="flex flex-wrap gap-2">
         {canRecord && (
           <RecordPreparedDialog
@@ -61,6 +82,17 @@ export function DishProduction({ offer, canRecord }: { offer: ProductionOffer; c
               <Button variant="outline" size="sm">
                 <PlusIcon data-icon="inline-start" />
                 {t('Saisir le préparé')}
+              </Button>
+            }
+          />
+        )}
+        {canPlan && (
+          <PlanDialog
+            offer={offer}
+            trigger={
+              <Button variant="outline" size="sm">
+                <TargetIcon data-icon="inline-start" />
+                {offer.plan ? t('Corriger l’objectif') : t('Valider l’objectif')}
               </Button>
             }
           />
@@ -91,5 +123,27 @@ function Figure({ dot, label, value, note }: { dot: string; label: string; value
         {note && <span className="ml-1 text-xs font-normal text-muted-foreground">{note}</span>}
       </dd>
     </div>
+  )
+}
+
+/** Objectif validé (ou son absence) et écart des réservations depuis la validation : le suivi des écarts. */
+function PlanLine({ offer }: { offer: ProductionOffer }) {
+  const t = useT()
+  const { locale } = useLocale()
+  const time = dateFormat(locale, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+  const { plan } = offer
+  if (!plan) return <p className="text-xs text-muted-foreground">{t('Aucun objectif validé : seules les réservations sont comptées.')}</p>
+  const booked = offer.confirmed + offer.pickedUp
+  const drift = booked - plan.bookedAtValidation
+  return (
+    <p className="text-xs text-muted-foreground tabular-nums">
+      {t('Objectif {target} validé à {time} par {by}', { target: plan.bookedAtValidation + plan.walkIns + plan.margin, time: time.format(plan.at), by: plan.by })}
+      {drift !== 0 && (
+        <span className="font-semibold text-foreground">
+          {', '}
+          {t(drift > 0 ? '{n} réservations de plus depuis' : '{n} réservations de moins depuis', { n: Math.abs(drift) })}
+        </span>
+      )}
+    </p>
   )
 }

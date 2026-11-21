@@ -8,6 +8,7 @@ import { Progress } from '#/components/ui/progress'
 import { SERVICE_LABELS, formatXof } from '#/lib/format'
 import { cn } from '#/lib/utils'
 import { BookMealDialog } from '#/features/booking/book-meal-dialog'
+import { WaitlistButton } from '#/features/booking/waitlist-button'
 import { CancelBookingDialog } from '#/features/booking/cancel-booking-dialog'
 import { AllergenBadges } from './allergen-badges'
 import { AllergyAlert } from './allergy-alert'
@@ -68,6 +69,9 @@ export function MealCard({
           <h3 className="text-xl leading-snug font-semibold tracking-tight">{item.dishName}</h3>
           {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
         </div>
+        {booking?.slot && booking.status === 'confirmed' && (
+          <p className="text-sm font-medium text-primary tabular-nums">{t('Retrait à {slot}', { slot: booking.slot })}</p>
+        )}
         <AllergenBadges allergens={item.allergens} />
         <AllergyAlert alert={item.allergyAlert} />
         {!booking && (
@@ -92,6 +96,8 @@ export function MealCard({
           <BookMealDialog meal={item} balanceXof={balanceXof} />
         ) : bookedThisService ? (
           <span className="text-right text-sm text-muted-foreground">{t('Déjà un repas ce service')}</span>
+        ) : !closed && item.remaining === 0 ? (
+          <WaitlistButton menuItemId={item._id} />
         ) : null}
       </div>
     </Card>

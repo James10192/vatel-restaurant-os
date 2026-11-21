@@ -43,6 +43,10 @@ export const policyValidator = v.object({
   cutoffMinutes: v.number(),
   /** Montant maximal d'une recharge de démonstration. */
   demoTopUpMaxXof: v.number(),
+  /** Repas réservables par service, tous plats confondus (capacité globale, en plus de celle de chaque plat). Absent = illimité. */
+  serviceCapacity: v.optional(v.object({ lunch: v.number(), dinner: v.number() })),
+  /** Créneaux de retrait : durée du service, longueur d'un créneau, repas remis par créneau. Absent = pas de créneaux. */
+  slots: v.optional(v.object({ durationMinutes: v.number(), slotMinutes: v.number(), slotCapacity: v.number() })),
 })
 
 export const wasteReasonValidator = v.union(
@@ -51,6 +55,9 @@ export const wasteReasonValidator = v.union(
   v.literal('kitchen'),
   v.literal('quality'),
 )
+
+/** Motif d'une perte de matière (stock), avant toute préparation. */
+export const lossReasonValidator = v.union(v.literal('expired'), v.literal('damaged'), v.literal('other'))
 
 export const walletEntryKindValidator = v.union(
   v.literal('demo_top_up'),
@@ -97,6 +104,8 @@ export default defineSchema({
     priceXof: v.number(),
     status: v.union(v.literal('confirmed'), v.literal('cancelled'), v.literal('picked_up')),
     idempotencyKey: v.string(),
+    /** Créneau de retrait « HH:MM », si l'établissement en utilise. */
+    slot: v.optional(v.string()),
   })
     .index('by_profile_date', ['profileId', 'date'])
     .index('by_profile_key', ['profileId', 'idempotencyKey'])
@@ -192,7 +201,7 @@ export default defineSchema({
   })
     .index('by_canteen_date', ['canteenId', 'date'])
     .index('by_canteen_status_date', ['canteenId', 'status', 'date'])
-    .index('by_dish_status', ['dishId', 'status']),
+    .index('by_dish_status', ['dishId', 'status', 'date']),
 
   /**
    * Journal de production en ajout seul (#5, #6) : portions préparées (une correction est une ligne négative)
@@ -203,9 +212,52 @@ export default defineSchema({
     menuItemId: v.id('menuItems'),
     date: v.string(),
     service: serviceValidator,
-    kind: v.union(v.literal('prepared'), v.literal('waste')),
+    /** prepared : sorti de cuisine ; waste : perdu ; recovered : surplus redistribué ; walkin : servi sans réservation. */
+    kind: v.union(v.literal('prepared'), v.literal('waste'), v.literal('recovered'), v.literal('walkin')),
     portions: v.number(),
     reason: v.optional(wasteReasonValidator),
+    profileId: v.id('profiles'),
+    idempotencyKey: v.string(),
+  })
+    .index('by_menu_item', ['menuItemId'])
+    .index('by_canteen_date', ['canteenId', 'date']),
+
+  /**
+   * Mouvements de stock en ajout seul (#6) : réception (lot, date limite, fournisseur, prix), inventaire compté
+   * (avec le stock théorique juste avant : l'écart reste lisible) et perte de matière. La consommation n'est pas
+   * saisie : elle se déduit des portions préparées et des fiches techniques.
+   */
+  stockMovements: defineTable({
+    canteenId: v.id('canteens'),
+    ingredientId: v.id('ingredients'),
+    kind: v.union(v.literal('reception'), v.literal('count'), v.literal('loss')),
+    quantity: v.number(),
+    unitId: v.id('units'),
+    lotCode: v.optional(v.string()),
+    expiresOn: v.optional(v.string()),
+    supplier: v.optional(v.string()),
+    /** Prix d'achat par unité de réception, FCFA entiers (facultatif, jamais inventé). */
+    unitCostXof: v.optional(v.number()),
+    lossReason: v.optional(lossReasonValidator),
+    expectedBefore: v.optional(v.number()),
+    profileId: v.id('profiles'),
+    idempotencyKey: v.string(),
+  })
+    .index('by_canteen', ['canteenId'])
+    .index('by_canteen_ingredient', ['canteenId', 'ingredientId']),
+
+  /**
+   * Plan de production validé par la cuisine (#5) : hypothèses du chef pour une offre. Chaque validation est une
+   * nouvelle ligne (corrections tracées, jamais réécrites) ; la plus récente fait foi.
+   */
+  productionPlans: defineTable({
+    canteenId: v.id('canteens'),
+    menuItemId: v.id('menuItems'),
+    date: v.string(),
+    walkIns: v.number(),
+    margin: v.number(),
+    /** Réservations actives au moment de la validation : sert à mesurer l'écart depuis. */
+    bookedAtValidation: v.number(),
     profileId: v.id('profiles'),
     idempotencyKey: v.string(),
   })
@@ -226,6 +278,44 @@ export default defineSchema({
   })
     .index('by_code_hash', ['codeHash'])
     .index('by_booking', ['bookingId']),
+
+  /**
+   * Liste d'attente (#4) : à chaque place libérée, la plus ancienne inscription qu'elle aide est prévenue puis
+   * retirée ; rien n'est réservé ni débité sans la confirmation de l'usager.
+   */
+  waitlist: defineTable({
+    canteenId: v.id('canteens'),
+    menuItemId: v.id('menuItems'),
+    profileId: v.id('profiles'),
+  })
+    .index('by_menu_item', ['menuItemId'])
+    .index('by_profile', ['profileId']),
+
+  /** Note d'un repas remis (1 à 5), une par réservation ; aucun commentaire libre (pas de donnée à modérer). */
+  ratings: defineTable({
+    canteenId: v.id('canteens'),
+    bookingId: v.id('bookings'),
+    profileId: v.id('profiles'),
+    menuItemId: v.id('menuItems'),
+    dishId: v.id('dishes'),
+    date: v.string(),
+    score: v.number(),
+  })
+    .index('by_booking', ['bookingId'])
+    .index('by_profile_date', ['profileId', 'date'])
+    .index('by_canteen_date', ['canteenId', 'date']),
+
+  /**
+   * Habitudes de l'usager pour l'aide au choix (#3) : jours de la semaine (1 = lundi), budget hebdomadaire,
+   * service, allergènes à éviter. Elles pré-remplissent la demande ; elles ne réservent jamais rien.
+   */
+  mealHabits: defineTable({
+    profileId: v.id('profiles'),
+    weekdays: v.array(v.number()),
+    budgetXof: v.number(),
+    service: v.union(v.literal('any'), v.literal('lunch'), v.literal('dinner')),
+    avoid: v.array(v.string()),
+  }).index('by_profile', ['profileId']),
 
   /** Smart Menu (B1) : quotas et coût IA par usager et par jour. Aucun texte de requête conservé. */
   aiUsage: defineTable({

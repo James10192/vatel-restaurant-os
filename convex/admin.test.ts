@@ -47,7 +47,7 @@ describe('commandes du jour', () => {
 
   test('usager et admin d’un autre établissement : aucun accès', async () => {
     const { studentA, adminB } = await scenario()
-    await expect(studentA.query(api.admin.dayOrders, { date: WEEK, paginationOpts: page })).rejects.toThrow(/administration/)
+    await expect(studentA.query(api.admin.dayOrders, { date: WEEK, paginationOpts: page })).rejects.toThrow(/distribution/)
     expect((await adminB.query(api.admin.dayOrders, { date: WEEK, paginationOpts: page })).page).toHaveLength(0)
     expect((await adminB.query(api.admin.daySummary, { date: WEEK })).offers).toHaveLength(0)
   })
@@ -62,7 +62,7 @@ describe('remise et synthèse', () => {
     await expect(adminA.mutation(api.admin.markPickedUp, { bookingId: dropped })).rejects.toThrow(/annulée/)
     const { offers, totals } = await adminA.query(api.admin.daySummary, { date: WEEK })
     expect(offers).toHaveLength(1)
-    expect(totals).toEqual({ capacity: 10, confirmed: 0, pickedUp: 1, cancelled: 1, remaining: 9, demoAmountXof: 1500 })
+    expect(totals).toEqual({ capacity: 10, confirmed: 0, pickedUp: 1, cancelled: 1, remaining: 9, walkIns: 0, demoAmountXof: 1500 })
   })
 
   test('un repas remis ne peut plus être annulé par l’usager', async () => {

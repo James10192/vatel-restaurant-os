@@ -67,7 +67,9 @@ export function OrderRows({ orders, pending, onPickUp }: RowProps) {
                 <span className="text-sm text-muted-foreground">
                   {order.dishName}, {t(SERVICE_LABELS[order.service]).toLowerCase()}
                 </span>
-                <span className="text-xs text-muted-foreground tabular-nums">{t('Réservé à')} {time(locale).format(order._creationTime)}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {order.slot ? t('Retrait à {slot}', { slot: order.slot }) : `${t('Réservé à')} ${time(locale).format(order._creationTime)}`}
+                </span>
               </div>
               <Badge variant={ORDER_STATUS[order.status].variant}>{t(ORDER_STATUS[order.status].label)}</Badge>
             </div>
@@ -82,7 +84,7 @@ export function OrderRows({ orders, pending, onPickUp }: RowProps) {
             <TableHead>{t('Convive')}</TableHead>
             <TableHead>{t('Plat')}</TableHead>
             <TableHead>{t('Service')}</TableHead>
-            <TableHead>{t('Réservé à')}</TableHead>
+            <TableHead>{t('Créneau')}</TableHead>
             <TableHead>{t('Statut')}</TableHead>
             <TableHead className="text-right">{t('Action')}</TableHead>
           </TableRow>
@@ -93,7 +95,7 @@ export function OrderRows({ orders, pending, onPickUp }: RowProps) {
               <TableCell className="max-w-56 truncate font-medium">{order.diner}</TableCell>
               <TableCell className="max-w-64 truncate">{order.dishName}</TableCell>
               <TableCell className="text-muted-foreground">{t(SERVICE_LABELS[order.service])}</TableCell>
-              <TableCell className="text-muted-foreground tabular-nums">{time(locale).format(order._creationTime)}</TableCell>
+              <TableCell className="text-muted-foreground tabular-nums">{order.slot ?? '-'}</TableCell>
               <TableCell>
                 <Badge variant={ORDER_STATUS[order.status].variant}>{t(ORDER_STATUS[order.status].label)}</Badge>
               </TableCell>

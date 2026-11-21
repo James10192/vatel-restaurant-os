@@ -20,6 +20,7 @@ import { Spinner } from '#/components/ui/spinner'
 import { SERVICE_LABELS, formatDayLong, formatXof } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
+import { SlotSelect } from './slot-select'
 import { AllergyAlert } from '#/features/menus/allergy-alert'
 import type { AllergyAlertData } from '#/features/menus/allergy-alert'
 import { useT , useLocale } from '#/i18n/i18n'
@@ -35,6 +36,7 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
   const t = useT()
   const [open, setOpen] = useState(false)
   const [requestKey, setRequestKey] = useState('')
+  const [slot, setSlot] = useState('')
   const { run, pending, error } = useServerAction(useMutation(api.bookings.book))
   const after = balanceXof - meal.priceXof
 
@@ -42,7 +44,10 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        if (next) setRequestKey(crypto.randomUUID())
+        if (next) {
+          setRequestKey(crypto.randomUUID())
+          setSlot('')
+        }
         setOpen(next)
       }}
     >
@@ -63,6 +68,7 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AllergyAlert alert={meal.allergyAlert} />
+        <SlotSelect menuItemId={meal._id} value={slot} onChange={setSlot} />
         <dl className="flex flex-col gap-2 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted-foreground">{t('Prix')}</dt>
@@ -75,7 +81,7 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
           <Separator />
           <div className="flex justify-between">
             <dt className="text-muted-foreground">{t('Solde après réservation')}</dt>
-            <dd className="font-semibold">{after >= 0 ? formatXof(after) : 'Insuffisant'}</dd>
+            <dd className="font-semibold">{after >= 0 ? formatXof(after) : t('Insuffisant')}</dd>
           </div>
         </dl>
         <FormError message={error} />
@@ -85,7 +91,7 @@ export function BookMealDialog({ meal, balanceXof }: { meal: Meal; balanceXof: n
             <Button
               disabled={pending}
               onClick={async () => {
-                const result = await run({ menuItemId: meal._id, idempotencyKey: requestKey })
+                const result = await run({ menuItemId: meal._id, idempotencyKey: requestKey, slot: slot || undefined })
                 if (result) setOpen(false)
               }}
             >

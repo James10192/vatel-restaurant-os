@@ -18,11 +18,14 @@ export const dayOrdersReturns = paginationResultValidator(
     dishName: v.string(),
     priceXof: v.number(),
     status: bookingStatus,
+    slot: v.optional(v.string()),
     diner: v.string(),
   }),
 )
 
 const dayCounts = {
+  /** Repas servis sans réservation (comptés au comptoir). */
+  walkIns: v.number(),
   capacity: v.number(),
   confirmed: v.number(),
   pickedUp: v.number(),
@@ -79,6 +82,7 @@ export const myBookingsReturns = v.array(
     priceXof: v.number(),
     status: bookingStatus,
     cancellableUntil: v.number(),
+    slot: v.optional(v.string()),
   }),
 )
 

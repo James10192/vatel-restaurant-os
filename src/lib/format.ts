@@ -43,3 +43,15 @@ export function dateFormat(locale: Locale, options: Intl.DateTimeFormatOptions):
   }
   return format
 }
+
+const numbers = new Map<Locale, Intl.NumberFormat>()
+
+/** Nombre décimal dans la langue de l'interface (« 4,5 » en français, « 4.5 » en anglais), 2 décimales au plus. */
+export function formatDecimal(value: number, locale: Locale): string {
+  let format = numbers.get(locale)
+  if (!format) {
+    format = new Intl.NumberFormat(TAG[locale], { maximumFractionDigits: 2 })
+    numbers.set(locale, format)
+  }
+  return format.format(value)
+}

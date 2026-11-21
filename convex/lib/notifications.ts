@@ -31,6 +31,11 @@ export const NOTIFICATIONS = {
     body: 'Elles ferment bientôt. Réservez votre repas avant la clôture.',
     url: '/app',
   },
+  placeFreed: {
+    title: 'Une place s’est libérée',
+    body: 'Un repas que vous attendiez est de nouveau disponible. Réservez-le vite.',
+    url: '/app/bookings',
+  },
 } as const
 
 /** Mêmes notifications en anglais (langue choisie dans l'application, enregistrée avec l'abonnement). */
@@ -63,6 +68,11 @@ export const NOTIFICATIONS_EN: Record<
     body: 'They close soon. Book your meal before closing.',
     url: '/app',
   },
+  placeFreed: {
+    title: 'A place is free',
+    body: 'A meal you were waiting for is available again. Book it soon.',
+    url: '/app/bookings',
+  },
 }
 
 
@@ -72,6 +82,7 @@ export const notificationKindValidator = v.union(
   v.literal('lunchReminder'),
   v.literal('dinnerReminder'),
   v.literal('lowBalance'),
+  v.literal('placeFreed'),
 )
 
 export type NotificationKind = keyof typeof NOTIFICATIONS
@@ -99,6 +110,7 @@ export const CATEGORY_OF: Record<
   lunchReminder: 'bookingReminder',
   dinnerReminder: 'bookingReminder',
   lowBalance: 'lowBalance',
+  placeFreed: 'bookingReminder',
 }
 
 /** Seuil de l'alerte « solde bas » (FCFA, à peu près le prix d'un repas). Le montant n'est jamais affiché. */

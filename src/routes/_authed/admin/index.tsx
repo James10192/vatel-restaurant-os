@@ -11,6 +11,8 @@ import { OffersByService } from '#/features/admin/offers-by-service'
 import { StatTiles } from '#/features/admin/stat-tiles'
 import { ServiceHero } from '#/features/admin/service-hero'
 import { OffersTable } from '#/features/admin/offers-table'
+import { Indicators } from '#/features/admin/indicators'
+import { CopilotSheet } from '#/features/production/copilot-sheet'
 import { ServeQueue } from '#/features/admin/serve-queue'
 import { todayIso } from '#/lib/format'
 import { useMinWidth } from '#/lib/use-min-width'
@@ -44,7 +46,10 @@ function Overview() {
           <h1 className="text-display">{t('Vue d’ensemble')}</h1>
           <p className="text-sm text-muted-foreground">{t('Chiffres réels des réservations, mis à jour en direct.')}</p>
         </div>
-        <DayNav date={date} to="/admin" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <CopilotSheet date={date} />
+          <DayNav date={date} to="/admin" />
+        </div>
       </header>
 
       {offers.length === 0 ? (
@@ -93,6 +98,7 @@ function Overview() {
           <p className="text-xs text-muted-foreground">{t('Montants en crédits de démonstration : aucun encaissement réel n’est effectué.')}</p>
         </>
       )}
+      <Indicators endDate={date} />
     </main>
   )
 }

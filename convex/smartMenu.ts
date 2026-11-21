@@ -15,10 +15,10 @@ import { addDays, todayUtc } from './lib/dates'
 import { cutoffAt, policyOf } from './lib/policy'
 import { sanitizeWish, selectWithAi } from './lib/smartMenu/llm'
 import { configuredModel } from './lib/smartMenu/providers'
-import { evaluate, planByRules, validateAiPicks } from './lib/smartMenu/rules'
-import type { Plan, SmartRequest } from './lib/smartMenu/rules'
+import { alternativesOf, evaluate, planByRules, validateAiPicks } from './lib/smartMenu/rules'
+import type { AllergenInfo, Plan, SmartRequest } from './lib/smartMenu/rules'
 import { QUOTAS, parseRequest, requestArgs, suggestionValidator } from './lib/smartMenu/contract'
-import type { Suggestion } from './lib/smartMenu/contract'
+import type { PublicOffer, Suggestion } from './lib/smartMenu/contract'
 
 
 const NOTICES = {
@@ -99,6 +99,19 @@ export const recordAiTokens = internalMutation({
   },
 })
 
+/** Projection d'une offre pour l'interface : jamais l'indicateur interne « déjà réservé ». */
+const publicOffer = (offer: { id: Id<'menuItems'>; date: string; service: 'lunch' | 'dinner'; dishName: string; priceXof: number; capacity: number; remaining: number; bookableUntil: number; allergens: AllergenInfo }): PublicOffer => ({
+  menuItemId: offer.id,
+  date: offer.date,
+  service: offer.service,
+  dishName: offer.dishName,
+  priceXof: offer.priceXof,
+  capacity: offer.capacity,
+  remaining: offer.remaining,
+  bookableUntil: offer.bookableUntil,
+  allergens: offer.allergens,
+})
+
 type AiMetrics = { model?: string; steps: number; inputTokens: number; outputTokens: number }
 const NO_AI: AiMetrics = { steps: 0, inputTokens: 0, outputTokens: 0 }
 
@@ -117,7 +130,12 @@ export const suggest = action({
       totalXof: plan.totalXof,
       excludedUnknownAllergens: evaluation.excludedUnknownAllergens,
       uncovered: plan.uncovered,
-      picks: plan.picks.map(({ offer: { id, alreadyBooked: _alreadyBooked, ...offer }, reason }) => ({ ...offer, menuItemId: id, reason })),
+      picks: plan.picks.map(({ offer, reason }) => ({
+        ...publicOffer(offer),
+        description: offer.description,
+        reason,
+        alternatives: alternativesOf(evaluation, offer).map(publicOffer),
+      })),
       metrics: { ...(ai ?? NO_AI), latencyMs: Date.now() - started },
     })
 

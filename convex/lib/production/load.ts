@@ -1,6 +1,7 @@
 import type { Doc, Id } from '../../_generated/dataModel'
 import type { QueryCtx } from '../../_generated/server'
-import { addDays } from '../dates'
+import { addDays, todayUtc } from '../dates'
+import { MEMBER_FALLBACK, memberNames } from '../names'
 import type { Recipe } from './plan'
 import { WASTE_REASONS, emptyWaste } from './waste'
 import type { WasteByReason } from './waste'
@@ -17,15 +18,25 @@ const SERVICE_ORDER = { lunch: 0, dinner: 1 } as const
 /** Cumul des événements d'une offre : préparé (null si jamais saisi) et pertes par motif. */
 export function tally(events: Array<Event>) {
   const waste: WasteByReason = emptyWaste()
-  let prepared: number | null = null
+  const sum = { prepared: 0, recovered: 0, walkin: 0 }
   let preparedAt: number | null = null
   for (const e of events) {
-    if (e.kind === 'prepared') {
-      prepared = (prepared ?? 0) + e.portions
-      preparedAt = Math.max(preparedAt ?? 0, e._creationTime)
-    } else if (e.reason) waste[e.reason] += e.portions
+    if (e.kind === 'waste') {
+      if (e.reason) waste[e.reason] += e.portions
+      continue
+    }
+    sum[e.kind] += e.portions
+    if (e.kind === 'prepared') preparedAt = Math.max(preparedAt ?? 0, e._creationTime)
   }
-  return { prepared, preparedAt, waste, wasted: WASTE_REASONS.reduce((n, r) => n + waste[r], 0) }
+  return {
+    // Préparé jamais saisi : inconnu (null), jamais zéro.
+    prepared: events.some((e) => e.kind === 'prepared') ? sum.prepared : null,
+    preparedAt,
+    waste,
+    recovered: sum.recovered,
+    walkIns: sum.walkin,
+    wasted: WASTE_REASONS.reduce((n, r) => n + waste[r], 0),
+  }
 }
 
 /** Fiche technique avec noms lisibles ; null si le plat n'a pas de fiche exploitable. */
@@ -47,20 +58,31 @@ async function resolveRecipe(ctx: QueryCtx, dish: Doc<'dishes'> | null): Promise
   return { portions: dish.recipe.portions, lines }
 }
 
+/** Plan qui fait foi pour une offre : la validation la plus récente (les précédentes restent en base). */
+export const latestPlan = (plans: Array<Doc<'productionPlans'>>, menuItemId: Id<'menuItems'>) =>
+  plans.filter((p) => p.menuItemId === menuItemId).sort((a, b) => b._creationTime - a._creationTime).at(0)
+
 /** Situation d'un jour par offre publiée : réservations, préparé, pertes et fiche technique (trois lectures indexées). */
 export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>, isoDate: string) {
-  const [items, bookings, events] = await Promise.all([
+  const [items, bookings, events, plans] = await Promise.all([
     ctx.db.query('menuItems').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
     ctx.db.query('bookings').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
     ctx.db.query('productionEvents').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
+    ctx.db.query('productionPlans').withIndex('by_canteen_date', (q) => q.eq('canteenId', canteenId).eq('date', isoDate)).collect(),
   ])
+  const names = await memberNames(ctx, [...events.map((e) => e.profileId), ...plans.map((p) => p.profileId)])
+  // Jour passé : une réservation encore « confirmée » n'a pas été retirée (absence).
+  const past = isoDate < todayUtc()
   const offers = await Promise.all(
     items
       .filter((item) => item.status === 'published')
       .map(async (item) => {
         const dish = await ctx.db.get(item.dishId)
         const count = (status: BookingStatus) => bookings.filter((b) => b.menuItemId === item._id && b.status === status).length
-        const { prepared, preparedAt, waste } = tally(events.filter((e) => e.menuItemId === item._id))
+        const ofItem = events.filter((e) => e.menuItemId === item._id)
+        const { prepared, preparedAt, waste, recovered, walkIns } = tally(ofItem)
+        // Dernière validation du plan (les précédentes restent en base : corrections tracées).
+        const plan = latestPlan(plans, item._id)
         return {
           menuItemId: item._id,
           service: item.service,
@@ -69,9 +91,26 @@ export async function loadProductionDay(ctx: QueryCtx, canteenId: Id<'canteens'>
           confirmed: count('confirmed'),
           pickedUp: count('picked_up'),
           cancelled: count('cancelled'),
+          noShow: past ? count('confirmed') : 0,
           prepared,
           preparedAt,
           waste,
+          recovered,
+          /** Repas servis au comptoir sans réservation (comptés par la distribution). */
+          walkIns,
+          lots: ofItem
+            .filter((e) => e.kind === 'prepared')
+            .map((e) => ({ at: e._creationTime, portions: e.portions, by: names.get(e.profileId) ?? MEMBER_FALLBACK })),
+          plan: plan
+            ? {
+                walkIns: plan.walkIns,
+                margin: plan.margin,
+                bookedAtValidation: plan.bookedAtValidation,
+                at: plan._creationTime,
+                by: names.get(plan.profileId) ?? MEMBER_FALLBACK,
+                revisions: plans.filter((p) => p.menuItemId === item._id).length,
+              }
+            : null,
           recipe: await resolveRecipe(ctx, dish),
         }
       }),
@@ -97,3 +136,30 @@ export async function loadWasteWeek(ctx: QueryCtx, canteenId: Id<'canteens'>, en
 }
 
 export type WasteDay = Awaited<ReturnType<typeof loadWasteWeek>>[number]
+
+/** Services passés du même plat pris en compte (les plus récents). */
+const HISTORY_DEPTH = 8
+
+/** Services passés du plat d'une offre (avant elle et avant aujourd'hui) : réservations, absents, préparé, pertes, passages. */
+export async function loadDishHistory(ctx: QueryCtx, item: Doc<'menuItems'>) {
+  // Lecture bornée : les HISTORY_DEPTH services publiés les plus récents avant l'offre (et avant aujourd'hui).
+  const before = item.date < todayUtc() ? item.date : todayUtc()
+  const past = await ctx.db
+    .query('menuItems')
+    .withIndex('by_dish_status', (q) => q.eq('dishId', item.dishId).eq('status', 'published').lt('date', before))
+    .order('desc')
+    .take(HISTORY_DEPTH)
+  return await Promise.all(
+    past.map(async (other) => {
+      const [bookings, events] = await Promise.all([
+        ctx.db.query('bookings').withIndex('by_menu_item_status', (q) => q.eq('menuItemId', other._id)).collect(),
+        ctx.db.query('productionEvents').withIndex('by_menu_item', (q) => q.eq('menuItemId', other._id)).collect(),
+      ])
+      const count = (status: BookingStatus) => bookings.filter((b) => b.status === status).length
+      const { prepared, wasted, walkIns } = tally(events)
+      // Jour passé : « confirmée » restante = repas jamais retiré.
+      const noShow = count('confirmed')
+      return { date: other.date, booked: noShow + count('picked_up'), pickedUp: count('picked_up'), noShow, cancelled: count('cancelled'), prepared, wasted, walkIns }
+    }),
+  )
+}

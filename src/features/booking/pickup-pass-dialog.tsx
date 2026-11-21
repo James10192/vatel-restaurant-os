@@ -14,7 +14,7 @@ import type { Service } from '#/lib/format'
 import { useServerAction } from '#/lib/server-action'
 import { useLocale, useT } from '#/i18n/i18n'
 
-type Booking = { _id: Id<'bookings'>; dishName: string; date: string; service: Service; status: 'confirmed' | 'picked_up' | 'cancelled' }
+type Booking = { _id: Id<'bookings'>; dishName: string; date: string; service: Service; status: 'confirmed' | 'picked_up' | 'cancelled'; slot?: string }
 
 /**
  * QR de retrait. Le code est émis à l'ouverture et n'existe qu'en mémoire (jamais stocké sur l'appareil) ;
@@ -71,6 +71,7 @@ function PickupPassDialog({ booking, code, error, pending, onRenew, onClose }: D
           <DialogTitle>{booking.dishName}</DialogTitle>
           <DialogDescription className="first-letter:uppercase">
             {formatDayLong(booking.date, locale)}, {t(SERVICE_LABELS[booking.service]).toLowerCase()}
+            {booking.slot && <>, {t('retrait à {slot}', { slot: booking.slot })}</>}
           </DialogDescription>
         </DialogHeader>
         {served ? (

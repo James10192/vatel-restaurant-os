@@ -40,7 +40,7 @@ describe('production du jour', () => {
     expect((await offer()).prepared).toBe(6)
     await chefA.mutation(api.production.recordWaste, { menuItemId, portions: 3, reason: 'surplus', idempotencyKey: 'w1' })
     await expect(chefA.mutation(api.production.recordPrepared, { menuItemId, portions: -4, idempotencyKey: 'p2' })).rejects.toThrow(
-      /déjà déclarées perdues/,
+      /déjà servies ou déclarées/,
     )
     await chefA.mutation(api.production.recordPrepared, { menuItemId, portions: -2, idempotencyKey: 'p3' })
     expect(await offer()).toMatchObject({ prepared: 4, waste: { surplus: 3, not_picked_up: 0, kitchen: 0, quality: 0 } })
@@ -52,7 +52,7 @@ describe('production du jour', () => {
       adminA.mutation(api.production.recordWaste, { menuItemId, portions, reason: 'kitchen', idempotencyKey: key })
     await expect(waste(1, 'w0')).rejects.toThrow(/d’abord les portions préparées/)
     await adminA.mutation(api.production.recordPrepared, { menuItemId, portions: 5, idempotencyKey: 'p1' })
-    await expect(waste(5, 'w1')).rejects.toThrow(/Au plus 4 portions/)
+    await expect(waste(5, 'w1')).rejects.toThrow(/Au plus 4 portions peuvent encore être déclarées/)
     await expect(waste(1.5, 'w2')).rejects.toThrow(/entier/)
     await expect(waste(-1, 'w3')).rejects.toThrow(/entier/)
     await waste(4, 'w4')
