@@ -36,7 +36,9 @@ export const daySummaryReturns = v.object({
   totals: v.object({ ...dayCounts, demoAmountXof: v.number() }),
 })
 
-export const dishListReturns = v.array(v.object({ _id: v.id('dishes'), _creationTime: v.number(), ...dishes.validator.fields }))
+export const dishListReturns = v.array(
+  v.object({ _id: v.id('dishes'), _creationTime: v.number(), ...dishes.validator.fields, published: v.boolean() }),
+)
 
 export const adminWeekReturns = v.array(
   v.object({
