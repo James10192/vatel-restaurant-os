@@ -18,6 +18,7 @@ export const EN: Record<string, string> = {
   Gestion: 'Management',
   'Autres pages': 'More pages',
   Affichage: 'Display',
+  'Afficher plus': 'Show more',
   'Thème et langue, propres à cet appareil.': 'Theme and language, for this device only.',
   'Thème : {theme}': 'Theme: {theme}',
   'Rechargez votre compte et suivez chaque mouvement.': 'Top up your account and follow every movement.',

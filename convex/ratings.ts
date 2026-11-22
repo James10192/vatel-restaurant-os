@@ -3,9 +3,8 @@
  * modifiable ; jamais de texte libre. Sert aux indicateurs et aux « menus à améliorer ».
  */
 import { ConvexError, v } from 'convex/values'
-import { mutation, query } from './_generated/server'
+import { mutation } from './_generated/server'
 import { requireMember } from './lib/access'
-import { assertIsoDate } from './lib/validation'
 
 export const rate = mutation({
   args: { bookingId: v.id('bookings'), score: v.number() },
@@ -31,16 +30,5 @@ export const rate = mutation({
         score,
       })
     return null
-  },
-})
-
-/** Notes données par l'usager sur ses repas à partir d'une date (pour afficher ses étoiles). */
-export const mine = query({
-  args: { from: v.string() },
-  returns: v.array(v.object({ bookingId: v.id('bookings'), score: v.number() })),
-  handler: async (ctx, { from }) => {
-    const membership = await requireMember(ctx)
-    const rows = await ctx.db.query('ratings').withIndex('by_profile_date', (q) => q.eq('profileId', membership._id).gte('date', assertIsoDate(from))).collect()
-    return rows.map((r) => ({ bookingId: r.bookingId, score: r.score }))
   },
 })

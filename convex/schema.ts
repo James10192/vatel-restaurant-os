@@ -108,6 +108,8 @@ export default defineSchema({
     slot: v.optional(v.string()),
   })
     .index('by_profile_date', ['profileId', 'date'])
+    // Mes repas : à venir (confirmées, par date) paginées sans lire l'historique.
+    .index('by_profile_status_date', ['profileId', 'status', 'date'])
     .index('by_profile_key', ['profileId', 'idempotencyKey'])
     .index('by_menu_item_status', ['menuItemId', 'status'])
     .index('by_canteen_date', ['canteenId', 'date'])

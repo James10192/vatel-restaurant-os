@@ -65,6 +65,7 @@ import type * as lib_stock_units from "../lib/stock/units.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as lib_waitlist from "../lib/waitlist.js";
 import type * as menus from "../menus.js";
+import type * as myMeals from "../myMeals.js";
 import type * as notificationPreferences from "../notificationPreferences.js";
 import type * as passes from "../passes.js";
 import type * as production from "../production.js";
@@ -144,6 +145,7 @@ declare const fullApi: ApiFromModules<{
   "lib/validation": typeof lib_validation;
   "lib/waitlist": typeof lib_waitlist;
   menus: typeof menus;
+  myMeals: typeof myMeals;
   notificationPreferences: typeof notificationPreferences;
   passes: typeof passes;
   production: typeof production;

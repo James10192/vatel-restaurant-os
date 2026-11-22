@@ -3,7 +3,7 @@ import { mutation, query } from './_generated/server'
 import { getOwned, requireMember } from './lib/access'
 import { assertIdempotencyKey, assertIsoDate } from './lib/validation'
 import { appendEntry, getOrCreateWallet } from './lib/ledger'
-import { bookMeal, requirePolicy, slotLoad } from './lib/booking'
+import { bookMeal, myBookingRow, requirePolicy, slotLoad } from './lib/booking'
 import { alertIfLowBalance } from './lib/lowBalance'
 import { cutoffAt, slotPolicyOf } from './lib/policy'
 import { slotRefusal, slotsOf } from './lib/slots'
@@ -124,17 +124,7 @@ export const mine = query({
       .query('bookings')
       .withIndex('by_profile_date', (q) => q.eq('profileId', membership._id).gte('date', assertIsoDate(from)))
       .collect()
-    return bookings.map((b) => ({
-      _id: b._id,
-      menuItemId: b.menuItemId,
-      date: b.date,
-      service: b.service,
-      dishName: b.dishName,
-      priceXof: b.priceXof,
-      status: b.status,
-      cancellableUntil: cutoffAt(policy, b.date, b.service),
-      slot: b.slot,
-    }))
+    return bookings.map((b) => myBookingRow(b, policy))
   },
 })
 

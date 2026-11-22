@@ -108,3 +108,16 @@ const activeInService = async (ctx: QueryCtx, canteenId: Id<'canteens'>, date: s
 /** Réservations actives par créneau d'un service (pour proposer ou changer un créneau). */
 export const slotLoad = async (ctx: QueryCtx, canteenId: Id<'canteens'>, date: string, service: Service) =>
   countBySlot(await activeInService(ctx, canteenId, date, service))
+
+/** Réservation telle que la voit son auteur (Mes repas, accueil) : jamais d'identifiant d'autrui. */
+export const myBookingRow = (b: Doc<'bookings'>, policy: Policy) => ({
+  _id: b._id,
+  menuItemId: b.menuItemId,
+  date: b.date,
+  service: b.service,
+  dishName: b.dishName,
+  priceXof: b.priceXof,
+  status: b.status,
+  cancellableUntil: cutoffAt(policy, b.date, b.service),
+  slot: b.slot,
+})
