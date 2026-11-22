@@ -39,7 +39,7 @@ export function AuthIntro({ started, onStart, className }: { started: boolean; o
       <div className="mt-auto flex w-full flex-col items-center gap-5 px-6 pt-6 pb-10 text-center md:px-12 md:pb-14">
         <p className={cn('flex items-center gap-3 text-eyebrow text-white/90 drop-shadow-md delay-200 duration-700', reveal)}>
           <span aria-hidden className="h-px w-8 bg-white/40" />
-          {t('Hotel &amp; Tourism Business School')}
+          {t('Hotel & Tourism Business School')}
           <span aria-hidden className="h-px w-8 bg-white/40" />
         </p>
         <h1
