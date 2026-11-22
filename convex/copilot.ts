@@ -10,7 +10,7 @@ import type { Id } from './_generated/dataModel'
 import { action, internalMutation, internalQuery } from './_generated/server'
 import { requireKitchen } from './lib/access'
 import { addAiTokens, takeAiCall } from './lib/aiQuota'
-import { POINT_KINDS, buildPoints, managerPoints, sortPoints } from './lib/copilot/brief'
+import { buildPoints, managerPoints, pointValidator, sortPoints } from './lib/copilot/brief'
 import { managerFacts } from './lib/copilot/facts'
 import type { Point } from './lib/copilot/brief'
 import { checkDraft, draftWithAi } from './lib/copilot/llm'
@@ -49,14 +49,6 @@ export const recordTokens = internalMutation({
   handler: async (ctx, { usageId, ...tokens }) => {
     await addAiTokens(ctx, await requireKitchen(ctx), usageId, tokens)
   },
-})
-
-const pointValidator = v.object({
-  id: v.string(),
-  kind: v.union(...POINT_KINDS.map((kind) => v.literal(kind))),
-  severity: v.union(v.literal('action'), v.literal('watch'), v.literal('info')),
-  message: v.string(),
-  values: v.record(v.string(), v.union(v.string(), v.number())),
 })
 
 const briefReturns = v.object({

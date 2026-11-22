@@ -14,7 +14,7 @@ import { useLivePicks } from './use-live-picks'
 import type { Suggestion } from './smart-menu-sheet'
 import { useLocale, useT } from '#/i18n/i18n'
 
-const UNCOVERED_LABELS = {
+export const UNCOVERED_LABELS = {
   no_menu: 'aucun menu publié',
   unavailable: 'complet, réservations closes ou repas déjà réservé',
   allergens: 'aucun plat compatible avec les allergènes à éviter',

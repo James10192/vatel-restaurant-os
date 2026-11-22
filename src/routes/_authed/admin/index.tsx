@@ -13,6 +13,7 @@ import { ServiceHero } from '#/features/admin/service-hero'
 import { OffersTable } from '#/features/admin/offers-table'
 import { Indicators } from '#/features/admin/indicators'
 import { CopilotSheet } from '#/features/production/copilot-sheet'
+import { ConciergeSheet } from '#/features/concierge/concierge-sheet'
 import { ServeQueue } from '#/features/admin/serve-queue'
 import { todayIso } from '#/lib/format'
 import { useMinWidth } from '#/lib/use-min-width'
@@ -47,7 +48,10 @@ function Overview() {
           <p className="text-sm text-muted-foreground">{t('Chiffres réels des réservations, mis à jour en direct.')}</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <CopilotSheet date={date} />
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <ConciergeSheet look="toolbar" />
+            <CopilotSheet date={date} />
+          </div>
           <DayNav date={date} to="/admin" />
         </div>
       </header>

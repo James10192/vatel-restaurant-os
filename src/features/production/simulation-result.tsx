@@ -27,24 +27,13 @@ const ROWS = [
   { key: 'surplus', label: 'Surplus potentiel' },
 ] as const
 
-/** Avant / après, recommandation déterministe, matière théorique et limites (stock et coût non connus). */
-export function SimulationResult({
-  result,
-  materials,
-  capacity,
-  stock,
-}: {
-  result: Simulation
-  materials: Array<MaterialNeed> | null
-  capacity: number
-  stock: Array<StockRow> | undefined
-}) {
+/** Avant / après, recommandation déterministe et dépassement de capacité : le cœur d'une simulation. */
+export function SimulationVerdict({ result, capacity }: { result: Simulation; capacity: number }) {
   const t = useT()
   const advice = ADVICE[result.recommendation]
   const Icon = advice.icon
-  const delta = Math.max(result.avoidable, result.extra)
   return (
-    <section aria-live="polite" className="flex flex-col gap-4">
+    <>
       <table className="w-full text-sm tabular-nums">
         <thead>
           <tr className="text-muted-foreground">
@@ -85,6 +74,27 @@ export function SimulationResult({
           </AlertDescription>
         </Alert>
       )}
+    </>
+  )
+}
+
+/** Verdict, puis matière théorique et limites (stock et coût non connus). */
+export function SimulationResult({
+  result,
+  materials,
+  capacity,
+  stock,
+}: {
+  result: Simulation
+  materials: Array<MaterialNeed> | null
+  capacity: number
+  stock: Array<StockRow> | undefined
+}) {
+  const t = useT()
+  const delta = Math.max(result.avoidable, result.extra)
+  return (
+    <section aria-live="polite" className="flex flex-col gap-4">
+      <SimulationVerdict result={result} capacity={capacity} />
 
       {delta > 0 && (
         <div className="flex flex-col gap-2">

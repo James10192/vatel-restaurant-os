@@ -140,6 +140,28 @@ export function toProduce(baseline: Baseline, plan: PlanAssumptions | null, date
   return Math.max(0, plannedDemand(baseline, plan) - (date === today ? (baseline.prepared ?? 0) : 0))
 }
 
+/** Offre d'un jour telle que lue par `production.day` (champs utiles aux totaux). */
+export type DayOfferFigures = Baseline & { noShow: number; plan: PlanAssumptions | null }
+
+/**
+ * Totaux d'un jour, une seule définition pour l'écran et l'assistant : réservées = confirmées + remises ;
+ * préparé connu seulement si chaque offre a été saisie (jamais un zéro supposé) ; demande selon le plan validé.
+ */
+export function dayTotals(offers: Array<DayOfferFigures>) {
+  const sum = (value: (o: DayOfferFigures) => number) => offers.reduce((total, o) => total + value(o), 0)
+  return {
+    capacity: sum((o) => o.capacity),
+    booked: sum((o) => o.confirmed + o.pickedUp),
+    confirmed: sum((o) => o.confirmed),
+    pickedUp: sum((o) => o.pickedUp),
+    noShow: sum((o) => o.noShow),
+    prepared: offers.every((o) => o.prepared !== null) ? sum((o) => o.prepared ?? 0) : null,
+    demand: sum((o) => plannedDemand(o, o.plan)),
+    walkIns: sum((o) => o.plan?.walkIns ?? 0),
+    margin: sum((o) => o.plan?.margin ?? 0),
+  }
+}
+
 type DayOffers = { date: string; offers: Array<Baseline & { plan: PlanAssumptions | null; recipe: Recipe | null; dishName: string }> }
 
 /**

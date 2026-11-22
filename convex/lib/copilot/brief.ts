@@ -3,6 +3,7 @@
  * C'est la réponse de référence (et le repli) ; l'IA peut seulement ordonner ces points et les résumer.
  * Chaque point porte un modèle de phrase et ses valeurs : l'interface le traduit, rien n'est inventé.
  */
+import { v } from 'convex/values'
 import { roundQty, situationOf } from '../production/plan'
 import { wasteBalance } from '../production/waste'
 import type { ProductionDayOffer, WasteDay } from '../production/load'
@@ -31,6 +32,14 @@ export type Point = {
   message: string
   values: Record<string, string | number>
 }
+
+export const pointValidator = v.object({
+  id: v.string(),
+  kind: v.union(...POINT_KINDS.map((kind) => v.literal(kind))),
+  severity: v.union(v.literal('action'), v.literal('watch'), v.literal('info')),
+  message: v.string(),
+  values: v.record(v.string(), v.union(v.string(), v.number())),
+})
 
 /** Seuils lisibles et modifiables en un seul endroit (pas de règle cachée dans le code d'affichage). */
 export const THRESHOLDS = { capacityTightPct: 90, wasteHighPct: 10, menuRatingLow: 3.5, menuWasteHighPct: 15, minRatings: 3, minPrepared: 30 } as const

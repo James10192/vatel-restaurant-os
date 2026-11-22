@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { DayNav, parseDateSearch, resolveDate } from '#/features/admin/day'
 import { CopilotSheet } from '#/features/production/copilot-sheet'
+import { ConciergeSheet } from '#/features/concierge/concierge-sheet'
 import { PrepareView } from '#/features/production/prepare-view'
 import { WasteView, wasteWeekQuery } from '#/features/production/waste-view'
 import { WeekView } from '#/features/production/week-view'
@@ -60,7 +61,10 @@ function Production() {
           <p className="text-sm text-muted-foreground">{t('Combien préparer maintenant, et ce qui a vraiment été perdu.')}</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <CopilotSheet date={date} />
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <ConciergeSheet look="toolbar" />
+            <CopilotSheet date={date} />
+          </div>
           <DayNav date={date} to="/admin/production" />
         </div>
       </header>

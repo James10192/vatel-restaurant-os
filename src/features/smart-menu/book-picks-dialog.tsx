@@ -3,7 +3,7 @@ import { useMutation } from 'convex/react'
 import { Link } from '@tanstack/react-router'
 import { CalendarCheckIcon } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
-import type { LivePick } from './use-live-picks'
+import type { BookablePick } from './use-live-picks'
 import { FormError } from '#/components/form-error'
 import {
   AlertDialog,
@@ -26,7 +26,7 @@ import { useLocale, useT } from '#/i18n/i18n'
  * Une confirmation pour tous les repas encore réservables de la proposition. Le serveur réserve tout ou rien
  * (même contrôles qu'une réservation seule) ; la clé créée à l'ouverture évite tout double débit.
  */
-export function BookPicksDialog({ picks, balanceXof }: { picks: Array<LivePick>; balanceXof: number }) {
+export function BookPicksDialog({ picks, balanceXof }: { picks: Array<BookablePick>; balanceXof: number }) {
   const t = useT()
   const { locale } = useLocale()
   const [open, setOpen] = useState(false)

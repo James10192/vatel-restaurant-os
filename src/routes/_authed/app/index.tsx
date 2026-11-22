@@ -18,6 +18,7 @@ import { WeekSwitcher } from '#/features/menus/week-switcher'
 import { BalanceSummary } from '#/features/wallet/balance-summary'
 import { UpcomingMeals } from '#/features/booking/upcoming-meals'
 import { SmartMenuSheet } from '#/features/smart-menu/smart-menu-sheet'
+import { ConciergeSheet } from '#/features/concierge/concierge-sheet'
 import { useT, pageTitle } from '#/i18n/i18n'
 
 export const Route = createFileRoute('/_authed/app/')({
@@ -70,6 +71,7 @@ function MemberHome() {
           </h2>
           <div className="flex flex-wrap items-center gap-2">
             <SmartMenuSheet days={days.filter((d) => d >= today)} menu={items ?? []} balanceXof={balanceXof ?? 0} />
+            <ConciergeSheet />
             <WeekSwitcher week={week} to="/app" />
           </div>
         </div>
