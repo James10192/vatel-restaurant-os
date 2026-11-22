@@ -37,6 +37,7 @@ export const EN: Record<string, string> = {
   Étudiant: 'Student',
   Parent: 'Parent',
   Cuisine: 'Kitchen',
+  Usagers: 'Diners',
   Distribution: 'Serving',
   Apparence: 'Appearance',
   'Apparence :': 'Appearance:',

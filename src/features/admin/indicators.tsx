@@ -15,7 +15,7 @@ import type { Locale } from '#/i18n/i18n'
 
 type Totals = FunctionReturnType<typeof api.analytics.period>['totals']
 type Tile = { label: string; value: string; detail: string }
-
+type Group = { title: string; tiles: Array<Tile> }
 
 /**
  * Indicateurs d'une période (#9). Chaque taux montre son dénominateur ; retrait et absences ne portent que sur
@@ -51,41 +51,67 @@ export function Indicators({ endDate }: { endDate: string }) {
       {!data ? (
         <Skeleton className="h-40 rounded-3xl" />
       ) : (
-        <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-          {tilesOf(data.totals, t, locale).map((tile) => (
-            <li key={tile.label} className="flex flex-col gap-1 rounded-3xl border bg-card p-4 shadow-card">
-              <span className="text-xs text-muted-foreground">{tile.label}</span>
-              <span className="text-2xl leading-none font-bold tracking-tight tabular-nums">{tile.value}</span>
-              <span className="text-xs text-muted-foreground tabular-nums">{tile.detail}</span>
-            </li>
+        // Une carte, trois familles. Mobile : une ligne par indicateur (valeur à droite). Bureau : cellules en grille.
+        <div className="divide-y rounded-3xl border bg-card shadow-card">
+          {groupsOf(data.totals, t, locale).map((group) => (
+            <section key={group.title} aria-label={group.title} className="flex flex-col gap-1 p-4 md:p-5">
+              <h3 className="text-sm font-semibold">{group.title}</h3>
+              <dl className="grid divide-y md:grid-cols-3 md:gap-x-6 md:divide-y-0 xl:grid-cols-5">
+                {group.tiles.map((tile) => (
+                  <div key={tile.label} className="flex items-baseline justify-between gap-4 py-2.5 md:flex-col md:items-start md:justify-start md:gap-1">
+                    <div className="flex min-w-0 flex-col md:order-2">
+                      <dt className="text-sm md:text-xs md:text-muted-foreground">{tile.label}</dt>
+                      <dd className="text-xs text-muted-foreground tabular-nums">{tile.detail}</dd>
+                    </div>
+                    <dd className="shrink-0 text-xl leading-none font-bold tracking-tight tabular-nums md:order-1 md:text-2xl">{tile.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
           ))}
-        </ul>
+        </div>
       )}
     </section>
   )
 }
 
-function tilesOf(totals: Totals, t: (text: string, vars?: Record<string, string | number>) => string, locale: Locale): Array<Tile> {
+function groupsOf(totals: Totals, t: (text: string, vars?: Record<string, string | number>) => string, locale: Locale): Array<Group> {
   const pct = (rate: Totals['pickupRate']) => (rate.value === null ? '?' : `${rate.value} %`)
   const ratio = (rate: Totals['pickupRate'], unit: string) => t('{n} sur {d} {unit}', { n: rate.numerator, d: rate.denominator, unit: t(unit) })
+  const tile = (label: string, value: string, detail: string): Tile => ({ label: t(label), value, detail })
   return [
-    { label: t('Retrait'), value: pct(totals.pickupRate), detail: ratio(totals.pickupRate, 'réservés (services terminés)') },
-    { label: t('Absents'), value: pct(totals.noShowRate), detail: ratio(totals.noShowRate, 'réservés (services terminés)') },
-    { label: t('Annulations'), value: pct(totals.cancelRate), detail: ratio(totals.cancelRate, 'demandes') },
-    { label: t('Pertes'), value: pct(totals.wasteRate), detail: ratio(totals.wasteRate, 'portions préparées') },
-    { label: t('Surplus récupéré'), value: pct(totals.recoveredRate), detail: ratio(totals.recoveredRate, 'portions préparées') },
     {
-      label: t('Satisfaction'),
-      value: totals.rating.value === null ? '?' : `${formatDecimal(totals.rating.value, locale)} / 5`,
-      detail: t(totals.rating.count > 1 ? '{n} notes' : '{n} note', { n: totals.rating.count }),
+      title: t('Service'),
+      tiles: [
+        tile('Retrait', pct(totals.pickupRate), ratio(totals.pickupRate, 'réservés (services terminés)')),
+        tile('Absents', pct(totals.noShowRate), ratio(totals.noShowRate, 'réservés (services terminés)')),
+        tile('Annulations', pct(totals.cancelRate), ratio(totals.cancelRate, 'demandes')),
+        tile('Plats complets', String(totals.soldOut), t('sur {n} offres publiées', { n: totals.offers })),
+        tile('Sans réservation', String(totals.walkIns), t('repas servis au comptoir')),
+      ],
     },
     {
-      label: t('Écart des passages estimés'),
-      value: totals.planError.value === null ? '?' : formatDecimal(totals.planError.value, locale),
-      detail: t('repas par service, sur {n} services planifiés', { n: totals.planError.services }),
+      title: t('Cuisine'),
+      tiles: [
+        tile('Pertes', pct(totals.wasteRate), ratio(totals.wasteRate, 'portions préparées')),
+        tile('Surplus récupéré', pct(totals.recoveredRate), ratio(totals.recoveredRate, 'portions préparées')),
+        tile(
+          'Écart des passages estimés',
+          totals.planError.value === null ? '?' : formatDecimal(totals.planError.value, locale),
+          t('repas par service, sur {n} services planifiés', { n: totals.planError.services }),
+        ),
+      ],
     },
-    { label: t('Plats complets'), value: String(totals.soldOut), detail: t('sur {n} offres publiées', { n: totals.offers }) },
-    { label: t('Sans réservation'), value: String(totals.walkIns), detail: t('repas servis au comptoir') },
-    { label: t('Crédits engagés'), value: formatXof(totals.demoCreditsXof), detail: t('{n} réservations, crédits de démonstration', { n: totals.booked }) },
+    {
+      title: t('Usagers'),
+      tiles: [
+        tile(
+          'Satisfaction',
+          totals.rating.value === null ? '?' : `${formatDecimal(totals.rating.value, locale)} / 5`,
+          t(totals.rating.count > 1 ? '{n} notes' : '{n} note', { n: totals.rating.count }),
+        ),
+        tile('Crédits engagés', formatXof(totals.demoCreditsXof), t('{n} réservations, crédits de démonstration', { n: totals.booked })),
+      ],
+    },
   ]
 }
