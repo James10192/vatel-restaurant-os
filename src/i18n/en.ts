@@ -97,7 +97,7 @@ export const EN: Record<string, string> = {
   'jusque dans votre assiette.': 'right down to your plate.',
   'Consultez les menus de la semaine, réservez votre repas et suivez votre solde en quelques gestes.':
     'Browse this week’s menus, book your meal and track your balance in a few taps.',
-  'Hotel &amp; Tourism Business School': 'Hotel &amp; Tourism Business School',
+  'Hotel & Tourism Business School': 'Hotel & Tourism Business School',
   'Prototype étudiant du hackathon Vatel × Epitech. Données fictives.':
     'Student prototype from the Vatel × Epitech hackathon. Fictitious data.',
   'Compte en attente de rattachement': 'Account awaiting approval',
