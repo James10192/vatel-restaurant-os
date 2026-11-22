@@ -24,10 +24,11 @@ export function AuthIntro({ started, onStart, className }: { started: boolean; o
       <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-t from-vatel-navy from-45% via-vatel-navy/20 via-60% to-transparent md:from-15% md:via-vatel-navy/75 md:via-55% md:to-vatel-navy/25" />
 
       <header className={cn('flex items-center gap-3 p-6 duration-700 md:p-10', reveal)}>
-        <span className="rounded-lg bg-white p-1.5 shadow-sm">
+        <span className="shrink-0 rounded-lg bg-white p-1.5 shadow-sm">
           <BrandLogo className="h-11" />
         </span>
-        <span className="text-xs font-semibold tracking-[0.2em] uppercase">{t('Restauration')}</span>
+        {/* Le nom du service à côté du logo, dès que la place le permet (sur mobile, les réglages ont priorité). */}
+        <span className="hidden text-sm font-semibold sm:inline">{t('Restauration')}</span>
         {!started && (
           <div className="ml-auto flex gap-2">
             <LanguageToggle onImage />
@@ -37,11 +38,6 @@ export function AuthIntro({ started, onStart, className }: { started: boolean; o
       </header>
 
       <div className="mt-auto flex w-full flex-col items-center gap-5 px-6 pt-6 pb-10 text-center md:px-12 md:pb-14">
-        <p className={cn('flex items-center gap-3 text-eyebrow text-white/90 drop-shadow-md delay-200 duration-700', reveal)}>
-          <span aria-hidden className="h-px w-8 bg-white/40" />
-          {t('Hotel &amp; Tourism Business School')}
-          <span aria-hidden className="h-px w-8 bg-white/40" />
-        </p>
         <h1
           className={cn(
             'max-w-4xl text-[2.5rem] leading-[1.05] font-bold tracking-[-0.03em] delay-300 duration-700 md:text-6xl lg:text-7xl',
