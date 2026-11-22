@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { ListSkeleton } from '#/components/page-skeleton'
 import { convexQuery } from '@convex-dev/react-query'
 import { PackageIcon, PackageMinusIcon, PackagePlusIcon, ScaleIcon } from 'lucide-react'
 import { api } from '../../../../convex/_generated/api'
@@ -16,6 +17,7 @@ const overviewQuery = convexQuery(api.stock.overview, {})
 
 export const Route = createFileRoute('/_authed/admin/stocks')({
   loader: ({ context }) => context.queryClient.ensureQueryData(overviewQuery),
+  pendingComponent: ListSkeleton,
   head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Stocks') }] }),
   component: Stocks,
 })

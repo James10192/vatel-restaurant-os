@@ -4,7 +4,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { currentUserQuery } from '#/lib/session'
 import { cn } from '#/lib/utils'
 import { useT } from '#/i18n/i18n'
-import { PROFILE_NAV, TAB_BAR_PAGES, navFor } from './nav-model'
+import { PROFILE_NAV, TAB_BAR_PAGES, navFor, normalizePath } from './nav-model'
 import type { NavItem } from './nav-model'
 
 /** Au-delà de ce déplacement (px), un appui devient un glissement : on suit le doigt au lieu d'ouvrir l'onglet. */
@@ -107,7 +107,7 @@ export function GlassTabBar() {
  * Le premier onglet est l'accueil du rôle (`/app`, `/admin`) : préfixe de tout, il ne compte qu'en exact.
  */
 function activeIndex(tabs: Array<NavItem>, pathname: string) {
-  const path = pathname.replace(/\/+$/, '') || '/'
+  const path = normalizePath(pathname)
   const exact = tabs.findIndex((tab) => tab.to === path)
   if (exact >= 0) return exact
   let best = -1

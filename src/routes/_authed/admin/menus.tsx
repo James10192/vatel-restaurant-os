@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { PlannerSkeleton } from '#/components/page-skeleton'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation } from 'convex/react'
 import { SendIcon } from 'lucide-react'
@@ -20,6 +21,7 @@ export const Route = createFileRoute('/_authed/admin/menus')({
   validateSearch: parseWeekSearch,
   loaderDeps: ({ search }) => ({ week: resolveWeek(search.week) }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(weekQuery(deps.week)),
+  pendingComponent: PlannerSkeleton,
   head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Menus') }] }),
   component: AdminMenus,
 })

@@ -1,8 +1,8 @@
-import { Link, useMatchRoute } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { BrandLogo } from '#/components/brand-logo'
 import { InstallIconButton } from '#/components/install-icon-button'
-import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV, PROFILE_NAV, TAB_BAR_PAGES, staffNav } from '#/components/shell/nav-model'
+import { ACTIVE_OPTIONS, ADMIN_NAV, MEAL_NAV, PROFILE_NAV, TAB_BAR_PAGES, normalizePath, staffNav } from '#/components/shell/nav-model'
 import { currentUserQuery } from '#/lib/session'
 import { useT } from '#/i18n/i18n'
 
@@ -13,9 +13,10 @@ import { useT } from '#/i18n/i18n'
 export function MobileBrand() {
   const t = useT()
   const { data: user } = useSuspenseQuery(currentUserQuery)
-  const matchRoute = useMatchRoute()
-  if (matchRoute({ to: '/app' })) return null
-  const page = [...MEAL_NAV, PROFILE_NAV, ...ADMIN_NAV].find(({ to }) => matchRoute({ to }))
+  // Chemin de destination (mis à jour dès le clic) : l'en-tête suit la page qui charge, pas l'ancienne.
+  const path = normalizePath(useLocation().pathname)
+  if (path === '/app') return null
+  const page = [...MEAL_NAV, PROFILE_NAV, ...ADMIN_NAV].find(({ to }) => to === path)
   const Icon = page?.icon
   return (
     <header className="flex items-center justify-between gap-4 px-4 pt-5 pb-2 md:hidden">

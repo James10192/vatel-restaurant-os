@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { DashboardSkeleton } from '#/components/page-skeleton'
 import { convexQuery } from '@convex-dev/react-query'
 import { ChefHatIcon } from 'lucide-react'
 import { api } from '../../../../convex/_generated/api'
@@ -34,6 +35,7 @@ export const Route = createFileRoute('/_authed/admin/production')({
   loaderDeps: ({ search }) => ({ date: resolveDate(search.date) }),
   loader: ({ context, deps }) =>
     Promise.all([context.queryClient.ensureQueryData(dayQuery(deps.date)), context.queryClient.ensureQueryData(wasteWeekQuery(deps.date))]),
+  pendingComponent: DashboardSkeleton,
   head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Production') }] }),
   component: Production,
 })

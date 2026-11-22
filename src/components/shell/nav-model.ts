@@ -54,6 +54,9 @@ export const navFor = (role: string | undefined): Array<NavItem> => (isStaff(rol
 /** Page d'accueil d'un rôle (après connexion, logo, redirections). */
 export const homeOf = (role: string | undefined): NavTo => navFor(role)[0].to
 
+/** Chemin comparable aux `to` de la navigation : sans barre oblique finale (`/admin/` = `/admin`). */
+export const normalizePath = (pathname: string) => pathname.replace(/\/+$/, '') || '/'
+
 /** Liens actifs sur le chemin seul : `?date=` ou `?week=` ne doivent pas éteindre l'onglet. */
 export const ACTIVE_OPTIONS = { exact: true, includeSearch: false } as const
 

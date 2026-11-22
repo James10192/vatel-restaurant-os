@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { DashboardSkeleton } from '#/components/page-skeleton'
 import { convexQuery } from '@convex-dev/react-query'
 import { useMutation, usePaginatedQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
@@ -53,6 +54,7 @@ export const Route = createFileRoute('/_authed/admin/services')({
   validateSearch: parseSearch,
   loaderDeps: ({ search }) => ({ date: resolveDate(search.date) }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(summaryQuery(deps.date)),
+  pendingComponent: DashboardSkeleton,
   head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Commandes du jour') }] }),
   component: DayOrders,
 })

@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
+import { DashboardSkeleton } from '#/components/page-skeleton'
 import { convexQuery } from '@convex-dev/react-query'
 import { ClipboardListIcon, SoupIcon } from 'lucide-react'
 import { api } from '../../../../convex/_generated/api'
@@ -26,6 +27,7 @@ export const Route = createFileRoute('/_authed/admin/')({
   validateSearch: parseDateSearch,
   loaderDeps: ({ search }) => ({ date: resolveDate(search.date) }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(summaryQuery(deps.date)),
+  pendingComponent: DashboardSkeleton,
   head: ({ match }) => ({ meta: [{ title: pageTitle(match.context.locale, 'Vue d’ensemble') }] }),
   component: Overview,
 })

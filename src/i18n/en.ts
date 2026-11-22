@@ -1027,6 +1027,7 @@ export const EN: Record<string, string> = {
   'repas par service, sur {n} services planifiés': 'meals per service, over {n} planned services',
   // Assistant conversationnel (#45)
   Assistant: 'Assistant',
+  'Chargement de la page': 'Loading page',
   'Assistant Vatel': 'Vatel assistant',
   'Réponses vérifiées sur vos données': 'Answers checked against your data',
   'Nouvelle conversation': 'New conversation',
