@@ -14,6 +14,7 @@ import { DayBrowser, WeekPlanner } from '#/features/menus/week-planner'
 import { addDays, parseWeekSearch, resolveWeek } from '#/features/menus/week'
 import { WeekSwitcher } from '#/features/menus/week-switcher'
 import { useT, pageTitle } from '#/i18n/i18n'
+import { PageHeader } from '#/components/page-header'
 
 const weekQuery = (weekStart: string) => convexQuery(api.menus.adminWeek, { weekStart })
 
@@ -44,27 +45,24 @@ function AdminMenus() {
   const days = Array.from({ length: 7 }, (_, i) => addDays(week, i))
 
   return (
-    <main className="workspace flex flex-col gap-6 pt-6 pb-10 md:pt-8">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-        <div className="flex flex-col gap-1.5">
-          <p className="text-eyebrow text-muted-foreground">{t('Carte de la semaine')}</p>
-          <h1 className="text-display">{t('Menus')}</h1>
-          <p className="max-w-md text-sm text-muted-foreground">
-            {t('Composez les services, puis publiez : les brouillons restent invisibles des usagers.')}
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-between xl:flex-nowrap xl:gap-6">
-          <dl className="grid grid-cols-3 divide-x rounded-2xl border bg-card shadow-card lg:min-w-md">
-            {stats.map(({ label, value }) => (
-              <div key={label} className="flex flex-col gap-0.5 px-3 py-2.5 sm:px-4">
-                <dt className="text-xs text-muted-foreground">{t(label)}</dt>
-                <dd className="text-xl font-bold tracking-tight tabular-nums">{value}</dd>
-              </div>
-            ))}
-          </dl>
-          <WeekSwitcher week={week} to="/admin/menus" />
-        </div>
-      </header>
+    <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
+      <PageHeader
+        title={t('Menus')}
+        description={t('Composez les services, puis publiez : les brouillons restent invisibles des usagers.')}
+        actions={
+          <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-between xl:flex-nowrap xl:gap-6">
+            <dl className="grid grid-cols-3 divide-x rounded-2xl border bg-card shadow-card lg:min-w-md">
+              {stats.map(({ label, value }) => (
+                <div key={label} className="flex flex-col gap-0.5 px-3 py-2.5 sm:px-4">
+                  <dt className="text-xs text-muted-foreground">{t(label)}</dt>
+                  <dd className="text-xl font-bold tracking-tight tabular-nums">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <WeekSwitcher week={week} to="/admin/menus" />
+          </div>
+        }
+      />
 
       <WeekPlanner days={days} items={items} today={today} />
       <DayBrowser days={days} items={items} today={today} />

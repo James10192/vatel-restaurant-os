@@ -11,7 +11,6 @@ function Header() {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="flex flex-col gap-2">
-        <Skeleton className="h-3 w-20" />
         <Skeleton className="h-9 w-56 md:h-11 md:w-72" />
         <Skeleton className="h-4 w-64 max-w-full" />
       </div>

@@ -16,6 +16,7 @@ import { WeekView } from '#/features/production/week-view'
 import { SERVICE_LABELS, todayIso } from '#/lib/format'
 import type { Service } from '#/lib/format'
 import { pageTitle, useT } from '#/i18n/i18n'
+import { PageHeader } from '#/components/page-header'
 
 const dayQuery = (date: string) => convexQuery(api.production.day, { date })
 const VIEWS = ['preparer', 'semaine', 'pertes'] as const
@@ -55,21 +56,20 @@ function Production() {
   const canRecord = date <= todayIso()
 
   return (
-    <main className="workspace flex flex-col gap-5 py-6 md:py-8">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-1">
-          <p className="text-eyebrow text-muted-foreground">{t('Cuisine')}</p>
-          <h1 className="text-display">{t('Production')}</h1>
-          <p className="text-sm text-muted-foreground">{t('Combien préparer maintenant, et ce qui a vraiment été perdu.')}</p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="grid grid-cols-2 gap-2 sm:flex">
-            <ConciergeSheet look="toolbar" />
-            <CopilotSheet date={date} />
+    <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
+      <PageHeader
+        title={t('Production')}
+        description={t('Combien préparer maintenant, et ce qui a vraiment été perdu.')}
+        actions={
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <ConciergeSheet look="toolbar" />
+              <CopilotSheet date={date} />
+            </div>
+            <DayNav date={date} to="/admin/production" />
           </div>
-          <DayNav date={date} to="/admin/production" />
-        </div>
-      </header>
+        }
+      />
 
       <Tabs value={search.vue ?? 'preparer'} onValueChange={(vue) => navigate({ search: (prev) => ({ ...prev, vue: vue as View }) })}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

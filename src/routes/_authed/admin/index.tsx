@@ -20,6 +20,7 @@ import { todayIso } from '#/lib/format'
 import { useMinWidth } from '#/lib/use-min-width'
 import { weekStartOf } from '../../../../convex/lib/dates'
 import { useT , useLocale, pageTitle } from '#/i18n/i18n'
+import { PageHeader } from '#/components/page-header'
 
 const summaryQuery = (date: string) => convexQuery(api.admin.daySummary, { date })
 
@@ -43,20 +44,19 @@ function Overview() {
   const wide = useMinWidth(1280)
   return (
     <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="flex flex-col gap-1">
-          <p className="text-eyebrow text-muted-foreground">{t('Pilotage')}</p>
-          <h1 className="text-display">{t('Vue d’ensemble')}</h1>
-          <p className="text-sm text-muted-foreground">{t('Chiffres réels des réservations, mis à jour en direct.')}</p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="grid grid-cols-2 gap-2 sm:flex">
-            <ConciergeSheet look="toolbar" />
-            <CopilotSheet date={date} />
+      <PageHeader
+        title={t('Vue d’ensemble')}
+        description={t('Chiffres réels des réservations, mis à jour en direct.')}
+        actions={
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <ConciergeSheet look="toolbar" />
+              <CopilotSheet date={date} />
+            </div>
+            <DayNav date={date} to="/admin" />
           </div>
-          <DayNav date={date} to="/admin" />
-        </div>
-      </header>
+        }
+      />
 
       {offers.length === 0 ? (
         <Card className="rounded-3xl">

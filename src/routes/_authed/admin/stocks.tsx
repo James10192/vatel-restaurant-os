@@ -12,6 +12,7 @@ import { RecentMovements } from '#/features/stock/recent-movements'
 import { StockAlerts } from '#/features/stock/stock-alerts'
 import { StockTable } from '#/features/stock/stock-table'
 import { pageTitle, useT } from '#/i18n/i18n'
+import { PageHeader } from '#/components/page-header'
 
 const overviewQuery = convexQuery(api.stock.overview, {})
 
@@ -37,15 +38,12 @@ function Stocks() {
     </div>
   )
   return (
-    <main className="workspace flex flex-col gap-5 py-6 md:py-8">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-1">
-          <p className="text-eyebrow text-muted-foreground">{t('Cuisine')}</p>
-          <h1 className="text-display">{t('Stocks')}</h1>
-          <p className="text-sm text-muted-foreground">{t('Réserve théorique et comptée, besoins jusqu’à dimanche, dates limites et achats.')}</p>
-        </div>
-        {actions}
-      </header>
+    <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
+      <PageHeader
+        title={t('Stocks')}
+        description={t('Réserve théorique et comptée, besoins jusqu’à dimanche, dates limites et achats.')}
+        actions={actions}
+      />
       {rows.length === 0 ? (
         <Empty className="rounded-3xl border">
           <EmptyHeader>

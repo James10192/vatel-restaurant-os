@@ -15,6 +15,7 @@ import { DishForm } from '#/features/menus/dish-form'
 import { DishDetail } from '#/features/recipes/dish-sheet-detail'
 import { IngredientAllergens } from '#/features/recipes/ingredient-allergens'
 import { useT, pageTitle } from '#/i18n/i18n'
+import { PageHeader } from '#/components/page-header'
 
 type Search = { plat?: string; onglet?: 'ingredients' }
 
@@ -42,14 +43,11 @@ function RecipesPage() {
   const detailShown = creating || Boolean(selected)
 
   return (
-    <main className="workspace flex flex-col gap-6 py-6 md:py-8">
-      <header className="flex flex-col gap-1">
-        <p className="text-eyebrow text-muted-foreground">{t('Cuisine')}</p>
-        <h1 className="text-display">{t('Fiches techniques')}</h1>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          {t('Composition exacte de chaque plat, quantités brutes et pertes à la préparation ; les allergènes du plat sont déduits de ceux de ses ingrédients.')}
-        </p>
-      </header>
+    <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
+      <PageHeader
+        title={t('Fiches techniques')}
+        description={t('Composition exacte de chaque plat, quantités brutes et pertes à la préparation ; les allergènes du plat sont déduits de ceux de ses ingrédients.')}
+      />
 
       <Tabs
         value={search.onglet ?? 'plats'}

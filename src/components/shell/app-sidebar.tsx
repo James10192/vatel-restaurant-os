@@ -5,7 +5,7 @@ import { BrandLogo } from '#/components/brand-logo'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { ROLE_LABELS, currentUserQuery } from '#/lib/session'
 import { AccountMenu } from './account-menu'
-import { ACTIVE_OPTIONS, homeOf, initials, isStaff, navFor } from './nav-model'
+import { ACTIVE_OPTIONS, homeOf, initials, navFor, spaceTitle } from './nav-model'
 import type { NavItem } from './nav-model'
 import { useT } from '#/i18n/i18n'
 
@@ -19,7 +19,6 @@ export function AppSidebar() {
   const t = useT()
   const { data: user } = useSuspenseQuery(currentUserQuery)
   const role = user?.membership?.role
-  const staff = isStaff(role)
   return (
     <aside
       aria-label={t('Navigation principale')}
@@ -35,7 +34,7 @@ export function AppSidebar() {
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-2 xl:px-0">
         {/* Un seul espace par rôle : la gestion pour le personnel, l'espace repas pour les usagers. */}
-        <NavSection title={staff ? 'Gestion' : 'Espace repas'} items={navFor(role)} />
+        <NavSection title={spaceTitle(role)} items={navFor(role)} />
       </nav>
 
       <AccountMenu

@@ -16,6 +16,7 @@ import { addDays } from '../../../../convex/lib/dates'
 import { ChangeSlotDialog } from '#/features/booking/change-slot-dialog'
 import type { MyBooking } from '#/features/menus/meal-card'
 import { useT , useLocale, pageTitle } from '#/i18n/i18n'
+import { PageHeader } from '#/components/page-header'
 
 const STATUS: Record<MyBooking['status'], { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
   confirmed: { label: 'Confirmée', variant: 'default' },
@@ -47,25 +48,25 @@ function BookingsPage() {
   const cancellable = (b: MyBooking) => b.status === 'confirmed' && now < b.cancellableUntil
 
   return (
-    <main className="workspace flex flex-col gap-6 pt-2 pb-8 md:pt-8">
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="flex flex-col gap-1">
-          <p className="text-eyebrow text-muted-foreground">{t('Réservations')}</p>
-          <h1 className="text-display">{t('Mes repas')}</h1>
-        </div>
-        {!isPending && (bookings?.length ?? 0) > 0 && (
-          <dl className="grid grid-cols-2 divide-x rounded-2xl border bg-card shadow-card md:min-w-80">
-            <div className="flex flex-col gap-0.5 px-4 py-2.5">
-              <dt className="text-xs text-muted-foreground">{t('À venir')}</dt>
-              <dd className="text-xl font-bold tabular-nums">{upcoming.length}</dd>
-            </div>
-            <div className="flex flex-col gap-0.5 px-4 py-2.5">
-              <dt className="text-xs text-muted-foreground">{t('Crédits engagés')}</dt>
-              <dd className="text-xl font-bold tabular-nums">{formatXof(engagedXof)}</dd>
-            </div>
-          </dl>
-        )}
-      </header>
+    <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
+      <PageHeader
+        title={t('Mes repas')}
+        actions={
+          !isPending &&
+          (bookings?.length ?? 0) > 0 && (
+            <dl className="grid grid-cols-2 divide-x rounded-2xl border bg-card shadow-card md:min-w-80">
+              <div className="flex flex-col gap-0.5 px-4 py-2.5">
+                <dt className="text-xs text-muted-foreground">{t('À venir')}</dt>
+                <dd className="text-xl font-bold tabular-nums">{upcoming.length}</dd>
+              </div>
+              <div className="flex flex-col gap-0.5 px-4 py-2.5">
+                <dt className="text-xs text-muted-foreground">{t('Crédits engagés')}</dt>
+                <dd className="text-xl font-bold tabular-nums">{formatXof(engagedXof)}</dd>
+              </div>
+            </dl>
+          )
+        }
+      />
 
       {isPending ? (
         <Skeleton className="h-40 rounded-3xl" />

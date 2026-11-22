@@ -28,6 +28,7 @@ import { currentUserQuery } from '#/lib/session'
 import { ORDER_STATUS, OrderRows } from '#/features/admin/orders'
 import type { OrderStatus } from '#/features/admin/orders'
 import { useT, pageTitle } from '#/i18n/i18n'
+import { PageHeader } from '#/components/page-header'
 
 const PAGE_SIZE = 25
 const summaryQuery = (date: string) => convexQuery(api.admin.daySummary, { date })
@@ -80,19 +81,18 @@ function DayOrders() {
   const activeFilters = Number(Boolean(search.service)) + Number(Boolean(item))
 
   return (
-    <main className="workspace flex flex-col gap-5 py-6 md:py-8">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-1">
-          <p className="text-eyebrow text-muted-foreground">{t('Service')}</p>
-          <h1 className="text-display">{t('Commandes du jour')}</h1>
-          <p className="text-sm text-muted-foreground">{t('Repas réservés, à servir et remis, mis à jour en temps réel.')}</p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          {date === todayIso() && <PassScanner />}
-          {isAdmin && <ServiceSettings />}
-          <DayNav date={date} to="/admin/services" />
-        </div>
-      </header>
+    <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
+      <PageHeader
+        title={t('Commandes du jour')}
+        description={t('Repas réservés, à servir et remis, mis à jour en temps réel.')}
+        actions={
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            {date === todayIso() && <PassScanner />}
+            {isAdmin && <ServiceSettings />}
+            <DayNav date={date} to="/admin/services" />
+          </div>
+        }
+      />
 
       {/* Barre de travail : compteurs par statut toujours visibles ; filtres en ligne dès la tablette, en Sheet sur mobile. */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">

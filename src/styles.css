@@ -187,12 +187,12 @@
   font-weight: 700;
 }
 
+/* Petite étiquette (en-têtes de tableau, jour, service) : casse de phrase, jamais de capitales espacées. */
 @utility text-eyebrow {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   line-height: 1rem;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  font-weight: 500;
 }
 
 /* Retour tactile immédiat à l'appui ; neutralisé si l'usager réduit les animations. */

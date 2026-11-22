@@ -31,7 +31,7 @@ function AppHome() {
   const { data: user } = useSuspenseQuery(currentUserQuery)
   const firstName = user?.name.split(' ')[0] ?? ''
   return (
-    <main className="workspace flex flex-col gap-6 pt-6 pb-8 md:pt-8 xl:pb-12">
+    <main className="workspace flex flex-col gap-6 py-6 md:py-8 xl:py-10">
       <HomeGreeting firstName={firstName} canteenName={user?.membership?.canteenName} />
       {user?.membership ? <MemberHome /> : <PendingAccount />}
     </main>

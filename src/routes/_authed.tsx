@@ -1,5 +1,4 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
-import { MobileBrand } from '#/components/app-header'
 import { GlassTabBar } from '#/components/shell/glass-tab-bar'
 import { AppSidebar } from '#/components/shell/app-sidebar'
 import { currentUserQuery } from '#/lib/session'
@@ -23,7 +22,6 @@ function AuthedLayout() {
   return (
     <div className="flex min-h-svh flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 md:pl-19 xl:pl-64">
       <AppSidebar />
-      <MobileBrand />
       <Outlet />
       <GlassTabBar />
     </div>

@@ -51,6 +51,10 @@ export const TAB_BAR_PAGES = 4
  */
 export const isStaff = (role: string | undefined) => staffNav(role).length > 0
 export const navFor = (role: string | undefined): Array<NavItem> => (isStaff(role) ? staffNav(role) : MEAL_NAV)
+/** Intitulé de l'espace dans la barre latérale : le métier de la personne, pas une catégorie technique. */
+const SPACE_TITLES: Record<string, string> = { admin: 'Administration', chef: 'Cuisine', distribution: 'Distribution' }
+export const spaceTitle = (role: string | undefined) => SPACE_TITLES[role ?? ''] ?? 'Espace repas'
+
 /** Page d'accueil d'un rôle (après connexion, logo, redirections). */
 export const homeOf = (role: string | undefined): NavTo => navFor(role)[0].to
 
